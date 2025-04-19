@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building, FileText } from 'lucide-react';
+import { Building, FileText, Calendar, User, Tool, AlertTriangle, MessageSquare } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,8 @@ export default function Assistencias() {
   const [isNewAssistanceDialogOpen, setIsNewAssistanceDialogOpen] = useState(false);
   const [isAssistanceFormOpen, setIsAssistanceFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   // Fetch list of assistances
   const { data: assistances, isLoading: isAssistancesLoading, refetch: refetchAssistances } = useQuery({
@@ -94,8 +96,8 @@ export default function Assistencias() {
             ...formData,
             interaction_token,
             building_id: selectedBuilding?.id,
-            status: 'Pendente Resposta Inicial', // Set initial status
-            alert_level: 1 // Default value
+            status: 'Pendente Resposta Inicial',
+            alert_level: 1
           }
         ])
         .select();
@@ -109,7 +111,7 @@ export default function Assistencias() {
       toast.success('Assistência criada com sucesso!');
       setIsAssistanceFormOpen(false);
       setSelectedBuilding(null);
-      await refetchAssistances(); // Refresh the data
+      await refetchAssistances();
     } catch (error) {
       console.error('Erro ao criar assistência:', error);
       toast.error('Erro ao criar assistência. Tente novamente.');
@@ -118,12 +120,28 @@ export default function Assistencias() {
     }
   };
 
-  // Format the date for display
+  const handleViewAssistance = (assistance: any) => {
+    setSelectedAssistance(assistance);
+    setIsViewDialogOpen(true);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-PT', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+    });
+  };
+
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return 'Não agendado';
+    
+    return new Date(dateString).toLocaleString('pt-PT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -226,6 +244,102 @@ export default function Assistencias() {
           </DialogContent>
         </Dialog>
 
+        {/* View Assistance Details Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="sm:max-w-[700px]">
+            <DialogHeader>
+              <DialogTitle>Detalhes da Assistência</DialogTitle>
+              <DialogDescription>
+                Informações detalhadas da solicitação de assistência.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedAssistance && (
+              <div className="space-y-6 py-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                      <Building className="h-4 w-4" /> Edifício
+                    </h3>
+                    <p className="mt-1 text-base">{selectedAssistance.buildings?.name}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                      <Tool className="h-4 w-4" /> Tipo de Intervenção
+                    </h3>
+                    <p className="mt-1 text-base">{selectedAssistance.intervention_types?.name}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                      <User className="h-4 w-4" /> Fornecedor
+                    </h3>
+                    <p className="mt-1 text-base">{selectedAssistance.suppliers?.name}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                      <AlertTriangle className="h-4 w-4" /> Status
+                    </h3>
+                    <p className="mt-1 text-base">{selectedAssistance.status}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4" /> Data Criação
+                    </h3>
+                    <p className="mt-1 text-base">{formatDate(selectedAssistance.created_at)}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4" /> Agendamento
+                    </h3>
+                    <p className="mt-1 text-base">{formatDateTime(selectedAssistance.scheduled_datetime)}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                    <MessageSquare className="h-4 w-4" /> Descrição
+                  </h3>
+                  <p className="mt-1 text-base whitespace-pre-wrap">{selectedAssistance.description}</p>
+                </div>
+                
+                {selectedAssistance.photo_path && (
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Foto</h3>
+                    <div className="mt-2 max-w-full overflow-hidden rounded-md border">
+                      <img 
+                        src={selectedAssistance.photo_path} 
+                        alt="Foto da assistência" 
+                        className="h-auto w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {selectedAssistance.admin_notes && (
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Notas Administrativas</h3>
+                    <p className="mt-1 text-sm whitespace-pre-wrap">{selectedAssistance.admin_notes}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsViewDialogOpen(false)}
+              >
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Assistance Listing */}
         <div className="bg-white/5 rounded-3xl p-6 backdrop-blur-lg shadow-xl mt-8">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -271,7 +385,11 @@ export default function Assistencias() {
                       <td className="px-4 py-3 text-[#cbd5e1]">{assistance.type}</td>
                       <td className="px-4 py-3 text-center text-[#8E9196]">{formatDate(assistance.created_at)}</td>
                       <td className="px-4 py-3">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewAssistance(assistance)}
+                        >
                           Ver
                         </Button>
                       </td>
