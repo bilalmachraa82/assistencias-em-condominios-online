@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
 import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
 const menuItems = [{
   icon: Home,
   label: 'Dashboard',
@@ -25,10 +27,12 @@ const menuItems = [{
   label: 'Configurações',
   href: '/configuracoes'
 }];
+
 export default function DashboardLayout() {
-  return <SidebarProvider>
+  return (
+    <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <Sidebar className="glass-sidebar bg-[#0f172a] text-[#f1f5f9]">
+        <Sidebar className="glass-sidebar">
           <SidebarHeader className="py-6">
             <div className="text-center">
               <div className="h-12 w-12 rounded-full bg-white/10 text-[#f1f5f9] flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/10">
@@ -39,19 +43,21 @@ export default function DashboardLayout() {
             </div>
           </SidebarHeader>
           
-          <SidebarContent className="bg-cyan-950">
+          <SidebarContent>
             <SidebarGroup>
               <SidebarGroupLabel className="text-[#cbd5e1]/70">Menu Principal</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {menuItems.map(item => <SidebarMenuItem key={item.label}>
+                  {menuItems.map(item => (
+                    <SidebarMenuItem key={item.label}>
                       <SidebarMenuButton asChild tooltip={item.label}>
                         <a href={item.href} className={`flex items-center gap-3 ${item.active ? 'menu-item-active' : 'menu-item'}`}>
                           <item.icon className="h-5 w-5" />
                           <span>{item.label}</span>
                         </a>
                       </SidebarMenuButton>
-                    </SidebarMenuItem>)}
+                    </SidebarMenuItem>
+                  ))}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -99,5 +105,6 @@ export default function DashboardLayout() {
           </div>
         </main>
       </div>
-    </SidebarProvider>;
+    </SidebarProvider>
+  );
 }
