@@ -1,1 +1,17 @@
+
 project_id = "vedzsbeirirjiozqflgq"
+
+[functions.daily-followup-check]
+schedule = "0 8 * * *" # Run daily at 8 AM
+
+[functions.alert-escalation]
+schedule = "0 0 * * *" # Run daily at midnight
+
+[functions.handle-supplier-interaction]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
+
+[storage.buckets]
+image_bucket = ["assistance-photos"]
