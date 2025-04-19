@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "./index.css";
 import Buildings from "./pages/Buildings";
+import Suppliers from "./pages/Suppliers";
 import Assistencias from "./pages/Assistencias";
 import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
 import Dashboard from "./pages/Dashboard";
@@ -16,6 +17,10 @@ const router = createBrowserRouter([
   {
     path: "/buildings",
     element: <Buildings />,
+  },
+  {
+    path: "/suppliers",
+    element: <Suppliers />,
   },
   {
     path: "/assistencias",
