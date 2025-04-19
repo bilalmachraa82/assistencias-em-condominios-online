@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 const formSchema = z.object({
@@ -44,11 +45,21 @@ export default function BuildingForm({ open, onClose, onSubmit, initialData }: B
     },
   });
 
+  // Reset form when initialData changes
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    }
+  }, [form, initialData]);
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{initialData ? "Editar" : "Adicionar"} Prédio</DialogTitle>
+          <DialogDescription>
+            {initialData ? "Atualize os detalhes do prédio existente" : "Preencha os detalhes para adicionar um novo prédio"}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
