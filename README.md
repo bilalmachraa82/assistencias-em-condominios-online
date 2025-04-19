@@ -196,20 +196,20 @@ The system will require several environment variables:
 ## Project Structure
 
 ```
-/assis-tech-frontend/   # Existing React/Vite code
+/assis-tech-frontend/     # Existing React/Vite codebase
 /assis-tech-supabase/
-  /migrations/        # SQL migration files
+  /migrations/          # .sql files for database schema changes
   /functions/
-    /admin-handler/
-    /send-email/
-    /handle-supplier-interaction/
-    /generate-pdf-report/
-    /daily-followup-check/
-    /alert-escalation/
-    /_shared/         # Common code (types, clients)
-    /import_map.json
-  /seed.sql           # Initial data (optional)
-  /config.toml        # Local Supabase configuration
+    /admin-handler/     # Admin actions endpoint
+    /send-email/        # Email sending logic
+    /handle-supplier-interaction/ # Supplier actions endpoint
+    /generate-pdf-report/ # PDF generation logic
+    /daily-followup-check/ # Scheduled function logic
+    /alert-escalation/     # Scheduled function logic
+    /_shared/             # Common code (types, clients, utils)
+    /import_map.json      # Deno import map
+  /seed.sql               # (Optional) Initial data seeding
+  /config.toml            # Local Supabase CLI configuration
 ```
 
 ## Future Extensions
