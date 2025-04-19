@@ -14,15 +14,16 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut, Building2 } from "lucide-react";
+import { Sparkles, Home, Building2, CalendarDays, Image, Settings, User, LogOut, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 const menuItems = [
-  { icon: Home, label: 'Dashboard', href: '/', active: false },
-  { icon: Building2, label: 'Edifícios', href: '/buildings', active: false },
+  { icon: Home, label: 'Dashboard', href: '/' },
+  { icon: Building2, label: 'Edifícios', href: '/buildings' },
   { icon: CalendarDays, label: 'Assistências', href: '/assistencias' },
   { icon: Image, label: 'Fotos', href: '/fotos' },
+  { icon: Bot, label: 'Sugestões da IA', href: '/ai-suggestions' },
   { icon: Settings, label: 'Configurações', href: '/configuracoes' },
 ];
 
@@ -32,29 +33,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="min-h-screen flex w-full">
         <Sidebar className="glass-sidebar">
           <SidebarHeader className="py-6">
-            <div className="text-center">
-              <div className="h-12 w-12 rounded-full bg-white/5 text-[#f1f5f9] flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/5">
-                <span className="font-semibold text-xl">A</span>
-              </div>
-              <h3 className="font-medium text-sm text-[#f1f5f9]">Assistech</h3>
-              <p className="text-xs text-[#cbd5e1]">Gestão de Assistências</p>
+            <div className="text-3xl font-bold mb-10 tracking-tight flex items-center gap-2">
+              <Sparkles className="text-[#38bdf8]" size={24} />
+              ASSISTECH
             </div>
           </SidebarHeader>
           
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel className="text-[#cbd5e1]/70">Menu Principal</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {menuItems.map((item) => (
                     <SidebarMenuItem key={item.label}>
-                      <SidebarMenuButton asChild tooltip={item.label}>
+                      <SidebarMenuButton asChild>
                         <Link 
                           to={item.href} 
-                          className={`flex items-center gap-3 ${item.active 
-                            ? 'menu-item-active' 
-                            : 'menu-item'
-                          }`}
+                          className="hover:text-[#38bdf8] transition-colors cursor-pointer flex items-center gap-2 text-lg"
                         >
                           <item.icon className="h-5 w-5" />
                           <span>{item.label}</span>
@@ -67,29 +61,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SidebarGroup>
           </SidebarContent>
           
-          <SidebarFooter className="mt-auto py-4">
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild tooltip="Perfil">
-                      <Link to="/perfil" className="menu-item flex items-center gap-3">
-                        <User className="h-5 w-5" />
-                        <span>Perfil</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild tooltip="Sair">
-                      <Link to="/logout" className="menu-item-danger flex items-center gap-3">
-                        <LogOut className="h-5 w-5" />
-                        <span>Sair</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+          <SidebarFooter className="text-sm text-[#ef4444] cursor-pointer hover:underline">
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link 
+                  to="/logout" 
+                  className="flex items-center gap-2 text-lg"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Sair</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarFooter>
         </Sidebar>
         
@@ -114,4 +97,3 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </SidebarProvider>
   );
 }
-
