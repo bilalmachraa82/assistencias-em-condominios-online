@@ -1,40 +1,38 @@
+
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarHeader,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
 import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const menuItems = [{
-  icon: Home,
-  label: 'Dashboard',
-  href: '/',
-  active: true
-}, {
-  icon: ClipboardCheck,
-  label: 'Assistências',
-  href: '/assistencias'
-}, {
-  icon: CalendarDays,
-  label: 'Agendamentos',
-  href: '/agendamentos'
-}, {
-  icon: Image,
-  label: 'Fotos',
-  href: '/fotos'
-}, {
-  icon: Settings,
-  label: 'Configurações',
-  href: '/configuracoes'
-}];
+const menuItems = [
+  { icon: Home, label: 'Dashboard', href: '/', active: true },
+  { icon: ClipboardCheck, label: 'Assistências', href: '/assistencias' },
+  { icon: CalendarDays, label: 'Agendamentos', href: '/agendamentos' },
+  { icon: Image, label: 'Fotos', href: '/fotos' },
+  { icon: Settings, label: 'Configurações', href: '/configuracoes' },
+];
 
-export default function DashboardLayout() {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <Sidebar className="glass-sidebar">
           <SidebarHeader className="py-6">
             <div className="text-center">
-              <div className="h-12 w-12 rounded-full bg-white/10 text-[#f1f5f9] flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/10">
+              <div className="h-12 w-12 rounded-full bg-white/5 text-[#f1f5f9] flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/5">
                 <span className="font-semibold text-xl">A</span>
               </div>
               <h3 className="font-medium text-sm text-[#f1f5f9]">Assistech</h3>
@@ -47,10 +45,16 @@ export default function DashboardLayout() {
               <SidebarGroupLabel className="text-[#cbd5e1]/70">Menu Principal</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {menuItems.map(item => (
+                  {menuItems.map((item) => (
                     <SidebarMenuItem key={item.label}>
                       <SidebarMenuButton asChild tooltip={item.label}>
-                        <a href={item.href} className={`flex items-center gap-3 ${item.active ? 'menu-item-active' : 'menu-item'}`}>
+                        <a 
+                          href={item.href} 
+                          className={`flex items-center gap-3 ${item.active 
+                            ? 'menu-item-active' 
+                            : 'menu-item'
+                          }`}
+                        >
                           <item.icon className="h-5 w-5" />
                           <span>{item.label}</span>
                         </a>
@@ -100,7 +104,9 @@ export default function DashboardLayout() {
               </div>
             </div>
             
-            <Outlet />
+            <div>
+              {children}
+            </div>
           </div>
         </main>
       </div>
