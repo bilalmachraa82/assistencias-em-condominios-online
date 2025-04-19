@@ -1,4 +1,5 @@
 
+import React, { useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -46,7 +47,7 @@ export default function BuildingForm({ open, onClose, onSubmit, initialData }: B
   });
 
   // Reset form when initialData changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialData) {
       form.reset(initialData);
     }
