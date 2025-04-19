@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from "@/components/ui/button";
@@ -115,7 +114,7 @@ export default function Suppliers() {
           <div className="flex gap-2">
             <Button 
               variant="outline" 
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-cyan-50"
               onClick={() => setIsFormOpen(true)}
             >
               <Plus className="h-4 w-4" />
