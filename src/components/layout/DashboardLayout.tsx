@@ -16,20 +16,23 @@ import {
 } from "@/components/ui/sidebar";
 import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
+// Define menu items with their respective routes and icons
 const menuItems = [
-  { icon: Home, label: 'Dashboard', href: '/', active: false },
-  { icon: Building2, label: 'Edifícios', href: '/buildings', active: false },
+  { icon: Home, label: 'Dashboard', href: '/' },
+  { icon: Building2, label: 'Edifícios', href: '/buildings' },
   { icon: CalendarDays, label: 'Assistências', href: '/assistencias' },
   { icon: Image, label: 'Fotos', href: '/fotos' },
   { icon: Settings, label: 'Configurações', href: '/configuracoes' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#fb923c] text-[#f1f5f9]">
         <Sidebar className="glass-sidebar">
           <SidebarHeader className="py-6">
             <div className="text-center">
@@ -51,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <SidebarMenuButton asChild tooltip={item.label}>
                         <Link 
                           to={item.href} 
-                          className={`flex items-center gap-3 ${item.active 
+                          className={`flex items-center gap-3 ${location.pathname === item.href 
                             ? 'menu-item-active' 
                             : 'menu-item'
                           }`}
@@ -93,7 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </SidebarFooter>
         </Sidebar>
         
-        <main className="flex-1 p-8 overflow-hidden">
+        <main className="flex-1 p-8 overflow-auto">
           <div className="container mx-auto max-w-6xl">
             <div className="flex justify-between items-center mb-8">
               <SidebarTrigger className="glass text-[#f1f5f9]/80 hover:text-[#f1f5f9]" />
@@ -114,4 +117,3 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </SidebarProvider>
   );
 }
-
