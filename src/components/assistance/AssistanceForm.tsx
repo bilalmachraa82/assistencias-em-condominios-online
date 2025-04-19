@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type AssistanceFormProps = {
   selectedBuilding: { id: number; name: string } | null;
@@ -48,6 +50,7 @@ const formSchema = z.object({
     message: "Descrição é obrigatória",
   }),
   admin_notes: z.string().optional(),
+  category: z.string().optional(),
 });
 
 export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }: AssistanceFormProps) {
@@ -56,6 +59,7 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
     defaultValues: {
       description: "",
       admin_notes: "",
+      category: "",
     },
   });
 
@@ -88,28 +92,34 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
   });
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Encontrar o tipo de intervenção selecionado para obter o valor de maps_to_urgency
-    const selectedType = interventionTypes?.find(
-      type => type.id === Number(values.intervention_type_id)
-    );
+    try {
+      // Encontrar o tipo de intervenção selecionado para obter o valor de maps_to_urgency
+      const selectedType = interventionTypes?.find(
+        type => type.id === Number(values.intervention_type_id)
+      );
 
-    // Definir o tipo com base em maps_to_urgency, padrão para 'Normal' se não encontrado
-    const assistanceType = selectedType?.maps_to_urgency || 'Normal';
+      // Definir o tipo com base em maps_to_urgency, padrão para 'Normal' se não encontrado
+      const assistanceType = selectedType?.maps_to_urgency || 'Normal';
 
-    // Now we ensure all required fields are present
-    const formData: AssistanceFormValues = {
-      intervention_type_id: values.intervention_type_id,
-      supplier_id: values.supplier_id,
-      description: values.description,
-      type: assistanceType,
-      admin_notes: values.admin_notes,
-    };
+      // Now we ensure all required fields are present
+      const formData: AssistanceFormValues = {
+        intervention_type_id: values.intervention_type_id,
+        supplier_id: values.supplier_id,
+        description: values.description,
+        type: assistanceType,
+        admin_notes: values.admin_notes,
+      };
 
-    onSubmit(formData);
+      console.log("Submitting form data:", formData);
+      onSubmit(formData);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Erro ao enviar formulário. Por favor, tente novamente.");
+    }
   };
 
   const { data: categories, isLoading: isCategoriesLoading } = useQuery({
-    queryKey: ['intervention_types'],
+    queryKey: ['intervention_categories'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('intervention_types')
@@ -207,13 +217,13 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
           )}
         />
 
-        {/* Description field updated to use Supabase categories */}
+        {/* Category dropdown - optional field */}
         <FormField
           control={form.control}
-          name="description"
+          name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Categoria</FormLabel>
+              <FormLabel>Categoria (Opcional)</FormLabel>
               <FormControl>
                 <Select 
                   onValueChange={field.onChange}
@@ -240,6 +250,25 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
                     )}
                   </SelectContent>
                 </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Description - restored */}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descrição Detalhada *</FormLabel>
+              <FormControl>
+                <Textarea 
+                  {...field}
+                  placeholder="Descreva o problema ou necessidade em detalhe, incluindo localização específica (piso, fração, etc.) se aplicável..."
+                  className="min-h-[120px]"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

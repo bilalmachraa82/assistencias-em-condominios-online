@@ -27,6 +27,7 @@ export default function Assistencias() {
   const [selectedBuilding, setSelectedBuilding] = useState<null | { id: number; name: string }>(null);
   const [isNewAssistanceDialogOpen, setIsNewAssistanceDialogOpen] = useState(false);
   const [isAssistanceFormOpen, setIsAssistanceFormOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch list of assistances
   const { data: assistances, isLoading: isAssistancesLoading, refetch: refetchAssistances } = useQuery({
@@ -68,9 +69,18 @@ export default function Assistencias() {
 
   const handleAssistanceSubmit = async (formData: any) => {
     try {
+      setIsSubmitting(true);
+      
       // Generate a random interaction token
       const interaction_token = Math.random().toString(36).substring(2, 15) + 
                                Math.random().toString(36).substring(2, 15);
+
+      console.log("Creating assistance with data:", {
+        ...formData,
+        interaction_token,
+        building_id: selectedBuilding?.id,
+        alert_level: 1
+      });
 
       const { data, error } = await supabase
         .from('assistances')
@@ -80,11 +90,15 @@ export default function Assistencias() {
             interaction_token,
             building_id: selectedBuilding?.id,
             alert_level: 1, // Default value
+            status: 'Pendente Resposta Inicial' // Set initial status
           }
         ])
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao criar assistência:', error);
+        throw error;
+      }
 
       toast.success('Assistência criada com sucesso!');
       setIsAssistanceFormOpen(false);
@@ -93,6 +107,8 @@ export default function Assistencias() {
     } catch (error) {
       console.error('Erro ao criar assistência:', error);
       toast.error('Erro ao criar assistência. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
