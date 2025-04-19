@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,10 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building, Calendar, FileText, PenLine } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Building } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,43 +18,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogClose
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import AssistanceForm from '@/components/assistance/AssistanceForm';
 import { toast } from 'sonner';
-
-type AssistanceFormValues = {
-  building_id: number;
-  supplier_id: number;
-  description: string;
-  type: string;
-  intervention_type_id?: number;
-  alert_level: number;
-  scheduled_datetime?: string;
-}
 
 export default function Assistencias() {
   const [selectedBuilding, setSelectedBuilding] = useState<null | { id: number; name: string }>(null);
   const [isNewAssistanceDialogOpen, setIsNewAssistanceDialogOpen] = useState(false);
   const [isAssistanceFormOpen, setIsAssistanceFormOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<AssistanceFormValues>({
-    defaultValues: {
-      building_id: 0,
-      supplier_id: 0,
-      description: '',
-      type: '',
-      alert_level: 1,
-    },
-  });
 
   const { data: buildings, isLoading: isBuildingsLoading } = useQuery({
     queryKey: ['buildings'],
@@ -73,34 +40,13 @@ export default function Assistencias() {
     },
   });
 
-  const { data: suppliers, isLoading: isSuppliersLoading } = useQuery({
-    queryKey: ['suppliers'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('suppliers')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data;
-    },
-  });
+  const handleBuildingSelect = (building: any) => {
+    setSelectedBuilding(building);
+    setIsNewAssistanceDialogOpen(false);
+    setIsAssistanceFormOpen(true);
+  };
 
-  const { data: interventionTypes, isLoading: isInterventionTypesLoading } = useQuery({
-    queryKey: ['intervention_types'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('intervention_types')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const onSubmit = async (values: AssistanceFormValues) => {
-    setIsSubmitting(true);
+  const handleAssistanceSubmit = async (formData: any) => {
     try {
       // Generate a random interaction token
       const interaction_token = Math.random().toString(36).substring(2, 15) + 
@@ -110,9 +56,10 @@ export default function Assistencias() {
         .from('assistances')
         .insert([
           { 
-            ...values,
+            ...formData,
             interaction_token,
-            building_id: selectedBuilding?.id
+            building_id: selectedBuilding?.id,
+            alert_level: 1, // Default value
           }
         ])
         .select();
@@ -125,18 +72,7 @@ export default function Assistencias() {
     } catch (error) {
       console.error('Erro ao criar assistência:', error);
       toast.error('Erro ao criar assistência. Tente novamente.');
-    } finally {
-      setIsSubmitting(false);
     }
-  };
-
-  const handleBuildingSelect = (building: any) => {
-    setSelectedBuilding(building);
-    setIsNewAssistanceDialogOpen(false);
-    setIsAssistanceFormOpen(true);
-    
-    // Set building_id in form
-    form.setValue('building_id', building.id);
   };
 
   return (
@@ -217,198 +153,11 @@ export default function Assistencias() {
         {/* Assistance Form Dialog */}
         <Dialog open={isAssistanceFormOpen} onOpenChange={setIsAssistanceFormOpen}>
           <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Nova Assistência</DialogTitle>
-              <DialogDescription>
-                Preencha os detalhes da solicitação de assistência para o edifício {selectedBuilding?.name}.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {/* Supplier Selection */}
-                <FormField
-                  control={form.control}
-                  name="supplier_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fornecedor</FormLabel>
-                      <FormControl>
-                        <Select 
-                          onValueChange={(value) => field.onChange(Number(value))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um fornecedor" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {isSuppliersLoading ? (
-                              <div className="p-4 text-center">Carregando fornecedores...</div>
-                            ) : suppliers?.length === 0 ? (
-                              <div className="p-4 text-center">Nenhum fornecedor encontrado</div>
-                            ) : (
-                              suppliers?.map((supplier) => (
-                                <SelectItem 
-                                  key={supplier.id} 
-                                  value={String(supplier.id)}
-                                >
-                                  {supplier.name} - {supplier.specialization || 'Geral'}
-                                </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Type */}
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Assistência</FormLabel>
-                      <FormControl>
-                        <Select onValueChange={field.onChange}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Manutenção">Manutenção</SelectItem>
-                            <SelectItem value="Reparação">Reparação</SelectItem>
-                            <SelectItem value="Instalação">Instalação</SelectItem>
-                            <SelectItem value="Urgência">Urgência</SelectItem>
-                            <SelectItem value="Preventiva">Preventiva</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Intervention Type */}
-                <FormField
-                  control={form.control}
-                  name="intervention_type_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Categoria de Intervenção</FormLabel>
-                      <FormControl>
-                        <Select 
-                          onValueChange={(value) => field.onChange(Number(value))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a categoria" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {isInterventionTypesLoading ? (
-                              <div className="p-4 text-center">Carregando categorias...</div>
-                            ) : interventionTypes?.length === 0 ? (
-                              <div className="p-4 text-center">Nenhuma categoria encontrada</div>
-                            ) : (
-                              interventionTypes?.map((type) => (
-                                <SelectItem 
-                                  key={type.id} 
-                                  value={String(type.id)}
-                                >
-                                  {type.name}
-                                </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Alert Level */}
-                <FormField
-                  control={form.control}
-                  name="alert_level"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nível de Urgência (1-5)</FormLabel>
-                      <FormControl>
-                        <Select 
-                          onValueChange={(value) => field.onChange(Number(value))}
-                          defaultValue="1"
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Nível de urgência" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1 - Baixa</SelectItem>
-                            <SelectItem value="2">2 - Média-Baixa</SelectItem>
-                            <SelectItem value="3">3 - Média</SelectItem>
-                            <SelectItem value="4">4 - Média-Alta</SelectItem>
-                            <SelectItem value="5">5 - Alta</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Scheduled Date/Time */}
-                <FormField
-                  control={form.control}
-                  name="scheduled_datetime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data Agendada (opcional)</FormLabel>
-                      <FormControl>
-                        <div className="flex items-center">
-                          <Calendar className="mr-2 h-4 w-4 opacity-70" />
-                          <Input 
-                            type="datetime-local" 
-                            {...field} 
-                            value={field.value || ''} 
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Description */}
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição</FormLabel>
-                      <FormControl>
-                        <div className="flex items-start">
-                          <PenLine className="mr-2 h-4 w-4 mt-3 opacity-70" />
-                          <Textarea 
-                            placeholder="Descreva o problema ou necessidade em detalhes..." 
-                            className="min-h-[120px]" 
-                            {...field} 
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsAssistanceFormOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Enviando...' : 'Criar Assistência'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
+            <AssistanceForm
+              selectedBuilding={selectedBuilding}
+              onSubmit={handleAssistanceSubmit}
+              onCancel={() => setIsAssistanceFormOpen(false)}
+            />
           </DialogContent>
         </Dialog>
 
