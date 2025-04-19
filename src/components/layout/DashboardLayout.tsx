@@ -31,7 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <Sidebar className="glass-sidebar">
+        <Sidebar className="glass-sidebar bg-[#0f172a] border-r border-white/10">
           <SidebarHeader className="py-6">
             <div className="text-3xl font-bold mb-10 tracking-tight flex items-center gap-2">
               <Sparkles className="text-[#38bdf8]" size={24} />
@@ -48,7 +48,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <SidebarMenuButton asChild>
                         <Link 
                           to={item.href} 
-                          className="hover:text-[#38bdf8] transition-colors cursor-pointer flex items-center gap-2 text-lg"
+                          className="hover:text-[#38bdf8] transition-colors cursor-pointer flex items-center gap-2 text-lg text-white"
                         >
                           <item.icon className="h-5 w-5" />
                           <span>{item.label}</span>
@@ -61,12 +61,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SidebarGroup>
           </SidebarContent>
           
-          <SidebarFooter className="text-sm text-[#ef4444] cursor-pointer hover:underline">
+          <SidebarFooter className="text-sm text-white/80 cursor-pointer hover:underline">
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Link 
                   to="/logout" 
-                  className="flex items-center gap-2 text-lg"
+                  className="flex items-center gap-2 text-lg text-white hover:text-[#ef4444]"
                 >
                   <LogOut className="h-5 w-5" />
                   <span>Sair</span>
