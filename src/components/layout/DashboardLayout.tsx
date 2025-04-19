@@ -28,15 +28,15 @@ const menuItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-secondary/10">
-        <Sidebar>
-          <SidebarHeader className="py-6 flex justify-center items-center">
+      <div className="min-h-screen flex w-full">
+        <Sidebar className="glass border-r border-white/10">
+          <SidebarHeader className="py-6">
             <div className="text-center">
-              <div className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2">
-                <span className="font-bold text-xl">A</span>
+              <div className="h-12 w-12 rounded-full bg-primary/20 text-primary-foreground flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/10">
+                <span className="font-bold text-xl text-white">A</span>
               </div>
-              <h3 className="font-medium text-sm">Assistech</h3>
-              <p className="text-xs text-muted-foreground">Gestão de Assistências</p>
+              <h3 className="font-medium text-sm text-white/90">Assistech</h3>
+              <p className="text-xs text-white/60">Gestão de Assistências</p>
             </div>
           </SidebarHeader>
           
@@ -89,11 +89,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 p-6 overflow-hidden">
           <div className="container mx-auto max-w-6xl">
             <div className="flex justify-between items-center mb-6">
-              <SidebarTrigger className="bg-white backdrop-blur-sm shadow-sm" />
+              <SidebarTrigger className="glass" />
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="h-9 px-3 bg-white/90 shadow-sm">
+                <Button variant="ghost" size="sm" className="h-9 px-3 glass">
                   <User className="h-4 w-4 mr-2" />
-                  <span>Técnico</span>
+                  <span className="text-white/90">Técnico</span>
                 </Button>
               </div>
             </div>

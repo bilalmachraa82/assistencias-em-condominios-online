@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -7,48 +6,46 @@ import { Activity, Calendar, Image, ArrowRight, Sun, MapPin, Plus, Camera } from
 export default function Index() {
   return (
     <DashboardLayout>
-      {/* Header section */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Olá, João!</h1>
-          <p className="text-muted-foreground">Pronto para transformar assistências em soluções?</p>
+          <h1 className="text-4xl font-bold text-white mb-2">Olá, João!</h1>
+          <p className="text-white/60">Pronto para transformar assistências em soluções?</p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="glass px-4 py-2 rounded-full flex items-center gap-2">
+          <div className="glass px-4 py-2 rounded-full flex items-center gap-2 text-white/80">
             <MapPin className="h-4 w-4" />
             <span>Lisboa</span>
             <Sun className="h-4 w-4" />
             <span>21°C</span>
           </div>
-          <Button className="bg-white shadow-sm border border-input/30 hover:bg-secondary/30" variant="ghost">
+          <Button className="glass hover:bg-white/10" variant="ghost">
             <Plus className="h-4 w-4 mr-2" />
             Nova Assistência
           </Button>
-          <Button className="bg-white shadow-sm border border-input/30 hover:bg-secondary/30" variant="ghost">
+          <Button className="glass hover:bg-white/10" variant="ghost">
             <Camera className="h-4 w-4 mr-2" />
             Nova Foto
           </Button>
         </div>
       </div>
       
-      {/* Stats cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-        <Card className="glass-card border-0">
-          <h3 className="text-base font-medium text-foreground/70 mb-1">Assistências Ativas</h3>
+        <Card className="glass-card">
+          <h3 className="text-base font-medium text-white/80 mb-1">Assistências Ativas</h3>
           <div className="flex flex-col my-3">
-            <span className="text-5xl font-bold text-primary">12</span>
-            <p className="text-sm text-success mt-2 flex items-center">
+            <span className="text-5xl font-bold text-primary-foreground">12</span>
+            <p className="text-sm text-emerald-400 mt-2 flex items-center">
               <Activity className="h-3 w-3 mr-1" />
               +2 desde ontem
             </p>
           </div>
-          <Button variant="ghost" size="sm" className="w-full justify-between mt-4 text-primary">
+          <Button variant="ghost" size="sm" className="w-full justify-between mt-4 text-white/80 hover:text-white">
             Ver detalhes <ArrowRight className="h-4 w-4" />
           </Button>
         </Card>
 
-        <Card className="glass-card border-0">
-          <h3 className="text-base font-medium text-foreground/70 mb-1">Agendamentos Hoje</h3>
+        <Card className="glass-card">
+          <h3 className="text-base font-medium text-white/80 mb-1">Agendamentos Hoje</h3>
           <div className="flex flex-col my-3">
             <span className="text-5xl font-bold text-accent">5</span>
             <p className="text-sm text-muted-foreground mt-2">Próxima em 2 horas</p>
@@ -58,8 +55,8 @@ export default function Index() {
           </Button>
         </Card>
 
-        <Card className="glass-card border-0">
-          <h3 className="text-base font-medium text-foreground/70 mb-1">Fotos Pendentes</h3>
+        <Card className="glass-card">
+          <h3 className="text-base font-medium text-white/80 mb-1">Fotos Pendentes</h3>
           <div className="flex flex-col my-3">
             <span className="text-5xl font-bold text-destructive">3</span>
             <p className="text-sm text-muted-foreground mt-2">Mais antiga: 2 dias</p>
@@ -70,11 +67,10 @@ export default function Index() {
         </Card>
       </div>
       
-      {/* Recent activity */}
-      <div className="glass-card border-0 p-6 mb-6">
+      <div className="glass-card p-6 mb-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-foreground">Atividade Recente</h2>
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
+          <h2 className="text-xl font-semibold text-white">Atividade Recente</h2>
+          <Button variant="ghost" size="sm" className="text-white/60 hover:text-white">
             Ver todas
           </Button>
         </div>
