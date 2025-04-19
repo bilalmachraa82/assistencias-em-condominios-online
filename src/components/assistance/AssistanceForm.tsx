@@ -38,7 +38,7 @@ export type AssistanceFormValues = {
   type: string;
 };
 
-// Schema de validação
+// Updated schema removing the category field
 const formSchema = z.object({
   intervention_type_id: z.number({
     required_error: "Selecione uma categoria de intervenção",
@@ -50,7 +50,6 @@ const formSchema = z.object({
     message: "Descrição é obrigatória",
   }),
   admin_notes: z.string().optional(),
-  category: z.string().optional(),
 });
 
 export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }: AssistanceFormProps) {
@@ -59,7 +58,6 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
     defaultValues: {
       description: "",
       admin_notes: "",
-      category: "",
     },
   });
 
@@ -72,7 +70,6 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
         .order('name');
       
       if (error) throw error;
-      console.log("Fetched intervention types:", data);
       return data;
     },
   });
@@ -86,7 +83,6 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
         .order('name');
       
       if (error) throw error;
-      console.log("Fetched suppliers:", data);
       return data;
     },
   });
@@ -110,27 +106,12 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
         admin_notes: values.admin_notes,
       };
 
-      console.log("Submitting form data:", formData);
       onSubmit(formData);
     } catch (error) {
       console.error("Error submitting form:", error);
       toast.error("Erro ao enviar formulário. Por favor, tente novamente.");
     }
   };
-
-  const { data: categories, isLoading: isCategoriesLoading } = useQuery({
-    queryKey: ['intervention_categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('intervention_types')
-        .select('*')
-        .order('description', { ascending: true })
-        .order('name', { ascending: true });
-      
-      if (error) throw error;
-      return data;
-    },
-  });
 
   return (
     <Form {...form}>
@@ -217,46 +198,7 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
           )}
         />
 
-        {/* Category dropdown - optional field */}
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Categoria (Opcional)</FormLabel>
-              <FormControl>
-                <Select 
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={isCategoriesLoading}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isCategoriesLoading ? (
-                      <div className="p-2 text-center">Carregando categorias...</div>
-                    ) : !categories || categories.length === 0 ? (
-                      <div className="p-2 text-center">Nenhuma categoria encontrada</div>
-                    ) : (
-                      categories.map((category) => (
-                        <SelectItem 
-                          key={category.id} 
-                          value={category.description}
-                        >
-                          {category.description}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Description - restored */}
+        {/* Description */}
         <FormField
           control={form.control}
           name="description"
@@ -306,3 +248,4 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
     </Form>
   );
 }
+
