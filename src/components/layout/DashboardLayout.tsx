@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -25,7 +26,7 @@ const menuItems = [
   { icon: Settings, label: 'Configurações', href: '/configuracoes' },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout() {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -105,7 +106,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             
             <div>
-              {children}
+              <Outlet />
             </div>
           </div>
         </main>
