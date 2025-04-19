@@ -18,9 +18,9 @@ import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut } fro
 import { Button } from "@/components/ui/button";
 
 const menuItems = [
-  { icon: Home, label: 'Dashboard', href: '/', active: true },
-  { icon: ClipboardCheck, label: 'Assistências', href: '/assistencias' },
-  { icon: CalendarDays, label: 'Agendamentos', href: '/agendamentos' },
+  { icon: Home, label: 'Dashboard', href: '/', active: false },
+  { icon: ClipboardCheck, label: 'Edifícios', href: '/buildings', active: false },
+  { icon: CalendarDays, label: 'Assistências', href: '/assistencias' },
   { icon: Image, label: 'Fotos', href: '/fotos' },
   { icon: Settings, label: 'Configurações', href: '/configuracoes' },
 ];

@@ -9,7 +9,236 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      activity_log: {
+        Row: {
+          actor: string
+          assistance_id: number | null
+          description: string
+          id: number
+          timestamp: string
+        }
+        Insert: {
+          actor: string
+          assistance_id?: number | null
+          description: string
+          id?: number
+          timestamp?: string
+        }
+        Update: {
+          actor?: string
+          assistance_id?: number | null
+          description?: string
+          id?: number
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_assistance_id_fkey"
+            columns: ["assistance_id"]
+            isOneToOne: false
+            referencedRelation: "assistances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistances: {
+        Row: {
+          admin_notes: string | null
+          alert_level: number
+          building_id: number
+          created_at: string
+          description: string
+          id: number
+          interaction_token: string
+          intervention_type_id: number | null
+          opened_at: string
+          photo_path: string | null
+          rejection_reason: string | null
+          scheduled_datetime: string | null
+          status: string
+          supplier_id: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          alert_level?: number
+          building_id: number
+          created_at?: string
+          description: string
+          id?: number
+          interaction_token: string
+          intervention_type_id?: number | null
+          opened_at?: string
+          photo_path?: string | null
+          rejection_reason?: string | null
+          scheduled_datetime?: string | null
+          status?: string
+          supplier_id: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          alert_level?: number
+          building_id?: number
+          created_at?: string
+          description?: string
+          id?: number
+          interaction_token?: string
+          intervention_type_id?: number | null
+          opened_at?: string
+          photo_path?: string | null
+          rejection_reason?: string | null
+          scheduled_datetime?: string | null
+          status?: string
+          supplier_id?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistances_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistances_intervention_type_id_fkey"
+            columns: ["intervention_type_id"]
+            isOneToOne: false
+            referencedRelation: "intervention_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistances_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      buildings: {
+        Row: {
+          address: string | null
+          admin_notes: string | null
+          cadastral_code: string | null
+          created_at: string
+          id: number
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          address?: string | null
+          admin_notes?: string | null
+          cadastral_code?: string | null
+          created_at?: string
+          id?: number
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          address?: string | null
+          admin_notes?: string | null
+          cadastral_code?: string | null
+          created_at?: string
+          id?: number
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      email_logs: {
+        Row: {
+          assistance_id: number | null
+          id: number
+          recipients: string | null
+          sent_at: string
+          success: boolean | null
+          template_name: string | null
+        }
+        Insert: {
+          assistance_id?: number | null
+          id?: number
+          recipients?: string | null
+          sent_at?: string
+          success?: boolean | null
+          template_name?: string | null
+        }
+        Update: {
+          assistance_id?: number | null
+          id?: number
+          recipients?: string | null
+          sent_at?: string
+          success?: boolean | null
+          template_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_assistance_id_fkey"
+            columns: ["assistance_id"]
+            isOneToOne: false
+            referencedRelation: "assistances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intervention_types: {
+        Row: {
+          description: string | null
+          id: number
+          maps_to_urgency: string | null
+          name: string
+        }
+        Insert: {
+          description?: string | null
+          id?: number
+          maps_to_urgency?: string | null
+          name: string
+        }
+        Update: {
+          description?: string | null
+          id?: number
+          maps_to_urgency?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          email: string
+          id: number
+          is_active: boolean
+          name: string
+          phone: string | null
+          specialization: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          email: string
+          id?: number
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          specialization?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          email?: string
+          id?: number
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          specialization?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
