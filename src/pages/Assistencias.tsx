@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building } from 'lucide-react';
+import { Building, FileText } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
