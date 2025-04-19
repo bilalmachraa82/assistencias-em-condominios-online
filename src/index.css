@@ -118,18 +118,6 @@
   .glass-card {
     @apply bg-white/5 backdrop-blur-lg border border-white/5 shadow-xl hover:scale-[1.02] transition-all duration-300;
   }
-
-  .menu-item {
-    @apply flex items-center gap-3 text-[#f1f5f9]/80 hover:text-[#38bdf8] transition-colors;
-  }
-
-  .menu-item-active {
-    @apply text-[#38bdf8] bg-[#38bdf8]/10;
-  }
-
-  .menu-item-danger {
-    @apply text-[#ef4444]/80 hover:text-[#ef4444] hover:bg-[#ef4444]/10;
-  }
 }
 
 .fade-in-up {
