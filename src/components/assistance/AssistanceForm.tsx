@@ -69,6 +69,7 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
         .order('name');
       
       if (error) throw error;
+      console.log("Fetched intervention types:", data);
       return data;
     },
   });
@@ -82,6 +83,7 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
         .order('name');
       
       if (error) throw error;
+      console.log("Fetched suppliers:", data);
       return data;
     },
   });
@@ -125,6 +127,7 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
                 <Select 
                   onValueChange={(value) => field.onChange(Number(value))}
                   value={field.value?.toString()}
+                  disabled={isLoadingTypes}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione a categoria" />
@@ -132,10 +135,10 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
                   <SelectContent>
                     {isLoadingTypes ? (
                       <div className="p-2 text-center">Carregando categorias...</div>
-                    ) : interventionTypes?.length === 0 ? (
+                    ) : !interventionTypes || interventionTypes.length === 0 ? (
                       <div className="p-2 text-center">Nenhuma categoria encontrada</div>
                     ) : (
-                      interventionTypes?.map((type) => (
+                      interventionTypes.map((type) => (
                         <SelectItem 
                           key={type.id} 
                           value={type.id.toString()}
@@ -163,6 +166,7 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
                 <Select 
                   onValueChange={(value) => field.onChange(Number(value))}
                   value={field.value?.toString()}
+                  disabled={isLoadingSuppliers}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione o fornecedor" />
@@ -170,10 +174,10 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
                   <SelectContent>
                     {isLoadingSuppliers ? (
                       <div className="p-2 text-center">Carregando fornecedores...</div>
-                    ) : suppliers?.length === 0 ? (
+                    ) : !suppliers || suppliers.length === 0 ? (
                       <div className="p-2 text-center">Nenhum fornecedor encontrado</div>
                     ) : (
-                      suppliers?.map((supplier) => (
+                      suppliers.map((supplier) => (
                         <SelectItem 
                           key={supplier.id} 
                           value={supplier.id.toString()}

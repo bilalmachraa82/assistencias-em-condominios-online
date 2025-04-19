@@ -183,6 +183,12 @@ export default function Assistencias() {
         {/* Assistance Form Dialog */}
         <Dialog open={isAssistanceFormOpen} onOpenChange={setIsAssistanceFormOpen}>
           <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Nova Assistência</DialogTitle>
+              <DialogDescription>
+                Preencha os detalhes para criar uma nova solicitação de assistência.
+              </DialogDescription>
+            </DialogHeader>
             <AssistanceForm
               selectedBuilding={selectedBuilding}
               onSubmit={handleAssistanceSubmit}
