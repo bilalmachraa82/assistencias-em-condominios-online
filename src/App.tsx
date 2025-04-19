@@ -1,36 +1,40 @@
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
 import Buildings from "./pages/Buildings";
 import Assistencias from "./pages/Assistencias";
-import NotFound from "./pages/NotFound";
+import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
+import Dashboard from "./pages/Dashboard";
 
-const queryClient = new QueryClient();
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Dashboard />,
+  },
+  {
+    path: "/buildings",
+    element: <Buildings />,
+  },
+  {
+    path: "/assistencias",
+    element: <Assistencias />,
+  },
+  {
+    path: "/configuracao-servicos",
+    element: <ConfiguracaoServicos />,
+  },
+]);
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/buildings" element={<Buildings />} />
-          <Route path="/assistencias" element={<Assistencias />} />
-          <Route path="/fotos" element={<NotFound />} />
-          <Route path="/configuracoes" element={<NotFound />} />
-          <Route path="/perfil" element={<NotFound />} />
-          <Route path="/logout" element={<NotFound />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>
 );
 
-export default App;
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();

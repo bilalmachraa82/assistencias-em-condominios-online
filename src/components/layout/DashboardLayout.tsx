@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Sidebar,
@@ -14,17 +13,16 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut, Building2 } from "lucide-react";
+import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut, Building2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 
 // Define menu items with their respective routes and icons
-const menuItems = [
-  { icon: Home, label: 'Dashboard', href: '/' },
-  { icon: Building2, label: 'Edifícios', href: '/buildings' },
-  { icon: CalendarDays, label: 'Assistências', href: '/assistencias' },
-  { icon: Image, label: 'Fotos', href: '/fotos' },
-  { icon: Settings, label: 'Configurações', href: '/configuracoes' },
+const navigation = [
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Edifícios', href: '/buildings', icon: Building2 },
+  { name: 'Assistências', href: '/assistencias', icon: CalendarDays },
+  { name: 'Configuração de Serviços', href: '/configuracao-servicos', icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -49,9 +47,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <SidebarGroupLabel className="text-[#cbd5e1]/70">Menu Principal</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {menuItems.map((item) => (
-                    <SidebarMenuItem key={item.label}>
-                      <SidebarMenuButton asChild tooltip={item.label}>
+                  {navigation.map((item) => (
+                    <SidebarMenuItem key={item.name}>
+                      <SidebarMenuButton asChild tooltip={item.name}>
                         <Link 
                           to={item.href} 
                           className={`flex items-center gap-3 ${location.pathname === item.href 
@@ -60,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           }`}
                         >
                           <item.icon className="h-5 w-5" />
-                          <span>{item.label}</span>
+                          <span>{item.name}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
