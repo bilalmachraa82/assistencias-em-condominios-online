@@ -1,34 +1,32 @@
-
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarHeader,
-  SidebarFooter,
-} from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
 import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const menuItems = [
-  { icon: Home, label: 'Dashboard', href: '/', active: true },
-  { icon: ClipboardCheck, label: 'Assistências', href: '/assistencias' },
-  { icon: CalendarDays, label: 'Agendamentos', href: '/agendamentos' },
-  { icon: Image, label: 'Fotos', href: '/fotos' },
-  { icon: Settings, label: 'Configurações', href: '/configuracoes' },
-];
-
+const menuItems = [{
+  icon: Home,
+  label: 'Dashboard',
+  href: '/',
+  active: true
+}, {
+  icon: ClipboardCheck,
+  label: 'Assistências',
+  href: '/assistencias'
+}, {
+  icon: CalendarDays,
+  label: 'Agendamentos',
+  href: '/agendamentos'
+}, {
+  icon: Image,
+  label: 'Fotos',
+  href: '/fotos'
+}, {
+  icon: Settings,
+  label: 'Configurações',
+  href: '/configuracoes'
+}];
 export default function DashboardLayout() {
-  return (
-    <SidebarProvider>
+  return <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <Sidebar className="glass-sidebar bg-[#0f172a] text-[#f1f5f9]">
           <SidebarHeader className="py-6">
@@ -41,27 +39,19 @@ export default function DashboardLayout() {
             </div>
           </SidebarHeader>
           
-          <SidebarContent>
+          <SidebarContent className="bg-cyan-950">
             <SidebarGroup>
               <SidebarGroupLabel className="text-[#cbd5e1]/70">Menu Principal</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {menuItems.map((item) => (
-                    <SidebarMenuItem key={item.label}>
+                  {menuItems.map(item => <SidebarMenuItem key={item.label}>
                       <SidebarMenuButton asChild tooltip={item.label}>
-                        <a 
-                          href={item.href} 
-                          className={`flex items-center gap-3 ${item.active 
-                            ? 'menu-item-active' 
-                            : 'menu-item'
-                          }`}
-                        >
+                        <a href={item.href} className={`flex items-center gap-3 ${item.active ? 'menu-item-active' : 'menu-item'}`}>
                           <item.icon className="h-5 w-5" />
                           <span>{item.label}</span>
                         </a>
                       </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                    </SidebarMenuItem>)}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -109,6 +99,5 @@ export default function DashboardLayout() {
           </div>
         </main>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 }
