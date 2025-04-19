@@ -1,91 +1,111 @@
 
 import React from 'react';
-import { Link, useLocation } from "react-router-dom";
-import { 
-  Sparkles, 
-  LogOut, 
-  Building2, 
-  CircuitBoard, 
-  Image as ImageIcon, 
-  Bot, 
-  Settings 
-} from "lucide-react";
-import { 
+import {
   Sidebar,
   SidebarContent,
-  SidebarProvider,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuButton
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
+import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut, Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const menuItems = [
-  { icon: Building2, label: 'Edifícios', href: '/buildings' },
-  { icon: CircuitBoard, label: 'Assistências', href: '/assistencias' },
-  { icon: ImageIcon, label: 'Fotos', href: '/fotos' },
-  { icon: Bot, label: 'AI Sugestões', href: '/ai-suggestions' },
+  { icon: Home, label: 'Dashboard', href: '/', active: false },
+  { icon: Building2, label: 'Edifícios', href: '/buildings', active: false },
+  { icon: CalendarDays, label: 'Assistências', href: '/assistencias' },
+  { icon: Image, label: 'Fotos', href: '/fotos' },
   { icon: Settings, label: 'Configurações', href: '/configuracoes' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const location = useLocation();
-
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#1A1F2C]">
-        <Sidebar className="border-r border-white/10">
-          <SidebarContent>
-            <div className="px-3 py-4">
-              <div className="flex items-center gap-2 text-white text-xl font-bold mb-6">
-                <Sparkles className="text-[#1EAEDB]" size={24} />
-                ASSISTECH
+      <div className="min-h-screen flex w-full">
+        <Sidebar className="glass-sidebar">
+          <SidebarHeader className="py-6">
+            <div className="text-center">
+              <div className="h-12 w-12 rounded-full bg-white/5 text-[#f1f5f9] flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/5">
+                <span className="font-semibold text-xl">A</span>
               </div>
-              <SidebarMenu>
-                {menuItems.map((item) => (
-                  <SidebarMenuItem key={item.label}>
-                    <SidebarMenuButton asChild>
-                      <Link 
-                        to={item.href}
-                        className={`text-gray-300 hover:text-white transition-colors ${location.pathname === item.href ? 'text-white bg-white/10' : ''}`}
-                      >
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.label}</span>
+              <h3 className="font-medium text-sm text-[#f1f5f9]">Assistech</h3>
+              <p className="text-xs text-[#cbd5e1]">Gestão de Assistências</p>
+            </div>
+          </SidebarHeader>
+          
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-[#cbd5e1]/70">Menu Principal</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {menuItems.map((item) => (
+                    <SidebarMenuItem key={item.label}>
+                      <SidebarMenuButton asChild tooltip={item.label}>
+                        <Link 
+                          to={item.href} 
+                          className={`flex items-center gap-3 ${item.active 
+                            ? 'menu-item-active' 
+                            : 'menu-item'
+                          }`}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+          
+          <SidebarFooter className="mt-auto py-4">
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Perfil">
+                      <Link to="/perfil" className="menu-item flex items-center gap-3">
+                        <User className="h-5 w-5" />
+                        <span>Perfil</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </div>
-          </SidebarContent>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Sair">
+                      <Link to="/logout" className="menu-item-danger flex items-center gap-3">
+                        <LogOut className="h-5 w-5" />
+                        <span>Sair</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarFooter>
         </Sidebar>
-
-        <Sidebar className="border-r border-white/10">
-          <SidebarContent>
-            <div className="p-4">
-              <div className="text-white/80 text-sm font-medium mb-4">
-                Detalhes
-              </div>
-              {/* Second sidebar content will be dynamic based on the current route */}
-              <div className="text-white/60 text-xs">
-                {location.pathname === '/buildings' && 'Informações de edifícios e propriedades'}
-                {location.pathname === '/assistencias' && 'Gestão de assistências técnicas'}
-                {location.pathname === '/fotos' && 'Galeria de imagens de manutenção'}
-                {location.pathname === '/ai-suggestions' && 'Sugestões de melhorias com IA'}
-                {location.pathname === '/configuracoes' && 'Configurações do sistema'}
-              </div>
-            </div>
-          </SidebarContent>
-        </Sidebar>
-
-        <main className="flex-1 p-8 overflow-auto">
+        
+        <main className="flex-1 p-8 overflow-hidden">
           <div className="container mx-auto max-w-6xl">
-            <div className="flex justify-end mb-8">
-              <button className="h-9 px-3 glass text-white/80 hover:text-white hover:bg-white/10 rounded-md flex items-center gap-2">
-                <LogOut className="h-4 w-4" />
-                <span>Técnico</span>
-              </button>
+            <div className="flex justify-between items-center mb-8">
+              <SidebarTrigger className="glass text-[#f1f5f9]/80 hover:text-[#f1f5f9]" />
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="h-9 px-3 glass text-[#f1f5f9]/80 hover:text-[#f1f5f9] hover:bg-white/10">
+                  <User className="h-4 w-4 mr-2" />
+                  <span>Técnico</span>
+                </Button>
+              </div>
             </div>
-            <div className="text-white">
+            
+            <div>
               {children}
             </div>
           </div>
@@ -94,3 +114,4 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </SidebarProvider>
   );
 }
+
