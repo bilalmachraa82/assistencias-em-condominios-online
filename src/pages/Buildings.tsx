@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import BuildingForm from '@/components/buildings/BuildingForm';
 import { useToast } from '@/hooks/use-toast';
+
 export default function Buildings() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<null | {
@@ -139,7 +140,7 @@ export default function Buildings() {
 
         <div className="rounded-md border">
           <Table>
-            <TableHeader className="bg-teal-700 hover:bg-teal-600">
+            <TableHeader className="bg-white hover:bg-white">
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Morada</TableHead>
