@@ -89,9 +89,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 p-6 overflow-hidden">
           <div className="container mx-auto max-w-6xl">
             <div className="flex justify-between items-center mb-6">
-              <SidebarTrigger className="bg-card/80 backdrop-blur-sm shadow hover:shadow-md" />
+              <SidebarTrigger className="bg-white backdrop-blur-sm shadow-sm" />
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="h-9 px-3">
+                <Button variant="outline" size="sm" className="h-9 px-3 bg-white/90 shadow-sm">
                   <User className="h-4 w-4 mr-2" />
                   <span>Técnico</span>
                 </Button>
