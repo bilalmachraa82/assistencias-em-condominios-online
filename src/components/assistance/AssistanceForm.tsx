@@ -29,7 +29,7 @@ type AssistanceFormProps = {
   onCancel: () => void;
 };
 
-type AssistanceFormValues = {
+export type AssistanceFormValues = {
   intervention_type_id: number;
   supplier_id: number;
   description: string;
@@ -52,7 +52,7 @@ const formSchema = z.object({
 });
 
 export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }: AssistanceFormProps) {
-  const form = useForm<AssistanceFormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: "",
@@ -95,10 +95,16 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
     // Definir o tipo com base em maps_to_urgency, padrão para 'Normal' se não encontrado
     const assistanceType = selectedType?.maps_to_urgency || 'Normal';
 
-    onSubmit({
-      ...values,
+    // Now we ensure all required fields are present
+    const formData: AssistanceFormValues = {
+      intervention_type_id: values.intervention_type_id,
+      supplier_id: values.supplier_id,
+      description: values.description,
       type: assistanceType,
-    });
+      admin_notes: values.admin_notes,
+    };
+
+    onSubmit(formData);
   };
 
   return (
