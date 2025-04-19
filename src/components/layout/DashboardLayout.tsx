@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Sidebar,
@@ -13,7 +14,7 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut, Building2, FileText } from "lucide-react";
+import { CalendarDays, Home, Settings, ClipboardCheck, Building2, User, LogOut, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 
@@ -21,6 +22,7 @@ import { Link, useLocation } from "react-router-dom";
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Edifícios', href: '/buildings', icon: Building2 },
+  { name: 'Fornecedores', href: '/suppliers', icon: Store },
   { name: 'Assistências', href: '/assistencias', icon: CalendarDays },
   { name: 'Configuração de Serviços', href: '/configuracao-servicos', icon: Settings },
 ];
