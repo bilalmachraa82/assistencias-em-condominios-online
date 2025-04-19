@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -270,7 +269,7 @@ export default function Assistencias() {
                       <td className="px-4 py-3 text-[#cbd5e1]">{assistance.suppliers?.name}</td>
                       <td className="px-4 py-3 text-[#cbd5e1]">{assistance.status}</td>
                       <td className="px-4 py-3 text-[#cbd5e1]">{assistance.type}</td>
-                      <td className="px-4 py-3 text-[#cbd5e1]">{formatDate(assistance.created_at)}</td>
+                      <td className="px-4 py-3 text-center text-[#8E9196]">{formatDate(assistance.created_at)}</td>
                       <td className="px-4 py-3">
                         <Button variant="ghost" size="sm">
                           Ver
