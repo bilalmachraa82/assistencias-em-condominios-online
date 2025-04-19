@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,7 +30,6 @@ export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  // Fetch list of assistances
   const { data: assistances, isLoading: isAssistancesLoading, refetch: refetchAssistances } = useQuery({
     queryKey: ['assistances'],
     queryFn: async () => {
@@ -79,7 +77,6 @@ export default function Assistencias() {
     try {
       setIsSubmitting(true);
       
-      // Generate a random interaction token
       const interaction_token = Math.random().toString(36).substring(2, 15) + 
                                Math.random().toString(36).substring(2, 15);
 
@@ -165,7 +162,6 @@ export default function Assistencias() {
           </div>
         </div>
 
-        {/* Building Selection Dialog */}
         <Dialog open={isNewAssistanceDialogOpen} onOpenChange={setIsNewAssistanceDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -223,7 +219,6 @@ export default function Assistencias() {
           </DialogContent>
         </Dialog>
 
-        {/* Assistance Form Dialog */}
         <Dialog open={isAssistanceFormOpen} onOpenChange={(open) => {
           if (!isSubmitting) {
             setIsAssistanceFormOpen(open);
@@ -245,7 +240,6 @@ export default function Assistencias() {
           </DialogContent>
         </Dialog>
 
-        {/* View Assistance Details Dialog */}
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
           <DialogContent className="sm:max-w-[700px]">
             <DialogHeader>
@@ -267,7 +261,7 @@ export default function Assistencias() {
                   
                   <div>
                     <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                      <Tool className="h-4 w-4" /> Tipo de Intervenção
+                      <Wrench className="h-4 w-4" /> Tipo de Intervenção
                     </h3>
                     <p className="mt-1 text-base">{selectedAssistance.intervention_types?.name}</p>
                   </div>
@@ -341,7 +335,6 @@ export default function Assistencias() {
           </DialogContent>
         </Dialog>
 
-        {/* Assistance Listing */}
         <div className="bg-white/5 rounded-3xl p-6 backdrop-blur-lg shadow-xl mt-8">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <FileText className="h-5 w-5" />
