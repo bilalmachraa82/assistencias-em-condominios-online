@@ -43,7 +43,10 @@ export default function Assistencias() {
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching assistances:', error);
+        throw error;
+      }
       return data;
     },
   });
@@ -56,7 +59,10 @@ export default function Assistencias() {
         .select('*')
         .order('name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching buildings:', error);
+        throw error;
+      }
       return data;
     },
   });
@@ -79,7 +85,7 @@ export default function Assistencias() {
         ...formData,
         interaction_token,
         building_id: selectedBuilding?.id,
-        alert_level: 1
+        status: 'Pendente Resposta Inicial'
       });
 
       const { data, error } = await supabase
@@ -89,21 +95,22 @@ export default function Assistencias() {
             ...formData,
             interaction_token,
             building_id: selectedBuilding?.id,
-            alert_level: 1, // Default value
-            status: 'Pendente Resposta Inicial' // Set initial status
+            status: 'Pendente Resposta Inicial', // Set initial status
+            alert_level: 1 // Default value
           }
         ])
         .select();
 
       if (error) {
         console.error('Erro ao criar assistência:', error);
+        toast.error(`Erro ao criar assistência: ${error.message}`);
         throw error;
       }
 
       toast.success('Assistência criada com sucesso!');
       setIsAssistanceFormOpen(false);
       setSelectedBuilding(null);
-      refetchAssistances(); // Refresh the data
+      await refetchAssistances(); // Refresh the data
     } catch (error) {
       console.error('Erro ao criar assistência:', error);
       toast.error('Erro ao criar assistência. Tente novamente.');
@@ -154,7 +161,9 @@ export default function Assistencias() {
               <Select 
                 onValueChange={(value) => {
                   const building = buildings?.find(b => b.id === Number(value));
-                  setSelectedBuilding(building || null);
+                  if (building) {
+                    setSelectedBuilding({ id: building.id, name: building.name });
+                  }
                 }}
               >
                 <SelectTrigger className="w-full">
@@ -197,7 +206,11 @@ export default function Assistencias() {
         </Dialog>
 
         {/* Assistance Form Dialog */}
-        <Dialog open={isAssistanceFormOpen} onOpenChange={setIsAssistanceFormOpen}>
+        <Dialog open={isAssistanceFormOpen} onOpenChange={(open) => {
+          if (!isSubmitting) {
+            setIsAssistanceFormOpen(open);
+          }
+        }}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Nova Assistência</DialogTitle>
@@ -209,6 +222,7 @@ export default function Assistencias() {
               selectedBuilding={selectedBuilding}
               onSubmit={handleAssistanceSubmit}
               onCancel={() => setIsAssistanceFormOpen(false)}
+              isSubmitting={isSubmitting}
             />
           </DialogContent>
         </Dialog>

@@ -28,6 +28,7 @@ type AssistanceFormProps = {
   selectedBuilding: { id: number; name: string } | null;
   onSubmit: (data: AssistanceFormValues) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 };
 
 export type AssistanceFormValues = {
@@ -52,7 +53,7 @@ const formSchema = z.object({
   admin_notes: z.string().optional(),
 });
 
-export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }: AssistanceFormProps) {
+export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel, isSubmitting = false }: AssistanceFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -237,15 +238,14 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
         />
 
         <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit">
-            Criar Assistência
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Processando..." : "Criar Assistência"}
           </Button>
         </div>
       </form>
     </Form>
   );
 }
-
