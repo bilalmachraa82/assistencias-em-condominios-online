@@ -1,73 +1,95 @@
-# Welcome to your Lovable project
 
-## Project info
+# AssisTech - Technical Assistance Management System
+
+## Project Overview
+
+AssisTech is a full-stack web application designed to manage technical assistance requests for multiple buildings/condominiums. The system allows a single administrator to create and assign service requests to pre-registered suppliers. Suppliers interact with the system exclusively through unique secure links sent via email, where they can schedule visits, complete tasks with photo evidence, or reject/reschedule assignments.
 
 **URL**: https://lovable.dev/projects/6f6abadd-ff1c-4519-acdb-702abbd89160
 
-## How can I edit this code?
+## Architecture
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/6f6abadd-ff1c-4519-acdb-702abbd89160) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
+### Frontend (Existing)
 - React
-- shadcn-ui
+- TypeScript
 - Tailwind CSS
+- Vite
+- shadcn/ui components
 
-## How can I deploy this project?
+### Backend (To Be Implemented with Supabase)
+- Database: PostgreSQL (Supabase)
+- API: Supabase REST API
+- Storage: Supabase Storage (for supplier photos)
+- Serverless Functions: Supabase Edge Functions (Deno/TypeScript)
+- Scheduled Tasks: Supabase Scheduled Functions
+- Email Service: Resend (via Edge Functions)
 
-Simply open [Lovable](https://lovable.dev/projects/6f6abadd-ff1c-4519-acdb-702abbd89160) and click on Share -> Publish.
+### Authentication
+- Admin access protected by API Key (X-API-KEY header)
+- Supplier access via unique secure tokens in email links
 
-## Can I connect a custom domain to my Lovable project?
+## Database Schema
 
-Yes, you can!
+The database will consist of the following main tables:
+- buildings (condominiums/properties)
+- suppliers (service providers)
+- intervention_types (categories of service)
+- assistances (main service requests)
+- email_logs (tracking of all email communications)
+- activity_log (detailed system activity tracking)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Core Features
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Admin Dashboard
+- Authentication via API Key
+- CRUD operations for buildings, suppliers, and intervention types
+- Creating, viewing, and managing assistance requests
+- Reassigning rejected requests to new suppliers
+- Receiving notifications for rejected requests and follow-ups
+- Viewing reports and statistics
+- Future AI suggestions (placeholder for now)
+
+### Supplier Interaction
+- Accessing requests via unique links
+- Scheduling/rejecting initial requests
+- Submitting completion photos
+- Rescheduling appointments
+
+### Automated System Functions
+- Email notifications for various events
+- Daily follow-up checks for missed appointments
+- Alert escalation for aging requests
+- Comprehensive logging of all activities
+
+## Implementation Plan
+
+1. Connect project to Supabase
+2. Set up database schema (tables, relations, RLS policies)
+3. Implement Edge Functions:
+   - admin-handler (CRUD operations)
+   - send-email (Resend integration)
+   - handle-supplier-interaction
+   - Scheduled functions for follow-ups and alerts
+4. Configure Supabase Storage for photos
+5. Set up Resend email integration
+6. Connect frontend to backend via Supabase client
+7. Create supplier interaction page
+8. Implement admin authentication
+9. Set up reporting functionality
+10. Test end-to-end workflows
+
+## Environment Variables
+
+The system will require several environment variables:
+- SUPABASE_URL and keys
+- RESEND_API_KEY
+- ADMIN_API_KEY
+- APP_BASE_URL
+- ADMIN_INTERNAL_EMAIL
+
+## Future Extensions
+
+- Enhanced reporting and analytics
+- AI-powered suggestions based on historical data
+- Mobile app for suppliers
+
