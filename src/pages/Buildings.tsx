@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from "@/components/ui/button";
 import {
@@ -10,11 +10,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Settings } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Plus, Settings, Edit } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import BuildingForm from '@/components/buildings/BuildingForm';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Buildings() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedBuilding, setSelectedBuilding] = useState<null | { id: number; name: string; address: string }>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const { data: buildings, isLoading } = useQuery({
     queryKey: ['buildings'],
     queryFn: async () => {
@@ -28,6 +35,73 @@ export default function Buildings() {
     },
   });
 
+  const createBuilding = useMutation({
+    mutationFn: async (values: { name: string; address: string }) => {
+      const { error } = await supabase
+        .from('buildings')
+        .insert([values]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      toast({
+        title: "Sucesso",
+        description: "Prédio adicionado com sucesso",
+      });
+      setIsFormOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar prédio",
+        variant: "destructive",
+      });
+      console.error('Error creating building:', error);
+    },
+  });
+
+  const updateBuilding = useMutation({
+    mutationFn: async ({ id, ...values }: { id: number; name: string; address: string }) => {
+      const { error } = await supabase
+        .from('buildings')
+        .update(values)
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      toast({
+        title: "Sucesso",
+        description: "Prédio atualizado com sucesso",
+      });
+      setIsFormOpen(false);
+      setSelectedBuilding(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar prédio",
+        variant: "destructive",
+      });
+      console.error('Error updating building:', error);
+    },
+  });
+
+  const handleSubmit = (values: { name: string; address: string }) => {
+    if (selectedBuilding) {
+      updateBuilding.mutate({ id: selectedBuilding.id, ...values });
+    } else {
+      createBuilding.mutate(values);
+    }
+  };
+
+  const handleEdit = (building: { id: number; name: string; address: string }) => {
+    setSelectedBuilding(building);
+    setIsFormOpen(true);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -38,10 +112,20 @@ export default function Buildings() {
               Gerencie a lista de prédios e suas configurações
             </p>
           </div>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Menu Definição
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => setIsFormOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Adicionar Prédio
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Menu Definição
+            </Button>
+          </div>
         </div>
 
         <div className="rounded-md border">
@@ -82,7 +166,13 @@ export default function Buildings() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEdit(building)}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit className="h-4 w-4" />
                         Editar
                       </Button>
                     </TableCell>
@@ -93,6 +183,16 @@ export default function Buildings() {
           </Table>
         </div>
       </div>
+
+      <BuildingForm
+        open={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedBuilding(null);
+        }}
+        onSubmit={handleSubmit}
+        initialData={selectedBuilding || undefined}
+      />
     </DashboardLayout>
   );
 }
