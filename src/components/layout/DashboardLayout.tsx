@@ -30,10 +30,10 @@ export default function DashboardLayout() {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <Sidebar className="glass-sidebar">
+        <Sidebar className="glass-sidebar bg-[#0f172a] text-[#f1f5f9]">
           <SidebarHeader className="py-6">
             <div className="text-center">
-              <div className="h-12 w-12 rounded-full bg-white/5 text-[#f1f5f9] flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/5">
+              <div className="h-12 w-12 rounded-full bg-white/10 text-[#f1f5f9] flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/10">
                 <span className="font-semibold text-xl">A</span>
               </div>
               <h3 className="font-medium text-sm text-[#f1f5f9]">Assistech</h3>
