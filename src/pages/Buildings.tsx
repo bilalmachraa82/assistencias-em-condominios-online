@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Settings, Edit } from 'lucide-react';
+import { Plus, Edit } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import BuildingForm from '@/components/buildings/BuildingForm';
@@ -120,10 +120,6 @@ export default function Buildings() {
             >
               <Plus className="h-4 w-4" />
               Adicionar Prédio
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Menu Definição
             </Button>
           </div>
         </div>

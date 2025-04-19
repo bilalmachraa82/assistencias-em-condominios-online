@@ -29,6 +29,7 @@ type BuildingFormProps = {
   onClose: () => void;
   onSubmit: (data: z.infer<typeof formSchema>) => void;
   initialData?: {
+    id?: number;
     name: string;
     address: string;
   };
