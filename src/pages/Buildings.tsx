@@ -1,109 +1,122 @@
-
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Plus, Edit } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plus, Settings, Edit } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import BuildingForm from '@/components/buildings/BuildingForm';
 import { useToast } from '@/hooks/use-toast';
-
 export default function Buildings() {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedBuilding, setSelectedBuilding] = useState<null | { id: number; name: string; address: string }>(null);
-  const { toast } = useToast();
+  const [selectedBuilding, setSelectedBuilding] = useState<null | {
+    id: number;
+    name: string;
+    address: string;
+  }>(null);
+  const {
+    toast
+  } = useToast();
   const queryClient = useQueryClient();
-
-  const { data: buildings, isLoading } = useQuery({
+  const {
+    data: buildings,
+    isLoading
+  } = useQuery({
     queryKey: ['buildings'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('buildings')
-        .select('*')
-        .order('name');
-      
+      const {
+        data,
+        error
+      } = await supabase.from('buildings').select('*').order('name');
       if (error) throw error;
       return data;
-    },
+    }
   });
-
   const createBuilding = useMutation({
-    mutationFn: async (values: { name: string; address: string }) => {
-      const { error } = await supabase
-        .from('buildings')
-        .insert([values]);
-      
+    mutationFn: async (values: {
+      name: string;
+      address: string;
+    }) => {
+      const {
+        error
+      } = await supabase.from('buildings').insert([values]);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      queryClient.invalidateQueries({
+        queryKey: ['buildings']
+      });
       toast({
         title: "Sucesso",
-        description: "Prédio adicionado com sucesso",
+        description: "Prédio adicionado com sucesso"
       });
       setIsFormOpen(false);
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: "Erro",
         description: "Erro ao adicionar prédio",
-        variant: "destructive",
+        variant: "destructive"
       });
       console.error('Error creating building:', error);
-    },
+    }
   });
-
   const updateBuilding = useMutation({
-    mutationFn: async ({ id, ...values }: { id: number; name: string; address: string }) => {
-      const { error } = await supabase
-        .from('buildings')
-        .update(values)
-        .eq('id', id);
-      
+    mutationFn: async ({
+      id,
+      ...values
+    }: {
+      id: number;
+      name: string;
+      address: string;
+    }) => {
+      const {
+        error
+      } = await supabase.from('buildings').update(values).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      queryClient.invalidateQueries({
+        queryKey: ['buildings']
+      });
       toast({
         title: "Sucesso",
-        description: "Prédio atualizado com sucesso",
+        description: "Prédio atualizado com sucesso"
       });
       setIsFormOpen(false);
       setSelectedBuilding(null);
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: "Erro",
         description: "Erro ao atualizar prédio",
-        variant: "destructive",
+        variant: "destructive"
       });
       console.error('Error updating building:', error);
-    },
+    }
   });
-
-  const handleSubmit = (values: { name: string; address: string }) => {
+  const handleSubmit = (values: {
+    name: string;
+    address: string;
+  }) => {
     if (selectedBuilding) {
-      updateBuilding.mutate({ id: selectedBuilding.id, ...values });
+      updateBuilding.mutate({
+        id: selectedBuilding.id,
+        ...values
+      });
     } else {
       createBuilding.mutate(values);
     }
   };
-
-  const handleEdit = (building: { id: number; name: string; address: string }) => {
+  const handleEdit = (building: {
+    id: number;
+    name: string;
+    address: string;
+  }) => {
     setSelectedBuilding(building);
     setIsFormOpen(true);
   };
-
-  return (
-    <DashboardLayout>
+  return <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -113,13 +126,13 @@ export default function Buildings() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={() => setIsFormOpen(true)}
-            >
+            <Button variant="outline" onClick={() => setIsFormOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-cyan-50">
               <Plus className="h-4 w-4" />
               Adicionar Prédio
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Menu Definição
             </Button>
           </div>
         </div>
@@ -135,60 +148,37 @@ export default function Buildings() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow>
+              {isLoading ? <TableRow>
                   <TableCell colSpan={4} className="text-center">
                     Carregando...
                   </TableCell>
-                </TableRow>
-              ) : buildings?.length === 0 ? (
-                <TableRow>
+                </TableRow> : buildings?.length === 0 ? <TableRow>
                   <TableCell colSpan={4} className="text-center">
                     Nenhum prédio cadastrado
                   </TableCell>
-                </TableRow>
-              ) : (
-                buildings?.map((building) => (
-                  <TableRow key={building.id}>
+                </TableRow> : buildings?.map(building => <TableRow key={building.id}>
                     <TableCell>{building.name}</TableCell>
                     <TableCell>{building.address}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        building.is_active 
-                          ? 'bg-green-50 text-green-700' 
-                          : 'bg-red-50 text-red-700'
-                      }`}>
+                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${building.is_active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                         {building.is_active ? 'Ativo' : 'Inativo'}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleEdit(building)}
-                        className="flex items-center gap-2"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(building)} className="flex items-center gap-2">
                         <Edit className="h-4 w-4" />
                         Editar
                       </Button>
                     </TableCell>
-                  </TableRow>
-                ))
-              )}
+                  </TableRow>)}
             </TableBody>
           </Table>
         </div>
       </div>
 
-      <BuildingForm
-        open={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedBuilding(null);
-        }}
-        onSubmit={handleSubmit}
-        initialData={selectedBuilding || undefined}
-      />
-    </DashboardLayout>
-  );
+      <BuildingForm open={isFormOpen} onClose={() => {
+      setIsFormOpen(false);
+      setSelectedBuilding(null);
+    }} onSubmit={handleSubmit} initialData={selectedBuilding || undefined} />
+    </DashboardLayout>;
 }
