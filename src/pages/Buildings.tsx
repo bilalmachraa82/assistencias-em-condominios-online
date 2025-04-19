@@ -139,7 +139,7 @@ export default function Buildings() {
 
         <div className="rounded-md border">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-teal-700 hover:bg-teal-600">
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Morada</TableHead>
