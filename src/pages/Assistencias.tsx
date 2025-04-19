@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +27,25 @@ export default function Assistencias() {
   const [selectedBuilding, setSelectedBuilding] = useState<null | { id: number; name: string }>(null);
   const [isNewAssistanceDialogOpen, setIsNewAssistanceDialogOpen] = useState(false);
   const [isAssistanceFormOpen, setIsAssistanceFormOpen] = useState(false);
+
+  // Fetch list of assistances
+  const { data: assistances, isLoading: isAssistancesLoading, refetch: refetchAssistances } = useQuery({
+    queryKey: ['assistances'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('assistances')
+        .select(`
+          *,
+          buildings(name),
+          suppliers(name),
+          intervention_types(name)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: buildings, isLoading: isBuildingsLoading } = useQuery({
     queryKey: ['buildings'],
@@ -69,10 +89,20 @@ export default function Assistencias() {
       toast.success('Assistência criada com sucesso!');
       setIsAssistanceFormOpen(false);
       setSelectedBuilding(null);
+      refetchAssistances(); // Refresh the data
     } catch (error) {
       console.error('Erro ao criar assistência:', error);
       toast.error('Erro ao criar assistência. Tente novamente.');
     }
+  };
+
+  // Format the date for display
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-PT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   };
 
   return (
@@ -111,7 +141,7 @@ export default function Assistencias() {
                   setSelectedBuilding(building || null);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Escolha um edifício" />
                 </SelectTrigger>
                 <SelectContent>
@@ -183,11 +213,36 @@ export default function Assistencias() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                <tr>
-                  <td className="px-4 py-3 text-[#cbd5e1]" colSpan={8}>
-                    Nenhuma assistência encontrada.
-                  </td>
-                </tr>
+                {isAssistancesLoading ? (
+                  <tr>
+                    <td className="px-4 py-3 text-[#cbd5e1]" colSpan={8}>
+                      Carregando assistências...
+                    </td>
+                  </tr>
+                ) : assistances?.length === 0 ? (
+                  <tr>
+                    <td className="px-4 py-3 text-[#cbd5e1]" colSpan={8}>
+                      Nenhuma assistência encontrada.
+                    </td>
+                  </tr>
+                ) : (
+                  assistances?.map((assistance) => (
+                    <tr key={assistance.id}>
+                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.id}</td>
+                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.buildings?.name}</td>
+                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.intervention_types?.name}</td>
+                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.suppliers?.name}</td>
+                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.status}</td>
+                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.type}</td>
+                      <td className="px-4 py-3 text-[#cbd5e1]">{formatDate(assistance.created_at)}</td>
+                      <td className="px-4 py-3">
+                        <Button variant="ghost" size="sm">
+                          Ver
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

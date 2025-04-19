@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import {
   Form,
   FormControl,
@@ -20,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 type AssistanceFormProps = {
   selectedBuilding: { id: number; name: string } | null;
@@ -36,8 +37,28 @@ type AssistanceFormValues = {
   type: string;
 };
 
+// Schema de validação
+const formSchema = z.object({
+  intervention_type_id: z.number({
+    required_error: "Selecione uma categoria de intervenção",
+  }),
+  supplier_id: z.number({
+    required_error: "Selecione um fornecedor",
+  }),
+  description: z.string().min(1, {
+    message: "Descrição é obrigatória",
+  }),
+  admin_notes: z.string().optional(),
+});
+
 export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }: AssistanceFormProps) {
-  const form = useForm<AssistanceFormValues>();
+  const form = useForm<AssistanceFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      description: "",
+      admin_notes: "",
+    },
+  });
 
   const { data: interventionTypes, isLoading: isLoadingTypes } = useQuery({
     queryKey: ['intervention_types'],
@@ -65,13 +86,13 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
     },
   });
 
-  const handleSubmit = async (values: AssistanceFormValues) => {
-    // Find the selected intervention type to get its maps_to_urgency value
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    // Encontrar o tipo de intervenção selecionado para obter o valor de maps_to_urgency
     const selectedType = interventionTypes?.find(
       type => type.id === Number(values.intervention_type_id)
     );
 
-    // Set the type based on maps_to_urgency, defaulting to 'Normal' if not found
+    // Definir o tipo com base em maps_to_urgency, padrão para 'Normal' se não encontrado
     const assistanceType = selectedType?.maps_to_urgency || 'Normal';
 
     onSubmit({
@@ -93,24 +114,30 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
           name="intervention_type_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Categoria da Intervenção</FormLabel>
+              <FormLabel>Categoria da Intervenção *</FormLabel>
               <FormControl>
                 <Select 
                   onValueChange={(value) => field.onChange(Number(value))}
                   value={field.value?.toString()}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    {interventionTypes?.map((type) => (
-                      <SelectItem 
-                        key={type.id} 
-                        value={type.id.toString()}
-                      >
-                        {type.name}
-                      </SelectItem>
-                    ))}
+                    {isLoadingTypes ? (
+                      <div className="p-2 text-center">Carregando categorias...</div>
+                    ) : interventionTypes?.length === 0 ? (
+                      <div className="p-2 text-center">Nenhuma categoria encontrada</div>
+                    ) : (
+                      interventionTypes?.map((type) => (
+                        <SelectItem 
+                          key={type.id} 
+                          value={type.id.toString()}
+                        >
+                          {type.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -125,24 +152,30 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
           name="supplier_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Fornecedor Recomendado/Atribuído</FormLabel>
+              <FormLabel>Fornecedor Recomendado/Atribuído *</FormLabel>
               <FormControl>
                 <Select 
                   onValueChange={(value) => field.onChange(Number(value))}
                   value={field.value?.toString()}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione o fornecedor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {suppliers?.map((supplier) => (
-                      <SelectItem 
-                        key={supplier.id} 
-                        value={supplier.id.toString()}
-                      >
-                        {supplier.name} {supplier.specialization ? `(${supplier.specialization})` : ''}
-                      </SelectItem>
-                    ))}
+                    {isLoadingSuppliers ? (
+                      <div className="p-2 text-center">Carregando fornecedores...</div>
+                    ) : suppliers?.length === 0 ? (
+                      <div className="p-2 text-center">Nenhum fornecedor encontrado</div>
+                    ) : (
+                      suppliers?.map((supplier) => (
+                        <SelectItem 
+                          key={supplier.id} 
+                          value={supplier.id.toString()}
+                        >
+                          {supplier.name} {supplier.specialization ? `(${supplier.specialization})` : ''}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -157,7 +190,7 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descrição Detalhada</FormLabel>
+              <FormLabel>Descrição Detalhada *</FormLabel>
               <FormControl>
                 <Textarea 
                   {...field}
@@ -170,7 +203,7 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
           )}
         />
 
-        {/* Admin Notes */}
+        {/* Admin Notes - Optional */}
         <FormField
           control={form.control}
           name="admin_notes"
