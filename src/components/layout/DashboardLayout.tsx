@@ -14,12 +14,13 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut } from "lucide-react";
+import { CalendarDays, Home, Settings, ClipboardCheck, Image, User, LogOut, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const menuItems = [
   { icon: Home, label: 'Dashboard', href: '/', active: false },
-  { icon: ClipboardCheck, label: 'Edifícios', href: '/buildings', active: false },
+  { icon: Building2, label: 'Edifícios', href: '/buildings', active: false },
   { icon: CalendarDays, label: 'Assistências', href: '/assistencias' },
   { icon: Image, label: 'Fotos', href: '/fotos' },
   { icon: Settings, label: 'Configurações', href: '/configuracoes' },
@@ -48,8 +49,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   {menuItems.map((item) => (
                     <SidebarMenuItem key={item.label}>
                       <SidebarMenuButton asChild tooltip={item.label}>
-                        <a 
-                          href={item.href} 
+                        <Link 
+                          to={item.href} 
                           className={`flex items-center gap-3 ${item.active 
                             ? 'menu-item-active' 
                             : 'menu-item'
@@ -57,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         >
                           <item.icon className="h-5 w-5" />
                           <span>{item.label}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -72,18 +73,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip="Perfil">
-                      <a href="/perfil" className="menu-item flex items-center gap-3">
+                      <Link to="/perfil" className="menu-item flex items-center gap-3">
                         <User className="h-5 w-5" />
                         <span>Perfil</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip="Sair">
-                      <a href="/logout" className="menu-item-danger flex items-center gap-3">
+                      <Link to="/logout" className="menu-item-danger flex items-center gap-3">
                         <LogOut className="h-5 w-5" />
                         <span>Sair</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -113,3 +114,4 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </SidebarProvider>
   );
 }
+
