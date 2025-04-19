@@ -32,23 +32,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Sidebar className="glass border-r border-white/10">
           <SidebarHeader className="py-6">
             <div className="text-center">
-              <div className="h-12 w-12 rounded-full bg-primary/20 text-primary-foreground flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/10">
-                <span className="font-bold text-xl text-white">A</span>
+              <div className="h-12 w-12 rounded-full bg-white/5 text-white flex items-center justify-center mx-auto mb-2 backdrop-blur-sm border border-white/10">
+                <span className="font-bold text-xl">A</span>
               </div>
-              <h3 className="font-medium text-sm text-white/90">Assistech</h3>
+              <h3 className="font-medium text-sm text-white">Assistech</h3>
               <p className="text-xs text-white/60">Gestão de Assistências</p>
             </div>
           </SidebarHeader>
           
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-white/50">Menu Principal</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {menuItems.map((item) => (
                     <SidebarMenuItem key={item.label}>
                       <SidebarMenuButton asChild tooltip={item.label}>
-                        <a href={item.href} className="flex items-center gap-3">
+                        <a href={item.href} className="flex items-center gap-3 text-white/80 hover:text-white hover:bg-white/10">
                           <item.icon className="h-5 w-5" />
                           <span>{item.label}</span>
                         </a>
@@ -66,7 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip="Perfil">
-                      <a href="/perfil" className="flex items-center gap-3">
+                      <a href="/perfil" className="flex items-center gap-3 text-white/80 hover:text-white hover:bg-white/10">
                         <User className="h-5 w-5" />
                         <span>Perfil</span>
                       </a>
@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip="Sair">
-                      <a href="/logout" className="flex items-center gap-3 text-destructive">
+                      <a href="/logout" className="flex items-center gap-3 text-red-400 hover:text-red-300 hover:bg-red-500/10">
                         <LogOut className="h-5 w-5" />
                         <span>Sair</span>
                       </a>
@@ -89,11 +89,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 p-6 overflow-hidden">
           <div className="container mx-auto max-w-6xl">
             <div className="flex justify-between items-center mb-6">
-              <SidebarTrigger className="glass" />
+              <SidebarTrigger className="glass text-white/80 hover:text-white" />
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="h-9 px-3 glass">
+                <Button variant="ghost" size="sm" className="h-9 px-3 glass text-white/80 hover:text-white hover:bg-white/10">
                   <User className="h-4 w-4 mr-2" />
-                  <span className="text-white/90">Técnico</span>
+                  <span>Técnico</span>
                 </Button>
               </div>
             </div>

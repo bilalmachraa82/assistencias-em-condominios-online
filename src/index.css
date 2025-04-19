@@ -99,11 +99,11 @@
   }
 
   body {
-    @apply bg-background text-foreground min-h-screen;
-    background: radial-gradient(ellipse at center,
-      rgba(23, 97, 101, 0.4) 0%,
-      rgba(23, 55, 87, 0.8) 50%,
-      rgba(43, 19, 19, 0.9) 100%
+    @apply min-h-screen;
+    background: radial-gradient(ellipse at bottom right,
+      rgba(236, 146, 47, 0.15) 0%,
+      rgba(23, 97, 101, 0.4) 50%,
+      rgba(12, 29, 29, 0.9) 100%
     );
   }
 
@@ -118,7 +118,7 @@
 
 /* Glassmorphism */
 .glass {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 
