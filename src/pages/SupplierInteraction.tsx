@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +26,7 @@ interface Assistance {
   id: number;
   description: string;
   status: AssistanceStatus;
+  type: string;
   scheduled_datetime?: string;
   building: {
     name: string;
@@ -429,6 +429,11 @@ const SupplierInteraction = () => {
     }
   };
   
+  // Helper to format type name
+  const formatTypeName = (assistance: Assistance) => {
+    return assistance.intervention_type?.name || assistance.type;
+  };
+  
   // Main content (Closed assistance)
   if (['Concluída', 'Rejeitada Pelo Fornecedor', 'Cancelada Pelo Admin'].includes(assistance.status)) {
     return (
@@ -439,7 +444,7 @@ const SupplierInteraction = () => {
               <div>
                 <CardTitle>Pedido de Assistência - {assistance.building.name}</CardTitle>
                 <CardDescription>
-                  {assistance.intervention_type?.name || assistance.type}
+                  {formatTypeName(assistance)}
                 </CardDescription>
               </div>
               <div>
@@ -499,7 +504,7 @@ const SupplierInteraction = () => {
               <div>
                 <CardTitle>Pedido de Assistência - {assistance.building.name}</CardTitle>
                 <CardDescription>
-                  {assistance.intervention_type?.name || assistance.type}
+                  {formatTypeName(assistance)}
                 </CardDescription>
               </div>
               <div>
@@ -640,7 +645,7 @@ const SupplierInteraction = () => {
             <div>
               <CardTitle>Pedido de Assistência - {assistance.building.name}</CardTitle>
               <CardDescription>
-                {assistance.intervention_type?.name || assistance.type}
+                {formatTypeName(assistance)}
               </CardDescription>
             </div>
             <div>
