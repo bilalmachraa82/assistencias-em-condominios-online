@@ -14,8 +14,7 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Sparkles, Home, Building2, CalendarDays, Image, Settings, User, LogOut, Bot } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Sparkles, Home, Building2, CalendarDays, Image, Settings, LogOut, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const menuItems = [
@@ -31,9 +30,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <Sidebar className="glass-sidebar bg-[#0f172a] border-r border-white/10">
+        <Sidebar className="bg-[#0f172a] border-r border-white/10">
           <SidebarHeader className="py-6">
-            <div className="text-3xl font-bold mb-10 tracking-tight flex items-center gap-2">
+            <div className="text-3xl font-bold mb-10 tracking-tight flex items-center gap-2 text-white">
               <Sparkles className="text-[#38bdf8]" size={24} />
               ASSISTECH
             </div>
@@ -48,7 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <SidebarMenuButton asChild>
                         <Link 
                           to={item.href} 
-                          className="hover:text-[#38bdf8] transition-colors cursor-pointer flex items-center gap-2 text-lg text-white"
+                          className="text-white hover:text-[#38bdf8] transition-colors cursor-pointer flex items-center gap-2 text-lg"
                         >
                           <item.icon className="h-5 w-5" />
                           <span>{item.label}</span>
@@ -61,7 +60,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SidebarGroup>
           </SidebarContent>
           
-          <SidebarFooter className="text-sm text-white/80 cursor-pointer hover:underline">
+          <SidebarFooter className="text-sm text-white/80">
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Link 
@@ -79,12 +78,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 p-8 overflow-hidden">
           <div className="container mx-auto max-w-6xl">
             <div className="flex justify-between items-center mb-8">
-              <SidebarTrigger className="glass text-[#f1f5f9]/80 hover:text-[#f1f5f9]" />
+              <SidebarTrigger className="text-[#f1f5f9]/80 hover:text-[#f1f5f9]" />
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="h-9 px-3 glass text-[#f1f5f9]/80 hover:text-[#f1f5f9] hover:bg-white/10">
-                  <User className="h-4 w-4 mr-2" />
+                <button className="h-9 px-3 glass text-[#f1f5f9]/80 hover:text-[#f1f5f9] hover:bg-white/10 rounded-md flex items-center gap-2">
+                  <LogOut className="h-4 w-4" />
                   <span>Técnico</span>
-                </Button>
+                </button>
               </div>
             </div>
             

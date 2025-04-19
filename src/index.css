@@ -42,8 +42,8 @@
     --radius: 0.75rem;
 
     /* Sidebar */
-    --sidebar-background: 222.2 84% 4.9%; /* Dark background, similar to main interface */
-    --sidebar-foreground: 0 0% 98%; /* White text for menus */
+    --sidebar-background: 222.2 84% 4.9%; /* Dark background */
+    --sidebar-foreground: 0 0% 98%; /* White text */
     --sidebar-primary: 330 83% 60%; /* Accent color */
     --sidebar-primary-foreground: 0 0% 98%; /* White accent text */
     --sidebar-accent: 217.2 32.6% 17.5%; /* Dark accent for hover states */
@@ -119,10 +119,6 @@
     @apply bg-white/5 backdrop-blur-lg border border-white/5 shadow-xl hover:scale-[1.02] transition-all duration-300;
   }
 
-  .glass-sidebar {
-    @apply bg-[#0f172a66] backdrop-blur-xl border-r border-white/10;
-  }
-
   .menu-item {
     @apply flex items-center gap-3 text-[#f1f5f9]/80 hover:text-[#38bdf8] transition-colors;
   }
@@ -136,7 +132,6 @@
   }
 }
 
-/* Animações */
 .fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;
 }
@@ -152,7 +147,6 @@
   }
 }
 
-/* Card status colors */
 .bg-success {
   background-color: #22c55e;
 }
@@ -185,14 +179,12 @@
   color: #a78bfa;
 }
 
-/* Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 .font-inter {
   font-family: 'Inter', sans-serif;
 }
 
-/* Button hover effects */
 .btn-glass {
   @apply text-[#f1f5f9] bg-white/5 hover:bg-white/10 backdrop-filter backdrop-blur-md transition-all duration-200;
 }
@@ -201,7 +193,6 @@
   @apply scale-110 transition-transform duration-200;
 }
 
-/* Menu item hover */
 .menu-item {
   @apply text-[#f1f5f9]/80 hover:text-[#f1f5f9] hover:bg-white/10 transition-all duration-200;
 }
