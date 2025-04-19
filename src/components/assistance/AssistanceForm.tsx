@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -109,6 +108,20 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
     onSubmit(formData);
   };
 
+  const { data: categories, isLoading: isCategoriesLoading } = useQuery({
+    queryKey: ['intervention_types'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('intervention_types')
+        .select('*')
+        .order('description', { ascending: true })
+        .order('name', { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -194,19 +207,39 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel }:
           )}
         />
 
-        {/* Description */}
+        {/* Description field updated to use Supabase categories */}
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descrição Detalhada *</FormLabel>
+              <FormLabel>Categoria</FormLabel>
               <FormControl>
-                <Textarea 
-                  {...field}
-                  placeholder="Descreva o problema ou necessidade em detalhe, incluindo localização específica (piso, fração, etc.) se aplicável..."
-                  className="min-h-[120px]"
-                />
+                <Select 
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={isCategoriesLoading}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione a categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isCategoriesLoading ? (
+                      <div className="p-2 text-center">Carregando categorias...</div>
+                    ) : !categories || categories.length === 0 ? (
+                      <div className="p-2 text-center">Nenhuma categoria encontrada</div>
+                    ) : (
+                      categories.map((category) => (
+                        <SelectItem 
+                          key={category.id} 
+                          value={category.description}
+                        >
+                          {category.description}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
