@@ -23,7 +23,7 @@ export function StatsCards() {
               <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
               <XAxis dataKey="name" hide />
               <YAxis hide />
-              <Tooltip />
+              <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.8)', border: 'none', borderRadius: '0.5rem' }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

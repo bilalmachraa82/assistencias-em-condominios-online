@@ -16,7 +16,7 @@ export default function Index() {
         
         {/* Chatbot Flutuante */}
         <div className="fixed bottom-6 right-6">
-          <Button size="icon" variant="ghost" className="glass w-12 h-12 rounded-full">
+          <Button size="icon" className="glass w-12 h-12 rounded-full shadow-lg hover:bg-white/10 transition-all duration-200">
             <Bot className="h-6 w-6 text-[#38bdf8]" />
           </Button>
         </div>
