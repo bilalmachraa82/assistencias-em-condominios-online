@@ -105,9 +105,7 @@ export default function DashboardLayout() {
               </div>
             </div>
             
-            <div>
-              <Outlet />
-            </div>
+            <Outlet />
           </div>
         </main>
       </div>
