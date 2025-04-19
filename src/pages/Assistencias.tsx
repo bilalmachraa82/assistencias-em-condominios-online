@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Buildings } from 'lucide-react';
+import { Building } from 'lucide-react';
 
 export default function Assistencias() {
   const [selectedBuilding, setSelectedBuilding] = useState<null | { id: number; name: string }>(null);
@@ -43,7 +42,7 @@ export default function Assistencias() {
               onClick={() => setIsNewAssistanceDialogOpen(true)}
               className="flex items-center gap-2"
             >
-              <Buildings className="h-4 w-4" />
+              <Building className="h-4 w-4" />
               Nova Assistência
             </Button>
           </div>
