@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Sidebar,
@@ -18,7 +17,6 @@ import { CalendarDays, Home, Settings, ClipboardCheck, Building2, User, LogOut, 
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 
-// Define menu items with their respective routes and icons
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Edifícios', href: '/buildings', icon: Building2 },
@@ -100,12 +98,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="container mx-auto max-w-6xl">
             <div className="flex justify-between items-center mb-8">
               <SidebarTrigger className="glass text-[#f1f5f9]/80 hover:text-[#f1f5f9]" />
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="h-9 px-3 glass text-[#f1f5f9]/80 hover:text-[#f1f5f9] hover:bg-white/10">
-                  <User className="h-4 w-4 mr-2" />
-                  <span>Técnico</span>
-                </Button>
-              </div>
             </div>
             
             <div>
