@@ -7,7 +7,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import BuildingForm from '@/components/buildings/BuildingForm';
 import { useToast } from '@/hooks/use-toast';
-
 export default function Buildings() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<null | {
@@ -131,7 +130,7 @@ export default function Buildings() {
               <Plus className="h-4 w-4" />
               Adicionar Prédio
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500">
               <Settings className="h-4 w-4" />
               Menu Definição
             </Button>
