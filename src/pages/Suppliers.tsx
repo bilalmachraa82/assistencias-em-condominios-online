@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from "@/components/ui/button";
 import {
@@ -10,17 +10,70 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit } from 'lucide-react';
+import { Plus, Edit, Trash } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import SupplierForm from '@/components/suppliers/SupplierForm';
 import { useToast } from '@/hooks/use-toast';
+
+// Dados dos fornecedores reais
+const REAL_SUPPLIERS = [
+  {
+    name: "TKE",
+    phone: "+351 21 43 08 100",
+    email: "info.tkept@tkelevator.com",
+    address: "Sintra Business Park, Edifício 4, 2B, Zona Industrial da Abrunheira, 2710-089 Sintra, Portugal",
+    nif: "501445226",
+    specialization: "Elevadores, manutenção e instalação",
+  },
+  {
+    name: "Clefta",
+    phone: "(+351) 217 648 435",
+    email: "geral@clefta.pt",
+    address: "Rua Mariano Pina, 13, Loja B, 1500-442 Lisboa, Portugal",
+    nif: "501324046",
+    specialization: "Instalações elétricas, reparações",
+  },
+  {
+    name: "Sr. Obras",
+    phone: "+351 212 580 409, +351 224 109 492, +351 239 100 675",
+    email: "apoio.cliente@srobras.pt, parceiros@srobras.pt",
+    address: "Avenida da República, 6, 7º Esq., 1050-191 Lisboa, Portugal",
+    nif: "509541887",
+    specialization: "Remodelações, construção, consultoria",
+  },
+  {
+    name: "Mestre das Chaves",
+    phone: "+351 219 318 040",
+    email: "mestre@chaves.pt",
+    address: "Rua Augusto Gil, 14-A, 2675-507 Odivelas, Lisboa, Portugal",
+    nif: "506684504",
+    specialization: "Comércio e representação de fechaduras",
+  },
+  {
+    name: "Desinfest Lar",
+    phone: "+351 219 336 788",
+    email: "desinfest.lar@oninet.pt",
+    address: "Largo da Saudade, Vivenda Rosinha, 2675-260 Odivelas, Portugal",
+    nif: "502763760",
+    specialization: "Desinfestações e desinfecções",
+  },
+  {
+    name: "Ipest",
+    phone: "+351 219 661 404, +351 925 422 204",
+    email: "geral@ipest.pt",
+    address: "Rua Casal dos Ninhos, Nº 2E, Escritório 8, 2665-536 Venda do Pinheiro, Portugal",
+    nif: "",
+    specialization: "Controlo de pragas",
+  },
+];
 
 export default function Suppliers() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<null | { id: number; name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [needsInitialData, setNeedsInitialData] = useState(true);
 
   const { data: suppliers, isLoading } = useQuery({
     queryKey: ['suppliers'],
@@ -86,7 +139,75 @@ export default function Suppliers() {
     },
   });
 
-  // Removido Seed automático de fornecedores fictícios
+  const deleteSupplier = useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase
+        .from('suppliers')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast({
+        title: "Sucesso",
+        description: "Fornecedor removido com sucesso",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao remover fornecedor",
+        variant: "destructive",
+      });
+      console.error('Error deleting supplier:', error);
+    },
+  });
+
+  // Função para remover todos os fornecedores existentes
+  const clearAllSuppliers = async () => {
+    try {
+      const { error } = await supabase
+        .from('suppliers')
+        .delete()
+        .neq('id', 0); // Deleta todos os fornecedores
+      
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error clearing suppliers:', error);
+      return false;
+    }
+  };
+
+  // Inicializa os dados com os fornecedores reais
+  useEffect(() => {
+    const initializeData = async () => {
+      if (suppliers && suppliers.length > 0 && needsInitialData) {
+        // Verificar se precisamos limpar e reinicializar
+        const hasDemo = suppliers.some(s => s.name.includes('DEMO'));
+        
+        if (hasDemo) {
+          const cleared = await clearAllSuppliers();
+          if (cleared) {
+            // Adicionar os fornecedores reais
+            for (const supplier of REAL_SUPPLIERS) {
+              await supabase.from('suppliers').insert([{
+                ...supplier,
+                is_active: true
+              }]);
+            }
+            queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+            setNeedsInitialData(false);
+          }
+        } else {
+          setNeedsInitialData(false);
+        }
+      }
+    };
+    
+    initializeData();
+  }, [suppliers, queryClient, needsInitialData]);
 
   const handleSubmit = (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }) => {
     if (selectedSupplier) {
@@ -99,6 +220,12 @@ export default function Suppliers() {
   const handleEdit = (supplier: { id: number; name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }) => {
     setSelectedSupplier(supplier);
     setIsFormOpen(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Tem certeza que deseja remover este fornecedor?')) {
+      deleteSupplier.mutate(id);
+    }
   };
 
   return (
@@ -134,7 +261,7 @@ export default function Suppliers() {
                 <TableHead>NIF</TableHead>
                 <TableHead>Especialização</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">Ações</TableHead>
+                <TableHead className="w-[150px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -154,7 +281,7 @@ export default function Suppliers() {
                 suppliers?.map((supplier) => (
                   <TableRow key={supplier.id}>
                     <TableCell>{supplier.name}</TableCell>
-                    <TableCell>{supplier.email}</TableCell>
+                    <TableCell>{supplier.email || '-'}</TableCell>
                     <TableCell>{supplier.phone || '-'}</TableCell>
                     <TableCell>{supplier.address || '-'}</TableCell>
                     <TableCell>{supplier.nif || '-'}</TableCell>
@@ -169,15 +296,26 @@ export default function Suppliers() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleEdit(supplier)}
-                        className="flex items-center gap-2"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Editar
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEdit(supplier)}
+                          className="flex items-center gap-1"
+                        >
+                          <Edit className="h-3 w-3" />
+                          Editar
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDelete(supplier.id)}
+                          className="flex items-center gap-1 text-red-600 hover:text-red-800 hover:bg-red-50"
+                        >
+                          <Trash className="h-3 w-3" />
+                          Remover
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
