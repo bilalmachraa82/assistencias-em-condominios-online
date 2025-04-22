@@ -23,7 +23,7 @@ const SEED_SUPPLIERS = [
     email: "info.tkept@tkelevator.com",
     address: "Sintra Business Park, Edifício 4, 2B, Zona Industrial da Abrunheira, 2710-089 Sintra, Portugal",
     nif: "501445226",
-    specialization: "",
+    specialization: "Elevadores, manutenção e instalação",
   },
   {
     name: "Clefta",
@@ -31,7 +31,7 @@ const SEED_SUPPLIERS = [
     email: "geral@clefta.pt",
     address: "Rua Mariano Pina, 13, Loja B, 1500-442 Lisboa, Portugal",
     nif: "501324046",
-    specialization: "",
+    specialization: "Instalações elétricas, reparações",
   },
   {
     name: "Sr. Obras",
@@ -39,7 +39,7 @@ const SEED_SUPPLIERS = [
     email: "apoio.cliente@srobras.pt, parceiros@srobras.pt",
     address: "Avenida da República, 6, 7º Esq., 1050-191 Lisboa, Portugal",
     nif: "509541887",
-    specialization: "",
+    specialization: "Remodelações, construção, consultoria",
   },
   {
     name: "Mestre das Chaves",
@@ -47,7 +47,7 @@ const SEED_SUPPLIERS = [
     email: "",
     address: "Rua Augusto Gil, 14-A, 2675-507 Odivelas, Lisboa, Portugal",
     nif: "506684504",
-    specialization: "",
+    specialization: "Comércio e representação de fechaduras",
   },
   {
     name: "Desinfest Lar",
@@ -55,7 +55,7 @@ const SEED_SUPPLIERS = [
     email: "desinfest.lar@oninet.pt",
     address: "Largo da Saudade, Vivenda Rosinha, 2675-260 Odivelas, Portugal",
     nif: "502763760",
-    specialization: "",
+    specialization: "Desinfestações e desinfecções",
   },
   {
     name: "Ipest",
@@ -63,7 +63,7 @@ const SEED_SUPPLIERS = [
     email: "geral@ipest.pt",
     address: "Rua Casal dos Ninhos, Nº 2E, Escritório 8, 2665-536 Venda do Pinheiro, Portugal",
     nif: "",
-    specialization: "",
+    specialization: "Controlo de pragas",
   },
 ];
 
