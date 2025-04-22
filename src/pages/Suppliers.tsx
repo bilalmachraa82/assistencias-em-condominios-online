@@ -25,6 +25,7 @@ const REAL_SUPPLIERS = [
     address: "Sintra Business Park, Edifício 4, 2B, Zona Industrial da Abrunheira, 2710-089 Sintra, Portugal",
     nif: "501445226",
     specialization: "Elevadores, manutenção e instalação",
+    is_active: true
   },
   {
     name: "Clefta",
@@ -33,14 +34,16 @@ const REAL_SUPPLIERS = [
     address: "Rua Mariano Pina, 13, Loja B, 1500-442 Lisboa, Portugal",
     nif: "501324046",
     specialization: "Instalações elétricas, reparações",
+    is_active: true
   },
   {
     name: "Sr. Obras",
     phone: "+351 212 580 409, +351 224 109 492, +351 239 100 675",
-    email: "apoio.cliente@srobras.pt, parceiros@srobras.pt",
+    email: "apoio.cliente@srobras.pt",
     address: "Avenida da República, 6, 7º Esq., 1050-191 Lisboa, Portugal",
     nif: "509541887",
     specialization: "Remodelações, construção, consultoria",
+    is_active: true
   },
   {
     name: "Mestre das Chaves",
@@ -49,6 +52,7 @@ const REAL_SUPPLIERS = [
     address: "Rua Augusto Gil, 14-A, 2675-507 Odivelas, Lisboa, Portugal",
     nif: "506684504",
     specialization: "Comércio e representação de fechaduras",
+    is_active: true
   },
   {
     name: "Desinfest Lar",
@@ -57,6 +61,7 @@ const REAL_SUPPLIERS = [
     address: "Largo da Saudade, Vivenda Rosinha, 2675-260 Odivelas, Portugal",
     nif: "502763760",
     specialization: "Desinfestações e desinfecções",
+    is_active: true
   },
   {
     name: "Ipest",
@@ -65,6 +70,7 @@ const REAL_SUPPLIERS = [
     address: "Rua Casal dos Ninhos, Nº 2E, Escritório 8, 2665-536 Venda do Pinheiro, Portugal",
     nif: "",
     specialization: "Controlo de pragas",
+    is_active: true
   },
 ];
 
@@ -73,7 +79,6 @@ export default function Suppliers() {
   const [selectedSupplier, setSelectedSupplier] = useState<null | { id: number; name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [needsInitialData, setNeedsInitialData] = useState(true);
 
   const { data: suppliers, isLoading } = useQuery({
     queryKey: ['suppliers'],
@@ -88,7 +93,7 @@ export default function Suppliers() {
   });
 
   const createSupplier = useMutation({
-    mutationFn: async (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }) => {
+    mutationFn: async (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string; is_active?: boolean }) => {
       const { error } = await supabase
         .from('suppliers')
         .insert([values]);
@@ -164,56 +169,41 @@ export default function Suppliers() {
     },
   });
 
-  // Função para remover todos os fornecedores existentes
-  const clearAllSuppliers = async () => {
-    try {
-      const { error } = await supabase
-        .from('suppliers')
-        .delete()
-        .neq('id', 0); // Deleta todos os fornecedores
-      
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      console.error('Error clearing suppliers:', error);
-      return false;
-    }
-  };
-
-  // Inicializa os dados com os fornecedores reais
+  // Verifica se os fornecedores reais já estão no banco de dados
   useEffect(() => {
-    const initializeData = async () => {
-      if (suppliers && suppliers.length > 0 && needsInitialData) {
-        // Verificar se precisamos limpar e reinicializar
-        const hasDemo = suppliers.some(s => s.name.includes('DEMO'));
+    const initializeRealData = async () => {
+      if (suppliers && suppliers.length > 0) {
+        // Verifica quais fornecedores reais ainda não existem no banco
+        const existingNames = suppliers.map(s => s.name);
         
-        if (hasDemo) {
-          const cleared = await clearAllSuppliers();
-          if (cleared) {
-            // Adicionar os fornecedores reais
-            for (const supplier of REAL_SUPPLIERS) {
-              await supabase.from('suppliers').insert([{
-                ...supplier,
-                is_active: true
-              }]);
-            }
-            queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-            setNeedsInitialData(false);
+        // Filtra apenas os fornecedores reais que não existem no banco
+        const suppliersToAdd = REAL_SUPPLIERS.filter(supplier => 
+          !existingNames.includes(supplier.name)
+        );
+        
+        // Se houver fornecedores para adicionar, adiciona um por um
+        if (suppliersToAdd.length > 0) {
+          for (const supplier of suppliersToAdd) {
+            await supabase.from('suppliers').insert([supplier]);
           }
-        } else {
-          setNeedsInitialData(false);
+          // Atualiza os dados após adicionar os novos fornecedores
+          queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+          toast({
+            title: "Fornecedores adicionados",
+            description: `${suppliersToAdd.length} fornecedores reais foram adicionados.`,
+          });
         }
       }
     };
     
-    initializeData();
-  }, [suppliers, queryClient, needsInitialData]);
+    initializeRealData();
+  }, [suppliers, queryClient, toast]);
 
   const handleSubmit = (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }) => {
     if (selectedSupplier) {
       updateSupplier.mutate({ id: selectedSupplier.id, ...values });
     } else {
-      createSupplier.mutate(values);
+      createSupplier.mutate({ ...values, is_active: true });
     }
   };
 
