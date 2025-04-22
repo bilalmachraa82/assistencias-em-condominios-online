@@ -208,32 +208,38 @@ export type Database = {
       }
       suppliers: {
         Row: {
+          address: string | null
           admin_notes: string | null
           created_at: string
           email: string
           id: number
           is_active: boolean
           name: string
+          nif: string | null
           phone: string | null
           specialization: string | null
         }
         Insert: {
+          address?: string | null
           admin_notes?: string | null
           created_at?: string
           email: string
           id?: number
           is_active?: boolean
           name: string
+          nif?: string | null
           phone?: string | null
           specialization?: string | null
         }
         Update: {
+          address?: string | null
           admin_notes?: string | null
           created_at?: string
           email?: string
           id?: number
           is_active?: boolean
           name?: string
+          nif?: string | null
           phone?: string | null
           specialization?: string | null
         }

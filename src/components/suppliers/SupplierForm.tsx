@@ -25,6 +25,8 @@ const formSchema = z.object({
   name: z.string().min(1, "O nome é obrigatório"),
   email: z.string().email("Email inválido").min(1, "O email é obrigatório"),
   phone: z.string().optional(),
+  address: z.string().optional(),
+  nif: z.string().optional(),
   specialization: z.string().optional(),
 });
 
@@ -37,6 +39,8 @@ type SupplierFormProps = {
     name: string;
     email: string;
     phone?: string;
+    address?: string;
+    nif?: string;
     specialization?: string;
   };
 };
@@ -48,6 +52,8 @@ export default function SupplierForm({ open, onClose, onSubmit, initialData }: S
       name: "",
       email: "",
       phone: "",
+      address: "",
+      nif: "",
       specialization: "",
     },
   });
@@ -110,6 +116,32 @@ export default function SupplierForm({ open, onClose, onSubmit, initialData }: S
             />
             <FormField
               control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Morada</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="nif"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>NIF</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="specialization"
               render={({ field }) => (
                 <FormItem>
@@ -133,3 +165,4 @@ export default function SupplierForm({ open, onClose, onSubmit, initialData }: S
     </Dialog>
   );
 }
+

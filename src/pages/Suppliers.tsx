@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +16,60 @@ import { supabase } from '@/integrations/supabase/client';
 import SupplierForm from '@/components/suppliers/SupplierForm';
 import { useToast } from '@/hooks/use-toast';
 
+const SEED_SUPPLIERS = [
+  {
+    name: "TKE",
+    phone: "+351 21 43 08 100",
+    email: "info.tkept@tkelevator.com",
+    address: "Sintra Business Park, Edifício 4, 2B, Zona Industrial da Abrunheira, 2710-089 Sintra, Portugal",
+    nif: "501445226",
+    specialization: "",
+  },
+  {
+    name: "Clefta",
+    phone: "(+351) 217 648 435",
+    email: "geral@clefta.pt",
+    address: "Rua Mariano Pina, 13, Loja B, 1500-442 Lisboa, Portugal",
+    nif: "501324046",
+    specialization: "",
+  },
+  {
+    name: "Sr. Obras",
+    phone: "+351 212 580 409, +351 224 109 492, +351 239 100 675",
+    email: "apoio.cliente@srobras.pt, parceiros@srobras.pt",
+    address: "Avenida da República, 6, 7º Esq., 1050-191 Lisboa, Portugal",
+    nif: "509541887",
+    specialization: "",
+  },
+  {
+    name: "Mestre das Chaves",
+    phone: "+351 219 318 040",
+    email: "",
+    address: "Rua Augusto Gil, 14-A, 2675-507 Odivelas, Lisboa, Portugal",
+    nif: "506684504",
+    specialization: "",
+  },
+  {
+    name: "Desinfest Lar",
+    phone: "+351 219 336 788",
+    email: "desinfest.lar@oninet.pt",
+    address: "Largo da Saudade, Vivenda Rosinha, 2675-260 Odivelas, Portugal",
+    nif: "502763760",
+    specialization: "",
+  },
+  {
+    name: "Ipest",
+    phone: "+351 219 661 404, +351 925 422 204",
+    email: "geral@ipest.pt",
+    address: "Rua Casal dos Ninhos, Nº 2E, Escritório 8, 2665-536 Venda do Pinheiro, Portugal",
+    nif: "",
+    specialization: "",
+  },
+];
+
 export default function Suppliers() {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<null | { id: number; name: string; email: string; phone?: string; specialization?: string }>(null);
+  const [selectedSupplier, setSelectedSupplier] = useState<null | { id: number; name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -28,18 +80,16 @@ export default function Suppliers() {
         .from('suppliers')
         .select('*')
         .order('name');
-      
       if (error) throw error;
       return data;
     },
   });
 
   const createSupplier = useMutation({
-    mutationFn: async (values: { name: string; email: string; phone?: string; specialization?: string }) => {
+    mutationFn: async (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }) => {
       const { error } = await supabase
         .from('suppliers')
         .insert([values]);
-      
       if (error) throw error;
     },
     onSuccess: () => {
@@ -61,12 +111,11 @@ export default function Suppliers() {
   });
 
   const updateSupplier = useMutation({
-    mutationFn: async ({ id, ...values }: { id: number; name: string; email: string; phone?: string; specialization?: string }) => {
+    mutationFn: async ({ id, ...values }: { id: number; name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }) => {
       const { error } = await supabase
         .from('suppliers')
         .update(values)
         .eq('id', id);
-      
       if (error) throw error;
     },
     onSuccess: () => {
@@ -88,7 +137,17 @@ export default function Suppliers() {
     },
   });
 
-  const handleSubmit = (values: { name: string; email: string; phone?: string; specialization?: string }) => {
+  // Seed logic: If there are no suppliers, create them
+  useEffect(() => {
+    if (suppliers && suppliers.length === 0) {
+      SEED_SUPPLIERS.forEach((supplier) => {
+        createSupplier.mutate(supplier);
+      });
+    }
+    // eslint-disable-next-line
+  }, [suppliers]);
+
+  const handleSubmit = (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }) => {
     if (selectedSupplier) {
       updateSupplier.mutate({ id: selectedSupplier.id, ...values });
     } else {
@@ -96,7 +155,7 @@ export default function Suppliers() {
     }
   };
 
-  const handleEdit = (supplier: { id: number; name: string; email: string; phone?: string; specialization?: string }) => {
+  const handleEdit = (supplier: { id: number; name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }) => {
     setSelectedSupplier(supplier);
     setIsFormOpen(true);
   };
@@ -125,11 +184,13 @@ export default function Suppliers() {
 
         <div className="rounded-md border">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-white hover:bg-white">
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Telefone</TableHead>
+                <TableHead>Morada</TableHead>
+                <TableHead>NIF</TableHead>
                 <TableHead>Especialização</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-[100px]">Ações</TableHead>
@@ -138,13 +199,13 @@ export default function Suppliers() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={8} className="text-center">
                     Carregando...
                   </TableCell>
                 </TableRow>
               ) : suppliers?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={8} className="text-center">
                     Nenhum fornecedor cadastrado
                   </TableCell>
                 </TableRow>
@@ -154,6 +215,8 @@ export default function Suppliers() {
                     <TableCell>{supplier.name}</TableCell>
                     <TableCell>{supplier.email}</TableCell>
                     <TableCell>{supplier.phone || '-'}</TableCell>
+                    <TableCell>{supplier.address || '-'}</TableCell>
+                    <TableCell>{supplier.nif || '-'}</TableCell>
                     <TableCell>{supplier.specialization || '-'}</TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
@@ -195,3 +258,4 @@ export default function Suppliers() {
     </DashboardLayout>
   );
 }
+

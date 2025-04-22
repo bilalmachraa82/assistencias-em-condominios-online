@@ -1,12 +1,14 @@
+
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Settings, Edit } from 'lucide-react';
+import { Plus, Edit } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import BuildingForm from '@/components/buildings/BuildingForm';
 import { useToast } from '@/hooks/use-toast';
+
 export default function Buildings() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<null | {
@@ -14,38 +16,23 @@ export default function Buildings() {
     name: string;
     address: string;
   }>(null);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const {
-    data: buildings,
-    isLoading
-  } = useQuery({
+  const { data: buildings, isLoading } = useQuery({
     queryKey: ['buildings'],
     queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('buildings').select('*').order('name');
+      const { data, error } = await supabase.from('buildings').select('*').order('name');
       if (error) throw error;
       return data;
     }
   });
   const createBuilding = useMutation({
-    mutationFn: async (values: {
-      name: string;
-      address: string;
-    }) => {
-      const {
-        error
-      } = await supabase.from('buildings').insert([values]);
+    mutationFn: async (values: { name: string; address: string; }) => {
+      const { error } = await supabase.from('buildings').insert([values]);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['buildings']
-      });
+      queryClient.invalidateQueries({ queryKey: ['buildings'] });
       toast({
         title: "Sucesso",
         description: "Prédio adicionado com sucesso"
@@ -62,23 +49,12 @@ export default function Buildings() {
     }
   });
   const updateBuilding = useMutation({
-    mutationFn: async ({
-      id,
-      ...values
-    }: {
-      id: number;
-      name: string;
-      address: string;
-    }) => {
-      const {
-        error
-      } = await supabase.from('buildings').update(values).eq('id', id);
+    mutationFn: async ({ id, ...values }: { id: number; name: string; address: string; }) => {
+      const { error } = await supabase.from('buildings').update(values).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['buildings']
-      });
+      queryClient.invalidateQueries({ queryKey: ['buildings'] });
       toast({
         title: "Sucesso",
         description: "Prédio atualizado com sucesso"
@@ -95,10 +71,7 @@ export default function Buildings() {
       console.error('Error updating building:', error);
     }
   });
-  const handleSubmit = (values: {
-    name: string;
-    address: string;
-  }) => {
+  const handleSubmit = (values: { name: string; address: string; }) => {
     if (selectedBuilding) {
       updateBuilding.mutate({
         id: selectedBuilding.id,
@@ -108,11 +81,7 @@ export default function Buildings() {
       createBuilding.mutate(values);
     }
   };
-  const handleEdit = (building: {
-    id: number;
-    name: string;
-    address: string;
-  }) => {
+  const handleEdit = (building: { id: number; name: string; address: string; }) => {
     setSelectedBuilding(building);
     setIsFormOpen(true);
   };
@@ -129,10 +98,6 @@ export default function Buildings() {
             <Button variant="outline" onClick={() => setIsFormOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-cyan-50">
               <Plus className="h-4 w-4" />
               Adicionar Prédio
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500">
-              <Settings className="h-4 w-4" />
-              Menu Definição
             </Button>
           </div>
         </div>
