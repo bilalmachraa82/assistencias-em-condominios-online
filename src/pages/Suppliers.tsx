@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from "@/components/ui/button";
 import {
@@ -15,57 +15,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import SupplierForm from '@/components/suppliers/SupplierForm';
 import { useToast } from '@/hooks/use-toast';
-
-const SEED_SUPPLIERS = [
-  {
-    name: "TKE",
-    phone: "+351 21 43 08 100",
-    email: "info.tkept@tkelevator.com",
-    address: "Sintra Business Park, Edifício 4, 2B, Zona Industrial da Abrunheira, 2710-089 Sintra, Portugal",
-    nif: "501445226",
-    specialization: "Elevadores, manutenção e instalação",
-  },
-  {
-    name: "Clefta",
-    phone: "(+351) 217 648 435",
-    email: "geral@clefta.pt",
-    address: "Rua Mariano Pina, 13, Loja B, 1500-442 Lisboa, Portugal",
-    nif: "501324046",
-    specialization: "Instalações elétricas, reparações",
-  },
-  {
-    name: "Sr. Obras",
-    phone: "+351 212 580 409, +351 224 109 492, +351 239 100 675",
-    email: "apoio.cliente@srobras.pt, parceiros@srobras.pt",
-    address: "Avenida da República, 6, 7º Esq., 1050-191 Lisboa, Portugal",
-    nif: "509541887",
-    specialization: "Remodelações, construção, consultoria",
-  },
-  {
-    name: "Mestre das Chaves",
-    phone: "+351 219 318 040",
-    email: "",
-    address: "Rua Augusto Gil, 14-A, 2675-507 Odivelas, Lisboa, Portugal",
-    nif: "506684504",
-    specialization: "Comércio e representação de fechaduras",
-  },
-  {
-    name: "Desinfest Lar",
-    phone: "+351 219 336 788",
-    email: "desinfest.lar@oninet.pt",
-    address: "Largo da Saudade, Vivenda Rosinha, 2675-260 Odivelas, Portugal",
-    nif: "502763760",
-    specialization: "Desinfestações e desinfecções",
-  },
-  {
-    name: "Ipest",
-    phone: "+351 219 661 404, +351 925 422 204",
-    email: "geral@ipest.pt",
-    address: "Rua Casal dos Ninhos, Nº 2E, Escritório 8, 2665-536 Venda do Pinheiro, Portugal",
-    nif: "",
-    specialization: "Controlo de pragas",
-  },
-];
 
 export default function Suppliers() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -137,15 +86,7 @@ export default function Suppliers() {
     },
   });
 
-  // Seed logic: If there are no suppliers, create them
-  useEffect(() => {
-    if (suppliers && suppliers.length === 0) {
-      SEED_SUPPLIERS.forEach((supplier) => {
-        createSupplier.mutate(supplier);
-      });
-    }
-    // eslint-disable-next-line
-  }, [suppliers]);
+  // Removido Seed automático de fornecedores fictícios
 
   const handleSubmit = (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string }) => {
     if (selectedSupplier) {
@@ -258,4 +199,3 @@ export default function Suppliers() {
     </DashboardLayout>
   );
 }
-
