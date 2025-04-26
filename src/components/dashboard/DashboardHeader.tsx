@@ -1,12 +1,9 @@
-
-import { Button } from "@/components/ui/button"
-import { MapPin, Plus, Camera, Sun } from "lucide-react"
-
+import { Button } from "@/components/ui/button";
+import { MapPin, Plus, Camera, Sun } from "lucide-react";
 export function DashboardHeader() {
-  return (
-    <div className="flex justify-between items-center mb-10 animate-fade-in-up">
+  return <div className="flex justify-between items-center mb-10 animate-fade-in-up">
       <div>
-        <h1 className="text-5xl font-extrabold leading-tight">Olá, João!</h1>
+        <h1 className="text-5xl font-extrabold leading-tight">Olá, Andre!</h1>
         <p className="text-[#cbd5e1] mt-2 text-lg">
           Pronto para transformar assistências em soluções?
         </p>
@@ -25,6 +22,5 @@ export function DashboardHeader() {
           <Camera className="mr-2 h-4 w-4" /> Nova Foto
         </Button>
       </div>
-    </div>
-  )
+    </div>;
 }
