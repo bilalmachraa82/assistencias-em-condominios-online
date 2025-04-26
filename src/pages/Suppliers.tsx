@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from "@/components/ui/button";
@@ -72,7 +73,6 @@ const REAL_SUPPLIERS = [
     specialization: "Desinfestações e desinfecções",
     is_active: true
   },
-  // "Clima Solutions" has been removed from the list
   {
     name: "Ipest",
     phone: "+351 219 661 404, +351 925 422 204",
