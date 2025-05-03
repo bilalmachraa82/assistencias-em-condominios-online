@@ -9,6 +9,12 @@ import Assistencias from "./pages/Assistencias";
 import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
 import Dashboard from "./pages/Dashboard";
 
+// Supplier public pages
+import AcceptRequest from "./pages/supplier/AcceptRequest";
+import ScheduleRequest from "./pages/supplier/ScheduleRequest";
+import CompleteRequest from "./pages/supplier/CompleteRequest";
+import Confirmation from "./pages/supplier/Confirmation";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -29,6 +35,23 @@ const router = createBrowserRouter([
   {
     path: "/configuracao-servicos",
     element: <ConfiguracaoServicos />,
+  },
+  // Supplier public routes
+  {
+    path: "/supplier/accept",
+    element: <AcceptRequest />,
+  },
+  {
+    path: "/supplier/schedule",
+    element: <ScheduleRequest />,
+  },
+  {
+    path: "/supplier/complete",
+    element: <CompleteRequest />,
+  },
+  {
+    path: "/supplier/confirmation",
+    element: <Confirmation />,
   },
 ]);
 

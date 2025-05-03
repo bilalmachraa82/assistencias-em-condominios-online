@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText } from 'lucide-react';
+import { FileText, ExternalLink } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AssistanceListProps {
   isLoading: boolean;
@@ -48,6 +49,30 @@ export default function AssistanceList({
     }
   };
 
+  // Get appropriate link for current status
+  const getSupplierLink = (assistance: any) => {
+    const baseUrl = window.location.origin;
+    
+    switch(assistance.status) {
+      case 'Pendente Aceitação':
+        return assistance.acceptance_token ? 
+          `${baseUrl}/supplier/accept?token=${assistance.acceptance_token}` : null;
+      case 'Pendente Agendamento':
+        return assistance.scheduling_token ?
+          `${baseUrl}/supplier/schedule?token=${assistance.scheduling_token}` : null;
+      case 'Agendado':
+        return assistance.validation_token ?
+          `${baseUrl}/supplier/complete?token=${assistance.validation_token}` : null;
+      default:
+        return null;
+    }
+  };
+  
+  // Copy link to clipboard
+  const copyLinkToClipboard = (link: string) => {
+    navigator.clipboard.writeText(link);
+  };
+
   return (
     <div className="bg-white/5 rounded-3xl p-6 backdrop-blur-lg shadow-xl mt-8">
       <div className="flex justify-between items-center mb-6">
@@ -78,55 +103,86 @@ export default function AssistanceList({
               <th className="px-4 py-3 text-left font-medium">Status</th>
               <th className="px-4 py-3 text-left font-medium">Urgência</th>
               <th className="px-4 py-3 text-left font-medium">Data</th>
+              <th className="px-4 py-3 text-left font-medium">Link</th>
               <th className="px-4 py-3 text-left font-medium">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {isLoading ? (
               <tr>
-                <td className="px-4 py-3 text-[#cbd5e1]" colSpan={8}>
+                <td className="px-4 py-3 text-[#cbd5e1]" colSpan={9}>
                   Carregando assistências...
                 </td>
               </tr>
             ) : assistances?.length === 0 ? (
               <tr>
-                <td className="px-4 py-3 text-[#cbd5e1]" colSpan={8}>
+                <td className="px-4 py-3 text-[#cbd5e1]" colSpan={9}>
                   Nenhuma assistência encontrada com os filtros atuais.
                 </td>
               </tr>
             ) : (
-              assistances?.map((assistance) => (
-                <tr key={assistance.id}>
-                  <td className="px-4 py-3 text-[#cbd5e1]">{assistance.id}</td>
-                  <td className="px-4 py-3 text-[#cbd5e1]">{assistance.buildings?.name}</td>
-                  <td className="px-4 py-3 text-[#cbd5e1]">{assistance.intervention_types?.name}</td>
-                  <td className="px-4 py-3 text-[#cbd5e1]">{assistance.suppliers?.name}</td>
-                  <td className="px-4 py-3 text-[#cbd5e1]">
-                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeClass(assistance.status)}`}>
-                      {assistance.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-[#cbd5e1]">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      assistance.type === 'Normal' ? 'bg-green-500/20 text-green-300' :
-                      assistance.type === 'Urgente' ? 'bg-orange-500/20 text-orange-300' :
-                      'bg-red-500/20 text-red-300'
-                    }`}>
-                      {assistance.type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-center text-[#8E9196]">{formatDate(assistance.created_at)}</td>
-                  <td className="px-4 py-3">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => onViewAssistance(assistance)}
-                    >
-                      Ver
-                    </Button>
-                  </td>
-                </tr>
-              ))
+              assistances?.map((assistance) => {
+                const supplierLink = getSupplierLink(assistance);
+                
+                return (
+                  <tr key={assistance.id}>
+                    <td className="px-4 py-3 text-[#cbd5e1]">{assistance.id}</td>
+                    <td className="px-4 py-3 text-[#cbd5e1]">{assistance.buildings?.name}</td>
+                    <td className="px-4 py-3 text-[#cbd5e1]">{assistance.intervention_types?.name}</td>
+                    <td className="px-4 py-3 text-[#cbd5e1]">{assistance.suppliers?.name}</td>
+                    <td className="px-4 py-3 text-[#cbd5e1]">
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeClass(assistance.status)}`}>
+                        {assistance.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-[#cbd5e1]">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        assistance.type === 'Normal' ? 'bg-green-500/20 text-green-300' :
+                        assistance.type === 'Urgente' ? 'bg-orange-500/20 text-orange-300' :
+                        'bg-red-500/20 text-red-300'
+                      }`}>
+                        {assistance.type}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center text-[#8E9196]">{formatDate(assistance.created_at)}</td>
+                    <td className="px-4 py-3 text-center">
+                      {supplierLink ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8"
+                                onClick={() => {
+                                  copyLinkToClipboard(supplierLink);
+                                  navigator.clipboard.writeText(supplierLink);
+                                }}
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Copiar link para fornecedor</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <span>-</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => onViewAssistance(assistance)}
+                      >
+                        Ver
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
