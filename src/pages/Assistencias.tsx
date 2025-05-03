@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import AssistanceForm from '@/components/assistance/AssistanceForm';
 import AssistanceFilter from '@/components/assistance/AssistanceFilter';
+import AssistanceDetails from '@/components/assistance/AssistanceDetails';
 import { toast } from 'sonner';
 
 export default function Assistencias() {
@@ -167,18 +168,6 @@ export default function Assistencias() {
     });
   };
 
-  const formatDateTime = (dateString: string) => {
-    if (!dateString) return 'Não agendado';
-    
-    return new Date(dateString).toLocaleString('pt-PT', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
   };
@@ -280,100 +269,12 @@ export default function Assistencias() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-          <DialogContent className="sm:max-w-[700px]">
-            <DialogHeader>
-              <DialogTitle>Detalhes da Assistência</DialogTitle>
-              <DialogDescription>
-                Informações detalhadas da solicitação de assistência.
-              </DialogDescription>
-            </DialogHeader>
-            
-            {selectedAssistance && (
-              <div className="space-y-6 py-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                      <Building className="h-4 w-4" /> Edifício
-                    </h3>
-                    <p className="mt-1 text-base">{selectedAssistance.buildings?.name}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                      <Wrench className="h-4 w-4" /> Tipo de Intervenção
-                    </h3>
-                    <p className="mt-1 text-base">{selectedAssistance.intervention_types?.name}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                      <User className="h-4 w-4" /> Fornecedor
-                    </h3>
-                    <p className="mt-1 text-base">{selectedAssistance.suppliers?.name}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                      <AlertTriangle className="h-4 w-4" /> Status
-                    </h3>
-                    <p className="mt-1 text-base">{selectedAssistance.status}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" /> Data Criação
-                    </h3>
-                    <p className="mt-1 text-base">{formatDate(selectedAssistance.created_at)}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" /> Agendamento
-                    </h3>
-                    <p className="mt-1 text-base">{formatDateTime(selectedAssistance.scheduled_datetime)}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                    <MessageSquare className="h-4 w-4" /> Descrição
-                  </h3>
-                  <p className="mt-1 text-base whitespace-pre-wrap">{selectedAssistance.description}</p>
-                </div>
-                
-                {selectedAssistance.photo_path && (
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Foto</h3>
-                    <div className="mt-2 max-w-full overflow-hidden rounded-md border">
-                      <img 
-                        src={selectedAssistance.photo_path} 
-                        alt="Foto da assistência" 
-                        className="h-auto w-full object-cover"
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                {selectedAssistance.admin_notes && (
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Notas Administrativas</h3>
-                    <p className="mt-1 text-sm whitespace-pre-wrap">{selectedAssistance.admin_notes}</p>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsViewDialogOpen(false)}
-              >
-                Fechar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <AssistanceDetails 
+          isOpen={isViewDialogOpen}
+          onClose={() => setIsViewDialogOpen(false)}
+          assistance={selectedAssistance}
+          onAssistanceUpdate={refetchAssistances}
+        />
 
         <AssistanceFilter
           searchQuery={searchQuery}
