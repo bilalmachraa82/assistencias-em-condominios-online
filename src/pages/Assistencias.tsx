@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Custom components
 import AssistanceFilter from '@/components/assistance/AssistanceFilter';
-import AssistanceDetails from '@/components/assistance/AssistanceDetails';
+import AssistanceDetailsWrapper from '@/components/assistance/AssistanceDetailsWrapper';
 import AssistanceList from '@/components/assistance/AssistanceList';
 import BuildingSelectorDialog from '@/components/assistance/BuildingSelectorDialog';
 import AssistanceFormDialog from '@/components/assistance/AssistanceFormDialog';
@@ -51,11 +51,15 @@ export default function Assistencias() {
       // Generate tokens
       const interaction_token = generateToken();
       const acceptance_token = generateToken();
+      const scheduling_token = generateToken();
+      const validation_token = generateToken();
       
       console.log("Creating assistance with data:", {
         ...formData,
         interaction_token,
         acceptance_token,
+        scheduling_token,
+        validation_token,
         building_id: selectedBuilding?.id,
         status: 'Pendente Aceitação'
       });
@@ -67,6 +71,8 @@ export default function Assistencias() {
             ...formData,
             interaction_token,
             acceptance_token,
+            scheduling_token,
+            validation_token,
             building_id: selectedBuilding?.id,
             status: 'Pendente Aceitação',
             alert_level: 1
@@ -90,6 +96,7 @@ export default function Assistencias() {
         }]);
 
       toast.success('Assistência criada com sucesso!');
+      toast.info('Agora você pode enviar um email para o fornecedor com o link de aceitação.');
       setIsAssistanceFormOpen(false);
       setSelectedBuilding(null);
       await refetchAssistances();
@@ -156,7 +163,7 @@ export default function Assistencias() {
           isSubmitting={isSubmitting}
         />
 
-        <AssistanceDetails 
+        <AssistanceDetailsWrapper 
           isOpen={isViewDialogOpen}
           onClose={() => setIsViewDialogOpen(false)}
           assistance={selectedAssistance}

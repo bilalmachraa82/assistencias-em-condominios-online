@@ -31,3 +31,6 @@ verify_jwt = false
 
 [functions.submit-supplier-action]
 verify_jwt = false
+
+[functions.send-supplier-email]
+verify_jwt = false
