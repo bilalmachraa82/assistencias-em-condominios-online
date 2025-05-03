@@ -33,6 +33,11 @@ export default function Assistencias() {
     filters
   } = useAssistanceData(sortOrder);
 
+  // Create a wrapper function to handle the Promise<void> return type
+  const handleRefetchAssistances = async (): Promise<void> => {
+    await refetchAssistances();
+  };
+
   const handleBuildingSelect = (building: any) => {
     setSelectedBuilding(building);
     setIsNewAssistanceDialogOpen(false);
@@ -167,7 +172,7 @@ export default function Assistencias() {
           isOpen={isViewDialogOpen}
           onClose={() => setIsViewDialogOpen(false)}
           assistance={selectedAssistance}
-          onAssistanceUpdate={refetchAssistances}
+          onAssistanceUpdate={handleRefetchAssistances}
         />
 
         <AssistanceFilter

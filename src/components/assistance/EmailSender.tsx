@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Mail } from 'lucide-react';
-import { Toast, toast } from 'sonner';
+import { toast } from 'sonner';
 import { 
   Dialog,
   DialogContent,

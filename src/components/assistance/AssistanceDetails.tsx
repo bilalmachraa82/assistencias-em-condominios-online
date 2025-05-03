@@ -25,10 +25,17 @@ interface AssistanceDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   assistance: any;
-  onAssistanceUpdate: () => void;
+  onAssistanceUpdate: () => Promise<void>;
+  additionalContent?: React.ReactNode; // Add this line to accept additionalContent
 }
 
-export default function AssistanceDetails({ isOpen, onClose, assistance, onAssistanceUpdate }: AssistanceDetailsProps) {
+export default function AssistanceDetails({ 
+  isOpen, 
+  onClose, 
+  assistance, 
+  onAssistanceUpdate,
+  additionalContent 
+}: AssistanceDetailsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState(assistance?.status);
   const [adminNotes, setAdminNotes] = useState(assistance?.admin_notes || '');
@@ -445,6 +452,9 @@ export default function AssistanceDetails({ isOpen, onClose, assistance, onAssis
             </div>
           )}
         </div>
+        
+        {/* Add the additionalContent here, before the footer */}
+        {additionalContent}
         
         <DialogFooter>
           <Button 
