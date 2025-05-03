@@ -252,6 +252,41 @@ export default function Suppliers() {
     initializeRealData();
   }, [suppliers, queryClient, toast]);
 
+  // Adicionar função para remover fornecedor existente (ClimaSolutions)
+  useEffect(() => {
+    const removeClimaSolutions = async () => {
+      if (suppliers && suppliers.length > 0) {
+        // Procura por ClimaSolutions no banco de dados
+        const climaSolutions = suppliers.find(s => 
+          s.name.includes("ClimaSolutions") || 
+          s.name.includes("Clima Solutions")
+        );
+        
+        // Se encontrar, remove
+        if (climaSolutions) {
+          try {
+            const { error } = await supabase
+              .from('suppliers')
+              .delete()
+              .eq('id', climaSolutions.id);
+            
+            if (!error) {
+              queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+              toast({
+                title: "Fornecedor removido",
+                description: "ClimaSolutions foi removido com sucesso.",
+              });
+            }
+          } catch (error) {
+            console.error('Error removing ClimaSolutions:', error);
+          }
+        }
+      }
+    };
+    
+    removeClimaSolutions();
+  }, [suppliers, queryClient, toast]);
+
   const handleSubmit = (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string; is_active?: boolean }) => {
     if (selectedSupplier) {
       updateSupplier.mutate({ id: selectedSupplier.id, ...values });
