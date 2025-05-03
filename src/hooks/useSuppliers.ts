@@ -14,6 +14,73 @@ type Supplier = {
   is_active: boolean;
 };
 
+// Predefined suppliers data from the provided list
+const predefinedSuppliers = [
+  {
+    name: "TKE",
+    email: "info.tkept@tkelevator.com",
+    phone: "+351 21 43 08 100",
+    address: "Sintra Business Park, Edifício 4, 2B, Zona Industrial da Abrunheira, 2710‑089 Sintra",
+    nif: "501 445 226",
+    specialization: "Elevadores",
+    is_active: true
+  },
+  {
+    name: "Clefta",
+    email: "geral@clefta.pt",
+    phone: "(+351) 217 648 435",
+    address: "Rua Mariano Pina, 13, Loja B, 1500‑442 Lisboa",
+    nif: "501 324 046",
+    specialization: "Segurança",
+    is_active: true
+  },
+  {
+    name: "Sr. Obras",
+    email: "ana.ferreira.santos@srobras.pt",
+    phone: "961 777 625 / 966 370 189",
+    address: "Avenida da República, 6, 7.º Esq., 1050‑191 Lisboa",
+    nif: "509 541 887",
+    specialization: "Construção e Reparações",
+    is_active: true
+  },
+  {
+    name: "Mestre das Chaves",
+    email: "lojamestredaschaves@gmail.com",
+    phone: "939 324 688 / 933 427 963",
+    address: "Rua Augusto Gil, 14‑A, 2675‑507 Odivelas (Lisboa)",
+    nif: "506 684 504",
+    specialization: "Serralharia",
+    is_active: true
+  },
+  {
+    name: "Desinfest Lar",
+    email: "desinfestlar@sapo.pt",
+    phone: "+351 219 336 788",
+    address: "Largo da Saudade, Vivenda Rosinha, 2675‑260 Odivelas",
+    nif: "502 763 760",
+    specialization: "Controlo de Pragas",
+    is_active: true
+  },
+  {
+    name: "Ascenso Eleva Lda",
+    email: "ascensoeleva.lda@sapo.pt",
+    phone: "+351 219 166 101",
+    address: "Rua de Urano, 10‑A, Serra das Minas, 2635‑580 Rio de Mouro – Sintra",
+    nif: "503 077 291",
+    specialization: "Elevadores",
+    is_active: true
+  },
+  {
+    name: "Ipest",
+    email: "geral@ipest.pt",
+    phone: "+351 219 661 404 / 925 422 204",
+    address: "Rua Casal dos Ninhos, Nº 2E, Escritório 8, 2665‑536 Venda do Pinheiro",
+    nif: "",
+    specialization: "Controlo de Pragas",
+    is_active: true
+  }
+];
+
 export function useSuppliers() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<null | Supplier>(null);
@@ -231,6 +298,63 @@ export function useSuppliers() {
     },
   });
 
+  // Import predefined suppliers
+  const importPredefinedSuppliers = useMutation({
+    mutationFn: async () => {
+      // Check which suppliers already exist to avoid duplicates
+      const { data: existingSuppliers } = await supabase
+        .from('suppliers')
+        .select('name, email');
+      
+      const existingNames = new Set(existingSuppliers?.map(s => s.name.toLowerCase()));
+      const existingEmails = new Set(existingSuppliers?.map(s => s.email.toLowerCase()));
+      
+      // Filter out suppliers that already exist (by name or email)
+      const suppliersToImport = predefinedSuppliers.filter(
+        supplier => !existingNames.has(supplier.name.toLowerCase()) && 
+                   !existingEmails.has(supplier.email.toLowerCase())
+      );
+      
+      if (suppliersToImport.length === 0) {
+        return { imported: 0, total: predefinedSuppliers.length };
+      }
+      
+      const { error } = await supabase
+        .from('suppliers')
+        .insert(suppliersToImport);
+        
+      if (error) throw error;
+      
+      return { 
+        imported: suppliersToImport.length, 
+        total: predefinedSuppliers.length 
+      };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      
+      if (result.imported === 0) {
+        toast({
+          title: "Informação",
+          description: "Todos os fornecedores da lista já existem no sistema.",
+        });
+      } else {
+        toast({
+          title: "Sucesso",
+          description: `Importados ${result.imported} de ${result.total} fornecedores. ${result.total - result.imported} já existiam no sistema.`,
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao importar fornecedores.",
+        variant: "destructive",
+      });
+      console.error('Error importing suppliers:', error);
+    },
+  });
+
   // Form handlers
   const handleSubmit = (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string; is_active?: boolean }) => {
     if (selectedSupplier) {
@@ -287,6 +411,10 @@ export function useSuppliers() {
     setDeletingAllError(null);
   };
 
+  const handleImportPredefined = () => {
+    importPredefinedSuppliers.mutate();
+  };
+
   return {
     suppliers,
     isLoading,
@@ -307,5 +435,6 @@ export function useSuppliers() {
     handleDeleteAllConfirm,
     closeDeleteDialog,
     closeDeleteAllDialog,
+    handleImportPredefined,
   };
 }

@@ -29,6 +29,7 @@ export default function Suppliers() {
     handleDeleteAllConfirm,
     closeDeleteDialog,
     closeDeleteAllDialog,
+    handleImportPredefined,
   } = useSuppliers();
 
   return (
@@ -44,6 +45,7 @@ export default function Suppliers() {
           <SupplierActions 
             onAddSupplier={handleOpenForm}
             onDeleteAll={confirmDeleteAll}
+            onImportPredefined={handleImportPredefined}
           />
         </div>
 
