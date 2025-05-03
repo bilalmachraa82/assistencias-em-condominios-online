@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building, Wrench, User, AlertTriangle, Calendar, MessageSquare, Pencil, Save, X } from 'lucide-react';
+import { Building, Wrench, User, AlertTriangle, Calendar, MessageSquare, Pencil, Save, X, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -36,13 +36,20 @@ export default function AssistanceDetails({ isOpen, onClose, assistance, onAssis
 
   const statuses = [
     "Pendente Resposta Inicial",
+    "Pendente Aceitação",
+    "Recusada Fornecedor",
+    "Pendente Agendamento",
     "Agendado",
     "Em Progresso",
+    "Pendente Validação",
     "Concluído",
+    "Reagendamento Solicitado", 
+    "Validação Expirada",
     "Cancelado",
   ];
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('pt-PT', {
       day: '2-digit',
       month: '2-digit',
@@ -104,14 +111,24 @@ export default function AssistanceDetails({ isOpen, onClose, assistance, onAssis
   const getStatusBadgeClass = (statusValue: string) => {
     switch (statusValue) {
       case 'Pendente Resposta Inicial':
+      case 'Pendente Aceitação':
         return 'bg-yellow-500/20 text-yellow-300';
+      case 'Recusada Fornecedor':
+        return 'bg-red-500/20 text-red-300';
+      case 'Pendente Agendamento':
       case 'Agendado':
         return 'bg-blue-500/20 text-blue-300';
       case 'Em Progresso':
+      case 'Pendente Validação':
         return 'bg-purple-500/20 text-purple-300';
       case 'Concluído':
         return 'bg-green-500/20 text-green-300';
+      case 'Reagendamento Solicitado':
+        return 'bg-orange-500/20 text-orange-300';
+      case 'Validação Expirada':
+        return 'bg-gray-500/20 text-gray-300';
       case 'Cancelado':
+      case 'Cancelada Admin':
         return 'bg-red-500/20 text-red-300';
       default:
         return 'bg-gray-500/20 text-gray-300';
@@ -128,6 +145,38 @@ export default function AssistanceDetails({ isOpen, onClose, assistance, onAssis
         return 'bg-red-500/20 text-red-300';
       default:
         return 'bg-gray-500/20 text-gray-300';
+    }
+  };
+
+  const handleResetTokens = async (tokenType: string) => {
+    try {
+      setIsSubmitting(true);
+      
+      // Generate a new random token
+      const newToken = Math.random().toString(36).substring(2, 15) + 
+                       Math.random().toString(36).substring(2, 15);
+      
+      const updateData: Record<string, any> = {};
+      updateData[tokenType] = newToken;
+      
+      const { error } = await supabase
+        .from('assistances')
+        .update(updateData)
+        .eq('id', assistance.id);
+        
+      if (error) {
+        console.error(`Erro ao atualizar token ${tokenType}:`, error);
+        toast.error(`Erro ao atualizar token ${tokenType}.`);
+        return;
+      }
+      
+      toast.success(`Token ${tokenType} atualizado com sucesso!`);
+      onAssistanceUpdate();
+    } catch (error) {
+      console.error(`Erro ao atualizar token ${tokenType}:`, error);
+      toast.error(`Ocorreu um erro ao atualizar o token ${tokenType}.`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -267,7 +316,7 @@ export default function AssistanceDetails({ isOpen, onClose, assistance, onAssis
           
           {assistance.photo_path && (
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground">Foto</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">Foto Inicial</h3>
               <div className="mt-2 max-w-full overflow-hidden rounded-md border">
                 <img 
                   src={assistance.photo_path} 
@@ -277,6 +326,76 @@ export default function AssistanceDetails({ isOpen, onClose, assistance, onAssis
               </div>
             </div>
           )}
+          
+          {assistance.completion_photo_url && (
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Foto de Conclusão</h3>
+              <div className="mt-2 max-w-full overflow-hidden rounded-md border">
+                <img 
+                  src={assistance.completion_photo_url} 
+                  alt="Foto de conclusão" 
+                  className="h-auto w-full object-cover"
+                />
+              </div>
+            </div>
+          )}
+          
+          {/* Tokens Section */}
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Tokens de Interação</h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Token de Aceitação:</span>
+                <div className="flex items-center gap-2">
+                  <code className="bg-black/20 p-1 text-xs rounded">
+                    {assistance.acceptance_token ? assistance.acceptance_token.substring(0, 10) + '...' : 'Não definido'}
+                  </code>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleResetTokens('acceptance_token')}
+                    disabled={isSubmitting}
+                  >
+                    Gerar Novo
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Token de Agendamento:</span>
+                <div className="flex items-center gap-2">
+                  <code className="bg-black/20 p-1 text-xs rounded">
+                    {assistance.scheduling_token ? assistance.scheduling_token.substring(0, 10) + '...' : 'Não definido'}
+                  </code>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleResetTokens('scheduling_token')}
+                    disabled={isSubmitting}
+                  >
+                    Gerar Novo
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Token de Validação:</span>
+                <div className="flex items-center gap-2">
+                  <code className="bg-black/20 p-1 text-xs rounded">
+                    {assistance.validation_token ? assistance.validation_token.substring(0, 10) + '...' : 'Não definido'}
+                  </code>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleResetTokens('validation_token')}
+                    disabled={isSubmitting}
+                  >
+                    Gerar Novo
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <div>
             <h3 className="text-sm font-medium text-muted-foreground">Notas Administrativas</h3>
@@ -295,6 +414,36 @@ export default function AssistanceDetails({ isOpen, onClose, assistance, onAssis
               </p>
             )}
           </div>
+          
+          {assistance.rejection_reason && (
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Motivo da Recusa</h3>
+              <p className="mt-1 text-sm whitespace-pre-wrap">{assistance.rejection_reason}</p>
+            </div>
+          )}
+          
+          {assistance.reschedule_reason && (
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Motivo do Reagendamento</h3>
+              <p className="mt-1 text-sm whitespace-pre-wrap">{assistance.reschedule_reason}</p>
+            </div>
+          )}
+          
+          {/* Validation Reminders Section */}
+          {(assistance.status === 'Pendente Validação' || 
+            assistance.validation_reminder_count > 0) && (
+            <div>
+              <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                <Clock className="h-4 w-4" /> Lembretes de Validação
+              </h3>
+              <p className="mt-1 text-sm">
+                Último lembrete: {formatDateTime(assistance.validation_email_sent_at || '')}
+              </p>
+              <p className="mt-1 text-sm">
+                Total de lembretes: {assistance.validation_reminder_count}
+              </p>
+            </div>
+          )}
         </div>
         
         <DialogFooter>

@@ -20,6 +20,34 @@ export default function AssistanceList({
   onViewAssistance,
   formatDate
 }: AssistanceListProps) {
+  // Helper function to get status badge color class
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'Pendente Resposta Inicial':
+      case 'Pendente Aceitação':
+        return 'bg-yellow-500/20 text-yellow-300';
+      case 'Recusada Fornecedor':
+        return 'bg-red-500/20 text-red-300';
+      case 'Pendente Agendamento':
+      case 'Agendado':
+        return 'bg-blue-500/20 text-blue-300';
+      case 'Em Progresso':
+      case 'Pendente Validação':
+        return 'bg-purple-500/20 text-purple-300';
+      case 'Concluído':
+        return 'bg-green-500/20 text-green-300';
+      case 'Reagendamento Solicitado':
+        return 'bg-orange-500/20 text-orange-300';
+      case 'Validação Expirada':
+        return 'bg-gray-500/20 text-gray-300';
+      case 'Cancelado':
+      case 'Cancelada Admin':
+        return 'bg-red-500/20 text-red-300';
+      default:
+        return 'bg-gray-500/20 text-gray-300';
+    }
+  };
+
   return (
     <div className="bg-white/5 rounded-3xl p-6 backdrop-blur-lg shadow-xl mt-8">
       <div className="flex justify-between items-center mb-6">
@@ -74,13 +102,7 @@ export default function AssistanceList({
                   <td className="px-4 py-3 text-[#cbd5e1]">{assistance.intervention_types?.name}</td>
                   <td className="px-4 py-3 text-[#cbd5e1]">{assistance.suppliers?.name}</td>
                   <td className="px-4 py-3 text-[#cbd5e1]">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      assistance.status === 'Pendente Resposta Inicial' ? 'bg-yellow-500/20 text-yellow-300' :
-                      assistance.status === 'Agendado' ? 'bg-blue-500/20 text-blue-300' :
-                      assistance.status === 'Em Progresso' ? 'bg-purple-500/20 text-purple-300' :
-                      assistance.status === 'Concluído' ? 'bg-green-500/20 text-green-300' :
-                      'bg-red-500/20 text-red-300'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeClass(assistance.status)}`}>
                       {assistance.status}
                     </span>
                   </td>

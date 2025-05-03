@@ -39,18 +39,25 @@ export default function Assistencias() {
     setIsAssistanceFormOpen(true);
   };
 
+  const generateToken = () => {
+    return Math.random().toString(36).substring(2, 15) + 
+           Math.random().toString(36).substring(2, 15);
+  };
+
   const handleAssistanceSubmit = async (formData: any) => {
     try {
       setIsSubmitting(true);
       
-      const interaction_token = Math.random().toString(36).substring(2, 15) + 
-                               Math.random().toString(36).substring(2, 15);
-
+      // Generate tokens
+      const interaction_token = generateToken();
+      const acceptance_token = generateToken();
+      
       console.log("Creating assistance with data:", {
         ...formData,
         interaction_token,
+        acceptance_token,
         building_id: selectedBuilding?.id,
-        status: 'Pendente Resposta Inicial'
+        status: 'Pendente Aceitação'
       });
 
       const { data, error } = await supabase
@@ -59,8 +66,9 @@ export default function Assistencias() {
           { 
             ...formData,
             interaction_token,
+            acceptance_token,
             building_id: selectedBuilding?.id,
-            status: 'Pendente Resposta Inicial',
+            status: 'Pendente Aceitação',
             alert_level: 1
           }
         ])
@@ -71,6 +79,15 @@ export default function Assistencias() {
         toast.error(`Erro ao criar assistência: ${error.message}`);
         throw error;
       }
+
+      // Log activity
+      await supabase
+        .from('activity_log')
+        .insert([{
+          assistance_id: data[0].id,
+          description: 'Assistência criada',
+          actor: 'Admin'
+        }]);
 
       toast.success('Assistência criada com sucesso!');
       setIsAssistanceFormOpen(false);

@@ -43,9 +43,12 @@ export type Database = {
       }
       assistances: {
         Row: {
+          acceptance_token: string | null
+          admin_alert_sent_at: string | null
           admin_notes: string | null
           alert_level: number
           building_id: number
+          completion_photo_url: string | null
           created_at: string
           description: string
           id: number
@@ -54,16 +57,24 @@ export type Database = {
           opened_at: string
           photo_path: string | null
           rejection_reason: string | null
+          reschedule_reason: string | null
           scheduled_datetime: string | null
+          scheduling_token: string | null
           status: string
           supplier_id: number
           type: string
           updated_at: string
+          validation_email_sent_at: string | null
+          validation_reminder_count: number
+          validation_token: string | null
         }
         Insert: {
+          acceptance_token?: string | null
+          admin_alert_sent_at?: string | null
           admin_notes?: string | null
           alert_level?: number
           building_id: number
+          completion_photo_url?: string | null
           created_at?: string
           description: string
           id?: number
@@ -72,16 +83,24 @@ export type Database = {
           opened_at?: string
           photo_path?: string | null
           rejection_reason?: string | null
+          reschedule_reason?: string | null
           scheduled_datetime?: string | null
+          scheduling_token?: string | null
           status?: string
           supplier_id: number
           type: string
           updated_at?: string
+          validation_email_sent_at?: string | null
+          validation_reminder_count?: number
+          validation_token?: string | null
         }
         Update: {
+          acceptance_token?: string | null
+          admin_alert_sent_at?: string | null
           admin_notes?: string | null
           alert_level?: number
           building_id?: number
+          completion_photo_url?: string | null
           created_at?: string
           description?: string
           id?: number
@@ -90,11 +109,16 @@ export type Database = {
           opened_at?: string
           photo_path?: string | null
           rejection_reason?: string | null
+          reschedule_reason?: string | null
           scheduled_datetime?: string | null
+          scheduling_token?: string | null
           status?: string
           supplier_id?: number
           type?: string
           updated_at?: string
+          validation_email_sent_at?: string | null
+          validation_reminder_count?: number
+          validation_token?: string | null
         }
         Relationships: [
           {

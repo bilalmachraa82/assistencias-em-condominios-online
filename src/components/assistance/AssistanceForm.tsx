@@ -39,7 +39,7 @@ export type AssistanceFormValues = {
   type: string;
 };
 
-// Updated schema removing the category field
+// Form schema
 const formSchema = z.object({
   intervention_type_id: z.number({
     required_error: "Selecione uma categoria de intervenção",
