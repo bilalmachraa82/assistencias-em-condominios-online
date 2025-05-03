@@ -70,9 +70,9 @@ export default function AssistanceFilter({
           <PopoverTrigger asChild>
             <Button 
               variant="outline" 
-              className={`flex items-center gap-2 ${hasActiveFilters ? 'bg-blue-600 text-white' : ''}`}
+              className={`flex items-center gap-2 ${hasActiveFilters ? 'bg-blue-600 text-white' : 'text-black'}`}
             >
-              <Filter className="h-4 w-4" />
+              <Filter className={`h-4 w-4 ${hasActiveFilters ? 'text-white' : 'text-black'}`} />
               Filtros
               {hasActiveFilters && (
                 <span className="ml-1 rounded-full bg-white text-blue-600 w-5 h-5 flex items-center justify-center text-xs font-bold">
