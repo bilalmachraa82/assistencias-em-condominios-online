@@ -88,16 +88,16 @@ export default function AssistanceFilter({
               <div className="space-y-2">
                 <label className="text-sm text-gray-500">Edifício</label>
                 <Select 
-                  value={buildingFilter || ""} 
-                  onValueChange={(value) => onBuildingFilterChange(value || null)}
+                  value={buildingFilter || "all"} 
+                  onValueChange={(value) => onBuildingFilterChange(value === "all" ? null : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todos os edifícios" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os edifícios</SelectItem>
+                    <SelectItem value="all">Todos os edifícios</SelectItem>
                     {isBuildingsLoading ? (
-                      <SelectItem value="" disabled>Carregando...</SelectItem>
+                      <SelectItem value="loading" disabled>Carregando...</SelectItem>
                     ) : (
                       buildings?.map((building) => (
                         <SelectItem key={building.id} value={String(building.id)}>
@@ -112,14 +112,14 @@ export default function AssistanceFilter({
               <div className="space-y-2">
                 <label className="text-sm text-gray-500">Status</label>
                 <Select 
-                  value={statusFilter || ""} 
-                  onValueChange={(value) => onStatusFilterChange(value || null)}
+                  value={statusFilter || "all"} 
+                  onValueChange={(value) => onStatusFilterChange(value === "all" ? null : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todos os status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os status</SelectItem>
+                    <SelectItem value="all">Todos os status</SelectItem>
                     {statuses.map((status) => (
                       <SelectItem key={status} value={status}>
                         {status}
@@ -132,14 +132,14 @@ export default function AssistanceFilter({
               <div className="space-y-2">
                 <label className="text-sm text-gray-500">Urgência</label>
                 <Select 
-                  value={typeFilter || ""} 
-                  onValueChange={(value) => onTypeFilterChange(value || null)}
+                  value={typeFilter || "all"} 
+                  onValueChange={(value) => onTypeFilterChange(value === "all" ? null : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as urgências" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as urgências</SelectItem>
+                    <SelectItem value="all">Todas as urgências</SelectItem>
                     {types.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
