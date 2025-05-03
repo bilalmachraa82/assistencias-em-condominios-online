@@ -32,6 +32,7 @@ export default function Suppliers() {
   const [supplierToDelete, setSupplierToDelete] = useState<null | { id: number; name: string }>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [deletingAllError, setDeletingAllError] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -159,42 +160,63 @@ export default function Suppliers() {
 
   const deleteAllSuppliers = useMutation({
     mutationFn: async () => {
-      // First check if any suppliers are used in assistances
-      const { data: usedSuppliers, error: checkError } = await supabase
-        .from('assistances')
-        .select('supplier_id')
-        .limit(1);
-      
-      if (checkError) throw checkError;
-      
-      // If there are assistances using suppliers, we cannot delete them all
-      if (usedSuppliers && usedSuppliers.length > 0) {
-        throw new Error("Não é possível remover todos os fornecedores porque alguns estão sendo utilizados em registros de assistência.");
+      try {
+        // First check which suppliers are used in assistances
+        const { data: assistancesData, error: assistancesError } = await supabase
+          .from('assistances')
+          .select('supplier_id')
+          .not('supplier_id', 'is', null);
+        
+        if (assistancesError) throw assistancesError;
+        
+        // Extract unique supplier IDs that are in use
+        const usedSupplierIds = [...new Set(assistancesData.map(item => item.supplier_id))];
+        
+        if (usedSupplierIds.length > 0) {
+          // Don't delete suppliers that are in use
+          const { error: deleteError } = await supabase
+            .from('suppliers')
+            .delete()
+            .not('id', 'in', `(${usedSupplierIds.join(',')})`);
+          
+          if (deleteError) throw deleteError;
+          
+          // If some suppliers couldn't be deleted, throw a meaningful error
+          if (usedSupplierIds.length === 1) {
+            throw new Error("1 fornecedor não pôde ser removido porque está sendo utilizado em registros de assistência.");
+          } else {
+            throw new Error(`${usedSupplierIds.length} fornecedores não puderam ser removidos porque estão sendo utilizados em registros de assistência.`);
+          }
+        } else {
+          // Delete all suppliers if none are in use
+          const { error: deleteError } = await supabase
+            .from('suppliers')
+            .delete()
+            .neq('id', 0); // This will delete all suppliers
+          
+          if (deleteError) throw deleteError;
+        }
+      } catch (error: any) {
+        console.error('Error deleting all suppliers:', error);
+        throw error;
       }
-      
-      // Delete all suppliers
-      const { error } = await supabase
-        .from('suppliers')
-        .delete()
-        .neq('id', 0); // This will delete all suppliers
-      
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast({
         title: "Sucesso",
-        description: "Todos os fornecedores foram removidos com sucesso",
+        description: "Fornecedores removidos com sucesso",
       });
       setIsDeletingAll(false);
+      setDeletingAllError(null);
     },
     onError: (error: any) => {
+      setDeletingAllError(error.message || "Erro ao remover fornecedores");
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao remover todos os fornecedores",
+        title: "Atenção",
+        description: error.message || "Alguns fornecedores não puderam ser removidos",
         variant: "destructive",
       });
-      setIsDeletingAll(false);
       console.error('Error deleting all suppliers:', error);
     },
   });
@@ -404,21 +426,38 @@ export default function Suppliers() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Remoção de Todos os Fornecedores</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja remover TODOS os fornecedores?
-              <br />
-              <br />
-              Esta ação não poderá ser desfeita. Fornecedores que estão sendo usados em assistências
-              não poderão ser removidos.
+              {deletingAllError ? (
+                deletingAllError
+              ) : (
+                <>
+                  Tem certeza que deseja remover TODOS os fornecedores?
+                  <br />
+                  <br />
+                  Esta ação não poderá ser desfeita. Fornecedores que estão sendo usados em assistências
+                  não poderão ser removidos.
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              className="bg-red-600 hover:bg-red-700" 
-              onClick={() => deleteAllSuppliers.mutate()}
-            >
-              Remover Todos
-            </AlertDialogAction>
+            {deletingAllError ? (
+              <AlertDialogAction onClick={() => {
+                setDeletingAllError(null);
+                setIsDeletingAll(false);
+              }}>
+                Entendi
+              </AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  className="bg-red-600 hover:bg-red-700" 
+                  onClick={() => deleteAllSuppliers.mutate()}
+                >
+                  Remover Todos
+                </AlertDialogAction>
+              </>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
