@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from "@/components/ui/button";
 import {
@@ -25,69 +26,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Real suppliers data for initialization
-const REAL_SUPPLIERS = [
-  {
-    name: "TKE",
-    phone: "+351 21 43 08 100",
-    email: "info.tkept@tkelevator.com",
-    address: "Sintra Business Park, Edifício 4, 2B, Zona Industrial da Abrunheira, 2710-089 Sintra, Portugal",
-    nif: "501445226",
-    specialization: "Elevadores, manutenção e instalação",
-    is_active: true
-  },
-  {
-    name: "Clefta",
-    phone: "(+351) 217 648 435",
-    email: "geral@clefta.pt",
-    address: "Rua Mariano Pina, 13, Loja B, 1500-442 Lisboa, Portugal",
-    nif: "501324046",
-    specialization: "Instalações elétricas, reparações",
-    is_active: true
-  },
-  {
-    name: "Sr. Obras",
-    phone: "+351 212 580 409, +351 224 109 492, +351 239 100 675",
-    email: "apoio.cliente@srobras.pt",
-    address: "Avenida da República, 6, 7º Esq., 1050-191 Lisboa, Portugal",
-    nif: "509541887",
-    specialization: "Remodelações, construção, consultoria",
-    is_active: true
-  },
-  {
-    name: "Mestre das Chaves",
-    phone: "+351 219 318 040",
-    email: "mestre@chaves.pt",
-    address: "Rua Augusto Gil, 14-A, 2675-507 Odivelas, Lisboa, Portugal",
-    nif: "506684504",
-    specialization: "Comércio e representação de fechaduras",
-    is_active: true
-  },
-  {
-    name: "Desinfest Lar",
-    phone: "+351 219 336 788",
-    email: "desinfest.lar@oninet.pt",
-    address: "Largo da Saudade, Vivenda Rosinha, 2675-260 Odivelas, Portugal",
-    nif: "502763760",
-    specialization: "Desinfestações e desinfecções",
-    is_active: true
-  },
-  {
-    name: "Ipest",
-    phone: "+351 219 661 404, +351 925 422 204",
-    email: "geral@ipest.pt",
-    address: "Rua Casal dos Ninhos, Nº 2E, Escritório 8, 2665-536 Venda do Pinheiro, Portugal",
-    nif: "",
-    specialization: "Controlo de pragas",
-    is_active: true
-  },
-];
-
 export default function Suppliers() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<null | { id: number; name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string; is_active?: boolean }>(null);
   const [supplierToDelete, setSupplierToDelete] = useState<null | { id: number; name: string }>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -213,79 +157,47 @@ export default function Suppliers() {
     },
   });
 
-  // Inicialize os fornecedores reais se ainda não existirem
-  useEffect(() => {
-    const initializeRealData = async () => {
-      if (suppliers && suppliers.length > 0) {
-        // Verifica quais fornecedores reais ainda não existem no banco
-        const existingEmails = suppliers.map(s => s.email);
-        
-        // Filtra apenas os fornecedores reais que não existem no banco
-        const suppliersToAdd = REAL_SUPPLIERS.filter(supplier => 
-          !existingEmails.includes(supplier.email)
-        );
-        
-        // Se houver fornecedores para adicionar, adiciona um por um
-        if (suppliersToAdd.length > 0) {
-          let addedCount = 0;
-          for (const supplier of suppliersToAdd) {
-            try {
-              const { error } = await supabase.from('suppliers').insert([supplier]);
-              if (!error) addedCount++;
-            } catch (error) {
-              console.error('Error adding supplier:', error);
-            }
-          }
-          
-          // Atualiza os dados após adicionar os novos fornecedores
-          if (addedCount > 0) {
-            queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-            toast({
-              title: "Fornecedores adicionados",
-              description: `${addedCount} fornecedores reais foram adicionados.`,
-            });
-          }
-        }
+  const deleteAllSuppliers = useMutation({
+    mutationFn: async () => {
+      // First check if any suppliers are used in assistances
+      const { data: usedSuppliers, error: checkError } = await supabase
+        .from('assistances')
+        .select('supplier_id')
+        .limit(1);
+      
+      if (checkError) throw checkError;
+      
+      // If there are assistances using suppliers, we cannot delete them all
+      if (usedSuppliers && usedSuppliers.length > 0) {
+        throw new Error("Não é possível remover todos os fornecedores porque alguns estão sendo utilizados em registros de assistência.");
       }
-    };
-    
-    initializeRealData();
-  }, [suppliers, queryClient, toast]);
-
-  // Adicionar função para remover fornecedor existente (ClimaSolutions)
-  useEffect(() => {
-    const removeClimaSolutions = async () => {
-      if (suppliers && suppliers.length > 0) {
-        // Procura por ClimaSolutions no banco de dados
-        const climaSolutions = suppliers.find(s => 
-          s.name.includes("ClimaSolutions") || 
-          s.name.includes("Clima Solutions")
-        );
-        
-        // Se encontrar, remove
-        if (climaSolutions) {
-          try {
-            const { error } = await supabase
-              .from('suppliers')
-              .delete()
-              .eq('id', climaSolutions.id);
-            
-            if (!error) {
-              queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-              toast({
-                title: "Fornecedor removido",
-                description: "ClimaSolutions foi removido com sucesso.",
-              });
-            }
-          } catch (error) {
-            console.error('Error removing ClimaSolutions:', error);
-          }
-        }
-      }
-    };
-    
-    removeClimaSolutions();
-  }, [suppliers, queryClient, toast]);
+      
+      // Delete all suppliers
+      const { error } = await supabase
+        .from('suppliers')
+        .delete()
+        .neq('id', 0); // This will delete all suppliers
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast({
+        title: "Sucesso",
+        description: "Todos os fornecedores foram removidos com sucesso",
+      });
+      setIsDeletingAll(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao remover todos os fornecedores",
+        variant: "destructive",
+      });
+      setIsDeletingAll(false);
+      console.error('Error deleting all suppliers:', error);
+    },
+  });
 
   const handleSubmit = (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string; is_active?: boolean }) => {
     if (selectedSupplier) {
@@ -303,6 +215,10 @@ export default function Suppliers() {
   const confirmDelete = (supplier: { id: number; name: string }) => {
     setSupplierToDelete(supplier);
     setDeleteError(null);
+  };
+
+  const confirmDeleteAll = () => {
+    setIsDeletingAll(true);
   };
 
   const handleToggleStatus = (supplier: { id: number; is_active: boolean }) => {
@@ -327,6 +243,14 @@ export default function Suppliers() {
             >
               <Plus className="h-4 w-4" />
               Adicionar Fornecedor
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white"
+              onClick={confirmDeleteAll}
+            >
+              <Trash className="h-4 w-4" />
+              Remover Todos
             </Button>
           </div>
         </div>
@@ -470,6 +394,31 @@ export default function Suppliers() {
                 </AlertDialogAction>
               </>
             )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirmation Dialog for Deleting All Suppliers */}
+      <AlertDialog open={isDeletingAll} onOpenChange={() => setIsDeletingAll(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Remoção de Todos os Fornecedores</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover TODOS os fornecedores?
+              <br />
+              <br />
+              Esta ação não poderá ser desfeita. Fornecedores que estão sendo usados em assistências
+              não poderão ser removidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700" 
+              onClick={() => deleteAllSuppliers.mutate()}
+            >
+              Remover Todos
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
