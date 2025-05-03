@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, Trash, Database, Search } from 'lucide-react';
+import { Plus, Trash, Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 
 interface SupplierActionsProps {
@@ -15,7 +15,6 @@ interface SupplierActionsProps {
 export default function SupplierActions({ 
   onAddSupplier, 
   onDeleteAll, 
-  onImportPredefined, 
   searchQuery,
   onSearchChange
 }: SupplierActionsProps) {
@@ -40,15 +39,6 @@ export default function SupplierActions({
         >
           <Plus className="h-4 w-4" />
           Adicionar Fornecedor
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white"
-          onClick={onImportPredefined}
-        >
-          <Database className="h-4 w-4" />
-          Importar Lista
         </Button>
         
         <Button 
