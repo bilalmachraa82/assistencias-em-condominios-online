@@ -1,149 +1,99 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useBuildings } from '@/hooks/useBuildings';
+import BuildingTable from '@/components/buildings/BuildingTable';
+import BuildingActions from '@/components/buildings/BuildingActions';
 import BuildingForm from '@/components/buildings/BuildingForm';
-import { useToast } from '@/hooks/use-toast';
+import DeleteBuildingDialog from '@/components/buildings/DeleteBuildingDialog';
+import DeleteAllBuildingsDialog from '@/components/buildings/DeleteAllBuildingsDialog';
 
 export default function Buildings() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedBuilding, setSelectedBuilding] = useState<null | {
-    id: number;
-    name: string;
-    address: string;
-  }>(null);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { data: buildings, isLoading } = useQuery({
-    queryKey: ['buildings'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('buildings').select('*').order('name');
-      if (error) throw error;
-      return data;
-    }
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const {
+    buildings,
+    isLoading,
+    isFormOpen,
+    selectedBuilding,
+    buildingToDelete,
+    deleteError,
+    isDeletingAll,
+    deletingAllError,
+    handleSubmit,
+    handleEdit,
+    handleOpenForm,
+    handleCloseForm,
+    confirmDelete,
+    confirmDeleteAll,
+    handleToggleStatus,
+    handleDeleteConfirm,
+    handleDeleteAllConfirm,
+    closeDeleteDialog,
+    closeDeleteAllDialog,
+  } = useBuildings();
+
+  // Filter buildings based on search query
+  const filteredBuildings = buildings?.filter((building) => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      building.name.toLowerCase().includes(query) ||
+      (building.address && building.address.toLowerCase().includes(query)) ||
+      (building.cadastral_code && building.cadastral_code.toLowerCase().includes(query)) ||
+      (building.admin_notes && building.admin_notes.toLowerCase().includes(query))
+    );
   });
-  const createBuilding = useMutation({
-    mutationFn: async (values: { name: string; address: string; }) => {
-      const { error } = await supabase.from('buildings').insert([values]);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buildings'] });
-      toast({
-        title: "Sucesso",
-        description: "Prédio adicionado com sucesso"
-      });
-      setIsFormOpen(false);
-    },
-    onError: error => {
-      toast({
-        title: "Erro",
-        description: "Erro ao adicionar prédio",
-        variant: "destructive"
-      });
-      console.error('Error creating building:', error);
-    }
-  });
-  const updateBuilding = useMutation({
-    mutationFn: async ({ id, ...values }: { id: number; name: string; address: string; }) => {
-      const { error } = await supabase.from('buildings').update(values).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buildings'] });
-      toast({
-        title: "Sucesso",
-        description: "Prédio atualizado com sucesso"
-      });
-      setIsFormOpen(false);
-      setSelectedBuilding(null);
-    },
-    onError: error => {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar prédio",
-        variant: "destructive"
-      });
-      console.error('Error updating building:', error);
-    }
-  });
-  const handleSubmit = (values: { name: string; address: string; }) => {
-    if (selectedBuilding) {
-      updateBuilding.mutate({
-        id: selectedBuilding.id,
-        ...values
-      });
-    } else {
-      createBuilding.mutate(values);
-    }
-  };
-  const handleEdit = (building: { id: number; name: string; address: string; }) => {
-    setSelectedBuilding(building);
-    setIsFormOpen(true);
-  };
-  return <DashboardLayout>
+
+  return (
+    <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Gestão de Prédios</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Gestão de Edifícios</h1>
             <p className="text-muted-foreground">
-              Gerencie a lista de prédios e suas configurações
+              Gerencie a lista de edifícios e suas configurações
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsFormOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-cyan-50">
-              <Plus className="h-4 w-4" />
-              Adicionar Prédio
-            </Button>
-          </div>
+          <BuildingActions 
+            onAddBuilding={handleOpenForm}
+            onDeleteAll={confirmDeleteAll}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
         </div>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader className="bg-white hover:bg-white">
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Morada</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Carregando...
-                  </TableCell>
-                </TableRow> : buildings?.length === 0 ? <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Nenhum prédio cadastrado
-                  </TableCell>
-                </TableRow> : buildings?.map(building => <TableRow key={building.id}>
-                    <TableCell>{building.name}</TableCell>
-                    <TableCell>{building.address}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${building.is_active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                        {building.is_active ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(building)} className="flex items-center gap-2">
-                        <Edit className="h-4 w-4" />
-                        Editar
-                      </Button>
-                    </TableCell>
-                  </TableRow>)}
-            </TableBody>
-          </Table>
-        </div>
+        <BuildingTable
+          buildings={filteredBuildings}
+          isLoading={isLoading}
+          onEdit={handleEdit}
+          onDelete={confirmDelete}
+          onToggleStatus={handleToggleStatus}
+        />
       </div>
 
-      <BuildingForm open={isFormOpen} onClose={() => {
-      setIsFormOpen(false);
-      setSelectedBuilding(null);
-    }} onSubmit={handleSubmit} initialData={selectedBuilding || undefined} />
-    </DashboardLayout>;
+      <BuildingForm
+        open={isFormOpen}
+        onClose={handleCloseForm}
+        onSubmit={handleSubmit}
+        initialData={selectedBuilding || undefined}
+      />
+
+      <DeleteBuildingDialog
+        open={!!buildingToDelete}
+        building={buildingToDelete}
+        error={deleteError}
+        onClose={closeDeleteDialog}
+        onConfirm={handleDeleteConfirm}
+      />
+
+      <DeleteAllBuildingsDialog
+        open={isDeletingAll}
+        error={deletingAllError}
+        onClose={closeDeleteAllDialog}
+        onConfirm={handleDeleteAllConfirm}
+      />
+    </DashboardLayout>
+  );
 }

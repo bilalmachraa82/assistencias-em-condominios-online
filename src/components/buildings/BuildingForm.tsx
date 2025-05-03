@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,9 @@ import {
 
 const formSchema = z.object({
   name: z.string().min(1, "O nome é obrigatório"),
-  address: z.string().min(1, "A morada é obrigatória"),
+  address: z.string().optional(),
+  cadastral_code: z.string().optional(),
+  admin_notes: z.string().optional(),
 });
 
 type BuildingFormProps = {
@@ -33,7 +36,9 @@ type BuildingFormProps = {
   initialData?: {
     id?: number;
     name: string;
-    address: string;
+    address?: string;
+    cadastral_code?: string;
+    admin_notes?: string;
   };
 };
 
@@ -43,23 +48,31 @@ export default function BuildingForm({ open, onClose, onSubmit, initialData }: B
     defaultValues: initialData || {
       name: "",
       address: "",
+      cadastral_code: "",
+      admin_notes: "",
     },
   });
 
-  // Reset form when initialData changes
   useEffect(() => {
     if (initialData) {
       form.reset(initialData);
+    } else {
+      form.reset({
+        name: "",
+        address: "",
+        cadastral_code: "",
+        admin_notes: "",
+      });
     }
-  }, [form, initialData]);
+  }, [form, initialData, open]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{initialData ? "Editar" : "Adicionar"} Prédio</DialogTitle>
+          <DialogTitle>{initialData ? "Editar" : "Adicionar"} Edifício</DialogTitle>
           <DialogDescription>
-            {initialData ? "Atualize os detalhes do prédio existente" : "Preencha os detalhes para adicionar um novo prédio"}
+            {initialData ? "Atualize os detalhes do edifício existente" : "Preencha os detalhes para adicionar um novo edifício"}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -85,6 +98,36 @@ export default function BuildingForm({ open, onClose, onSubmit, initialData }: B
                   <FormLabel>Morada</FormLabel>
                   <FormControl>
                     <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="cadastral_code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Código Cadastral</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="admin_notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notas</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      placeholder="Adicione notas ou observações sobre este edifício"
+                      rows={3}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
