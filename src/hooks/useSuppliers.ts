@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -153,67 +152,82 @@ export function useSuppliers() {
     },
   });
 
-  // Delete all suppliers
+  // Delete all suppliers - Updated to more aggressively delete suppliers even with foreign key references
   const deleteAllSuppliers = useMutation({
     mutationFn: async () => {
       try {
-        // First check which suppliers are used in assistances
-        const { data: assistancesData, error: assistancesError } = await supabase
-          .from('assistances')
-          .select('supplier_id')
-          .not('supplier_id', 'is', null);
+        // First get all suppliers
+        const { data: allSuppliers, error: getSuppliersError } = await supabase
+          .from('suppliers')
+          .select('id, name');
         
-        if (assistancesError) throw assistancesError;
+        if (getSuppliersError) throw getSuppliersError;
         
-        // Extract unique supplier IDs that are in use
-        const usedSupplierIds = [...new Set(assistancesData.map(item => item.supplier_id))];
-        
-        if (usedSupplierIds.length > 0) {
-          // Don't delete suppliers that are in use
-          const { error: deleteError } = await supabase
-            .from('suppliers')
-            .delete()
-            .not('id', 'in', `(${usedSupplierIds.join(',')})`);
-          
-          if (deleteError) throw deleteError;
-          
-          // If some suppliers couldn't be deleted, throw a meaningful error
-          if (usedSupplierIds.length === 1) {
-            throw new Error("1 fornecedor não pôde ser removido porque está sendo utilizado em registros de assistência.");
-          } else {
-            throw new Error(`${usedSupplierIds.length} fornecedores não puderam ser removidos porque estão sendo utilizados em registros de assistência.`);
-          }
-        } else {
-          // Delete all suppliers if none are in use
-          const { error: deleteError } = await supabase
-            .from('suppliers')
-            .delete()
-            .neq('id', 0); // This will delete all suppliers
-          
-          if (deleteError) throw deleteError;
+        if (allSuppliers.length === 0) {
+          // No suppliers to delete
+          return { deleted: 0, failed: 0, failedNames: [] };
         }
-      } catch (error: any) {
-        console.error('Error deleting all suppliers:', error);
+        
+        // For each supplier, attempt to delete
+        let deleted = 0;
+        let failed = 0;
+        const failedNames: string[] = [];
+        
+        for (const supplier of allSuppliers) {
+          const { error: deleteError } = await supabase
+            .from('suppliers')
+            .delete()
+            .eq('id', supplier.id);
+          
+          if (deleteError) {
+            // Log but continue with others
+            failed++;
+            failedNames.push(supplier.name);
+            console.error(`Failed to delete supplier ${supplier.name}:`, deleteError);
+          } else {
+            deleted++;
+          }
+        }
+        
+        // Return stats so we can inform the user
+        return { deleted, failed, failedNames };
+      } catch (error) {
+        console.error('Error in delete all operation:', error);
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      toast({
-        title: "Sucesso",
-        description: "Fornecedores removidos com sucesso",
-      });
+      
+      if (result.failed > 0) {
+        // Some suppliers couldn't be deleted
+        const failedMessage = result.failedNames.length > 3 
+          ? `${result.failedNames.slice(0, 3).join(', ')} e outros` 
+          : result.failedNames.join(', ');
+          
+        toast({
+          title: "Atenção",
+          description: `${result.deleted} fornecedores removidos com sucesso. ${result.failed} fornecedores não puderam ser removidos porque estão sendo utilizados em registros de assistência: ${failedMessage}`,
+          variant: "default",
+        });
+      } else {
+        // All successfully deleted
+        toast({
+          title: "Sucesso",
+          description: `${result.deleted} fornecedores removidos com sucesso`,
+        });
+      }
+      
       setIsDeletingAll(false);
       setDeletingAllError(null);
     },
     onError: (error: any) => {
       setDeletingAllError(error.message || "Erro ao remover fornecedores");
       toast({
-        title: "Atenção",
-        description: error.message || "Alguns fornecedores não puderam ser removidos",
+        title: "Erro",
+        description: error.message || "Erro ao remover fornecedores",
         variant: "destructive",
       });
-      console.error('Error deleting all suppliers:', error);
     },
   });
 

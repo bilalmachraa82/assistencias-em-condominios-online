@@ -13,7 +13,7 @@ export default function SupplierActions({ onAddSupplier, onDeleteAll }: Supplier
     <div className="flex gap-2">
       <Button 
         variant="outline" 
-        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-cyan-50"
+        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white"
         onClick={onAddSupplier}
       >
         <Plus className="h-4 w-4" />
