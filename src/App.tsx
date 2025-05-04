@@ -4,7 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import Buildings from "./pages/Buildings";
 import Suppliers from "./pages/Suppliers";
-import AssistanceManagement from "./pages/AssistanceManagement";
+import AssistenciasDashboard from "./pages/AssistenciasDashboard";
 import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
 import NotFound from "./pages/NotFound";
 
@@ -17,7 +17,7 @@ import Confirmation from "./pages/supplier/Confirmation";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <AssistanceManagement />,
+    element: <AssistenciasDashboard />,
   },
   {
     path: "/buildings",
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/assistencias",
-    element: <AssistanceManagement />,
+    element: <AssistenciasDashboard />,
   },
   {
     path: "/configuracao-servicos",

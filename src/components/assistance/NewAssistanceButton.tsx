@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Building } from 'lucide-react';
+import { Building, Plus } from 'lucide-react';
 import BuildingSelectorDialog from './BuildingSelectorDialog';
 import AssistanceFormDialog from './AssistanceFormDialog';
 import useCreateAssistance from '@/hooks/useCreateAssistance';
@@ -11,12 +11,16 @@ interface NewAssistanceButtonProps {
   buildings: any[] | undefined;
   isBuildingsLoading: boolean;
   onAssistanceCreated: () => Promise<void>;
+  variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
+  className?: string;
 }
 
 export default function NewAssistanceButton({
   buildings,
   isBuildingsLoading,
-  onAssistanceCreated
+  onAssistanceCreated,
+  variant = "default",
+  className = ""
 }: NewAssistanceButtonProps) {
   const [selectedBuilding, setSelectedBuilding] = useState<null | { id: number; name: string }>(null);
   const [isNewAssistanceDialogOpen, setIsNewAssistanceDialogOpen] = useState(false);
@@ -38,9 +42,10 @@ export default function NewAssistanceButton({
     <>
       <Button 
         onClick={() => setIsNewAssistanceDialogOpen(true)}
-        className="flex items-center gap-2"
+        className={`flex items-center gap-2 ${className}`}
+        variant={variant}
       >
-        <Building className="h-4 w-4" />
+        <Plus className="h-4 w-4" />
         Nova Assistência
       </Button>
 
