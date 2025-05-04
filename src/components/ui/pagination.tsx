@@ -35,18 +35,18 @@ export function Pagination({
     : currentPage * pageSize;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 py-4">
-      <div className="flex-1 text-sm text-muted-foreground">
+    <div className="flex flex-col sm:flex-row items-center gap-4 py-4 bg-white/10 rounded-lg p-4 border border-white/20 backdrop-blur-sm">
+      <div className="flex-1 text-sm text-white">
         {totalItems ? (
           <p>
-            Mostrando <span className="font-medium">{startItem}</span> até{" "}
-            <span className="font-medium">{endItem}</span> de{" "}
-            <span className="font-medium">{totalItems}</span> itens
+            Mostrando <span className="font-medium text-white">{startItem}</span> até{" "}
+            <span className="font-medium text-white">{endItem}</span> de{" "}
+            <span className="font-medium text-white">{totalItems}</span> itens
           </p>
         ) : (
           <p>
-            Página <span className="font-medium">{currentPage}</span> de{" "}
-            <span className="font-medium">{totalPages}</span>
+            Página <span className="font-medium text-white">{currentPage}</span> de{" "}
+            <span className="font-medium text-white">{totalPages}</span>
           </p>
         )}
       </div>
@@ -54,12 +54,12 @@ export function Pagination({
       <div className="flex items-center space-x-2">
         {onPageSizeChange && (
           <div className="flex items-center space-x-2">
-            <p className="text-sm text-muted-foreground">Itens por página</p>
+            <p className="text-sm text-white">Itens por página</p>
             <Select
               value={String(pageSize)}
               onValueChange={(value) => onPageSizeChange(Number(value))}
             >
-              <SelectTrigger className="h-8 w-[70px]">
+              <SelectTrigger className="h-8 w-[70px] bg-white/10 border-white/20 text-white">
                 <SelectValue placeholder={pageSize} />
               </SelectTrigger>
               <SelectContent>
@@ -78,6 +78,7 @@ export function Pagination({
           size="icon"
           onClick={() => onPageChange(1)}
           disabled={!canGoPrevious}
+          className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
         >
           <ChevronsLeft className="h-4 w-4" />
         </Button>
@@ -86,6 +87,7 @@ export function Pagination({
           size="icon"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={!canGoPrevious}
+          className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -94,6 +96,7 @@ export function Pagination({
           size="icon"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={!canGoNext}
+          className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -102,6 +105,7 @@ export function Pagination({
           size="icon"
           onClick={() => onPageChange(totalPages)}
           disabled={!canGoNext}
+          className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>
