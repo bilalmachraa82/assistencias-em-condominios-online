@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
 
@@ -32,6 +31,16 @@ export default function Assistencias() {
     pagination,
     filters
   } = useAssistanceData(sortOrder);
+
+  // Force a refresh when the component mounts
+  useEffect(() => {
+    const initialLoad = async () => {
+      console.log("Initial loading of assistances");
+      await refetchAssistances();
+    };
+    
+    initialLoad();
+  }, [refetchAssistances]);
 
   // Handle assistance view
   const handleViewAssistance = async (assistance: any) => {
@@ -157,6 +166,7 @@ export default function Assistencias() {
   const handleDialogClose = useCallback(async () => {
     setIsViewDialogOpen(false);
     // Refresh data when dialog is closed to ensure list is updated
+    console.log("Dialog closed, refreshing data...");
     await handleRefetchAssistances();
   }, [handleRefetchAssistances]);
 

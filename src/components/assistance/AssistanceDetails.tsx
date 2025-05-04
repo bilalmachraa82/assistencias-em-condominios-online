@@ -143,7 +143,12 @@ export default function AssistanceDetails({
   if (!assistance) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        // When dialog is closed, call onClose which should refresh the data
+        onClose();
+      }
+    }}>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,6 +41,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     },
     staleTime: 0, // Always consider data stale to ensure fresh data
     refetchOnWindowFocus: true, // Refresh when window regains focus
+    refetchOnMount: true // Ensure data is refreshed whenever component mounts
   });
 
   // Fetch buildings
@@ -110,10 +110,10 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   };
 
   // Force a refresh of the data
-  const forceRefresh = () => {
+  const forceRefresh = async () => {
     console.log('Force refreshing assistance data...');
     setRefreshTrigger(prev => prev + 1); // Increment to trigger refetch
-    return refetchAssistances();
+    return await refetchAssistances();
   };
 
   return {
