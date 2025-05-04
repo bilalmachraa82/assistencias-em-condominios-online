@@ -43,6 +43,10 @@ export default function AssistanceList({
   onDeleteAssistance,
   formatDate
 }: AssistanceListProps) {
+  // State for delete dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [assistanceToDelete, setAssistanceToDelete] = React.useState<any>(null);
+
   // Get appropriate link for current status
   const getSupplierLink = (assistance: any) => {
     const baseUrl = window.location.origin;
@@ -64,14 +68,11 @@ export default function AssistanceList({
   
   // Copy link to clipboard
   const copyLinkToClipboard = (link: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click
+    e.preventDefault();
+    e.stopPropagation();
     navigator.clipboard.writeText(link);
     toast.success('Link copiado para a área de transferência');
   };
-
-  // State for delete dialog
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [assistanceToDelete, setAssistanceToDelete] = React.useState<any>(null);
 
   // Handle delete confirmation
   const handleDeleteConfirm = () => {
@@ -82,16 +83,23 @@ export default function AssistanceList({
     }
   };
 
-  // Open delete dialog
-  const handleDeleteClick = (assistance: any, e: React.MouseEvent) => {
+  // Open delete dialog - separate from row click
+  const handleDeleteButtonClick = (assistance: any, e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent row click event
     setAssistanceToDelete(assistance);
     setDeleteDialogOpen(true);
   };
 
   // Handle row click for viewing assistance
   const handleRowClick = (assistance: any) => {
+    onViewAssistance(assistance);
+  };
+
+  // Handle view button click
+  const handleViewButtonClick = (assistance: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent row click event
     onViewAssistance(assistance);
   };
 
@@ -174,10 +182,10 @@ export default function AssistanceList({
                         {assistance.type}
                       </span>
                     </TableCell>
-                    <TableCell className="text-center text-[#8E9196] hidden sm:table-cell">
+                    <TableCell className="text-[#8E9196] hidden sm:table-cell">
                       {formatDate(assistance.created_at)}
                     </TableCell>
-                    <TableCell className="text-center hidden lg:table-cell">
+                    <TableCell className="hidden lg:table-cell">
                       {supplierLink ? (
                         <TooltipProvider>
                           <Tooltip>
@@ -200,15 +208,12 @@ export default function AssistanceList({
                         <span>-</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-2">
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onViewAssistance(assistance);
-                          }}
+                          onClick={(e) => handleViewButtonClick(assistance, e)}
                           className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
                           title="Ver detalhes"
                         >
@@ -219,7 +224,7 @@ export default function AssistanceList({
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={(e) => handleDeleteClick(assistance, e)}
+                            onClick={(e) => handleDeleteButtonClick(assistance, e)}
                             className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                             title="Excluir assistência"
                           >
