@@ -26,26 +26,10 @@ export default function BasicInfoSection({
   formatDateTime,
   isSubmitting
 }: BasicInfoSectionProps) {
-  // Handle situation where assistance might be null or undefined
-  if (!assistance) {
-    return <div className="text-sm text-muted-foreground">Carregando dados da assistência...</div>;
-  }
-
   const handleStatusChange = (value: string) => {
     console.log('Status changed to:', value);
     setStatus(value);
   };
-
-  // Safely access nested properties
-  const buildingName = assistance?.buildings?.name || 'N/A';
-  const interventionName = assistance?.intervention_types?.name || 'N/A';
-  const supplierName = assistance?.suppliers?.name || 'N/A';
-  const currentStatus = assistance?.status || 'Desconhecido';
-  const createdAt = assistance?.created_at || null;
-  const scheduledDatetime = assistance?.scheduled_datetime || null;
-  const assistanceType = assistance?.type || 'Normal';
-  const validationEmailSentAt = assistance?.validation_email_sent_at || null;
-  const validationReminderCount = assistance?.validation_reminder_count || 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -53,21 +37,21 @@ export default function BasicInfoSection({
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <Building className="h-4 w-4" /> Edifício
         </h3>
-        <p className="mt-1 text-base">{buildingName}</p>
+        <p className="mt-1 text-base">{assistance.buildings?.name}</p>
       </div>
       
       <div>
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <Wrench className="h-4 w-4" /> Tipo de Intervenção
         </h3>
-        <p className="mt-1 text-base">{interventionName}</p>
+        <p className="mt-1 text-base">{assistance.intervention_types?.name}</p>
       </div>
       
       <div>
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <User className="h-4 w-4" /> Fornecedor
         </h3>
-        <p className="mt-1 text-base">{supplierName}</p>
+        <p className="mt-1 text-base">{assistance.suppliers?.name}</p>
       </div>
       
       <div>
@@ -93,7 +77,7 @@ export default function BasicInfoSection({
           </Select>
         ) : (
           <div className="mt-1">
-            <StatusBadge status={currentStatus} />
+            <StatusBadge status={assistance.status} />
           </div>
         )}
       </div>
@@ -102,14 +86,14 @@ export default function BasicInfoSection({
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <Calendar className="h-4 w-4" /> Data Criação
         </h3>
-        <p className="mt-1 text-base">{createdAt ? formatDate(createdAt) : 'N/A'}</p>
+        <p className="mt-1 text-base">{formatDate(assistance.created_at)}</p>
       </div>
       
       <div>
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <Calendar className="h-4 w-4" /> Agendamento
         </h3>
-        <p className="mt-1 text-base">{scheduledDatetime ? formatDateTime(scheduledDatetime) : "Não agendado"}</p>
+        <p className="mt-1 text-base">{assistance.scheduled_datetime ? formatDateTime(assistance.scheduled_datetime) : "Não agendado"}</p>
       </div>
 
       <div>
@@ -117,21 +101,21 @@ export default function BasicInfoSection({
           <AlertTriangle className="h-4 w-4" /> Urgência
         </h3>
         <div className="mt-1">
-          <TypeBadge type={assistanceType} />
+          <TypeBadge type={assistance.type} />
         </div>
       </div>
       
-      {(currentStatus === 'Pendente Validação' || 
-        (validationReminderCount > 0)) && (
+      {(assistance.status === 'Pendente Validação' || 
+        assistance.validation_reminder_count > 0) && (
         <div>
           <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4" /> Lembretes de Validação
           </h3>
           <p className="mt-1 text-sm">
-            Último lembrete: {validationEmailSentAt ? formatDateTime(validationEmailSentAt) : 'Nenhum'}
+            Último lembrete: {assistance.validation_email_sent_at ? formatDateTime(assistance.validation_email_sent_at) : 'Nenhum'}
           </p>
           <p className="mt-1 text-sm">
-            Total de lembretes: {validationReminderCount}
+            Total de lembretes: {assistance.validation_reminder_count}
           </p>
         </div>
       )}

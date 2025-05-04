@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
 
@@ -15,17 +15,12 @@ import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserFriendlyError, logError } from '@/utils/ErrorUtils';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, AlertCircle } from 'lucide-react';
 
 export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [isDeleting, setIsDeleting] = useState(false);
-  const [loadingError, setLoadingError] = useState<string | null>(null);
-  const [isRetrying, setIsRetrying] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   
   // Use custom hook to fetch and filter data
   const {
@@ -33,64 +28,14 @@ export default function Assistencias() {
     paginatedAssistances,
     isAssistancesLoading,
     isBuildingsLoading,
-    assistancesError,
-    fetchError,
     refetchAssistances,
     pagination,
     filters
   } = useAssistanceData(sortOrder);
 
-  // Handle errors from data fetching
-  useEffect(() => {
-    if (assistancesError || fetchError) {
-      const error = assistancesError || fetchError;
-      const errorMessage = getUserFriendlyError(
-        error, 
-        'Erro ao carregar assistências. Tente novamente mais tarde.'
-      );
-      setLoadingError(errorMessage);
-      console.error('Assistance loading error:', error);
-    } else if (!isAssistancesLoading && initialLoadComplete) {
-      setLoadingError(null);
-    }
-  }, [assistancesError, fetchError, isAssistancesLoading, initialLoadComplete]);
-
-  // Force a refresh when the component mounts with retry logic
-  useEffect(() => {
-    const initialLoad = async () => {
-      try {
-        console.log("Initial loading of assistances");
-        const result = await refetchAssistances();
-        
-        if (!result.success) {
-          console.error("Error during initial data load:", result.error);
-          setLoadingError(getUserFriendlyError(
-            result.error,
-            'Erro ao carregar dados iniciais. Tente novamente mais tarde.'
-          ));
-        }
-      } catch (err) {
-        console.error("Exception during initial data load:", err);
-        setLoadingError(getUserFriendlyError(
-          err, 
-          'Erro ao carregar dados iniciais. Tente novamente mais tarde.'
-        ));
-      } finally {
-        setInitialLoadComplete(true);
-      }
-    };
-    
-    initialLoad();
-  }, [refetchAssistances]);
-
   // Handle assistance view
   const handleViewAssistance = async (assistance: any) => {
-    if (!assistance || !assistance.id) {
-      console.error('Invalid assistance data:', assistance);
-      toast.error('Dados de assistência inválidos');
-      return;
-    }
-
+    // Get fresh data when viewing an assistance to ensure we have the latest state
     try {
       console.log(`Fetching fresh data for assistance #${assistance.id}`);
       const { data: freshAssistance, error } = await supabase
@@ -109,7 +54,7 @@ export default function Assistencias() {
         toast.error('Erro ao buscar dados atualizados da assistência');
         setSelectedAssistance(assistance); // Fallback to the provided assistance
       } else {
-        console.log('Fresh assistance data fetched successfully:', freshAssistance);
+        console.log('Fresh assistance data fetched successfully');
         setSelectedAssistance(freshAssistance);
       }
       
@@ -128,13 +73,8 @@ export default function Assistencias() {
   // Create a wrapper function to handle the Promise<void> return type
   const handleRefetchAssistances = useCallback(async (): Promise<void> => {
     try {
-      setIsRetrying(true);
       console.log('Refetching assistances data...');
-      const result = await refetchAssistances();
-      
-      if (!result.success) {
-        throw result.error;
-      }
+      await refetchAssistances();
       
       // If an assistance is currently selected, refresh its data too
       if (selectedAssistance && isViewDialogOpen) {
@@ -160,36 +100,11 @@ export default function Assistencias() {
     } catch (error) {
       console.error('Error refetching assistances:', error);
       toast.error('Erro ao atualizar a lista de assistências');
-      throw error;
-    } finally {
-      setIsRetrying(false);
     }
   }, [refetchAssistances, selectedAssistance, isViewDialogOpen]);
 
-  // Handle retry button click
-  const handleRetry = async () => {
-    setIsRetrying(true);
-    try {
-      await handleRefetchAssistances();
-      setLoadingError(null);
-    } catch (err) {
-      console.error("Error during retry:", err);
-      setLoadingError(getUserFriendlyError(
-        err, 
-        'Erro ao tentar novamente. Tente mais tarde.'
-      ));
-    } finally {
-      setIsRetrying(false);
-    }
-  };
-
   // Handle assistance deletion
   const handleDeleteAssistance = async (assistance: any) => {
-    if (!assistance || !assistance.id) {
-      toast.error('Dados de assistência inválidos');
-      return;
-    }
-
     try {
       console.log("Attempting to delete assistance:", assistance.id);
       setIsDeleting(true);
@@ -207,19 +122,18 @@ export default function Assistencias() {
       }
 
       // Log the activity
-      await supabase
+      const { error: logError } = await supabase
         .from('activity_log')
         .insert([{
           assistance_id: assistance.id,
           description: `Assistência #${assistance.id} excluída`,
           actor: 'admin'
-        }])
-        .then(({ error: logError }) => {
-          if (logError) {
-            console.error('Erro ao registrar atividade:', logError);
-            // Continue even if logging fails
-          }
-        });
+        }]);
+        
+      if (logError) {
+        console.error('Erro ao registrar atividade:', logError);
+        // Continue even if logging fails
+      }
       
       // Close the dialog if it was the selected assistance
       if (selectedAssistance?.id === assistance.id) {
@@ -243,7 +157,6 @@ export default function Assistencias() {
   const handleDialogClose = useCallback(async () => {
     setIsViewDialogOpen(false);
     // Refresh data when dialog is closed to ensure list is updated
-    console.log("Dialog closed, refreshing data...");
     await handleRefetchAssistances();
   }, [handleRefetchAssistances]);
 
@@ -256,17 +169,8 @@ export default function Assistencias() {
             <p className="text-[#cbd5e1] mt-2 text-lg">Gerencie suas solicitações de manutenção</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              onClick={handleRetry}
-              disabled={isRetrying}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} />
-              {isRetrying ? 'Atualizando...' : 'Atualizar dados'}
-            </Button>
             <NewAssistanceButton 
-              buildings={buildings || []}
+              buildings={buildings}
               isBuildingsLoading={isBuildingsLoading}
               onAssistanceCreated={handleRefetchAssistances}
             />
@@ -275,27 +179,10 @@ export default function Assistencias() {
 
         <AssistanceDetailsWrapper 
           isOpen={isViewDialogOpen}
-          onClose={handleDialogClose}
+          onClose={handleDialogClose} // Use the enhanced close handler
           assistance={selectedAssistance}
           onAssistanceUpdate={handleRefetchAssistances}
         />
-
-        {loadingError && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center mb-6">
-            <div className="flex items-center justify-center gap-2 text-red-400 mb-2">
-              <AlertCircle className="h-5 w-5" />
-              <h3 className="text-xl font-semibold">Erro ao carregar dados</h3>
-            </div>
-            <p className="text-white/80 mb-4">{loadingError}</p>
-            <Button 
-              onClick={handleRetry}
-              disabled={isRetrying}
-              variant="destructive"
-            >
-              {isRetrying ? 'Tentando...' : 'Tentar novamente'}
-            </Button>
-          </div>
-        )}
 
         <AssistanceFilter
           searchQuery={filters.searchQuery}
@@ -310,41 +197,17 @@ export default function Assistencias() {
           isBuildingsLoading={isBuildingsLoading}
         />
 
-        {/* Show loading indicator or empty state if needed */}
-        {isAssistancesLoading && (
-          <div className="bg-white/5 rounded-3xl p-6 text-center my-8">
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-            <p className="text-gray-400">Carregando assistências...</p>
-          </div>
-        )}
+        <AssistanceList 
+          isLoading={isAssistancesLoading || isDeleting}
+          assistances={paginatedAssistances}
+          onSortOrderChange={toggleSortOrder}
+          sortOrder={sortOrder}
+          onViewAssistance={handleViewAssistance}
+          onDeleteAssistance={handleDeleteAssistance}
+          formatDate={formatDate}
+        />
 
-        {!isAssistancesLoading && (!paginatedAssistances || paginatedAssistances.length === 0) && (
-          <div className="bg-white/5 rounded-3xl p-6 text-center my-8">
-            <p className="text-gray-400 py-12">Nenhuma assistência encontrada.</p>
-            <Button
-              onClick={handleRetry}
-              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded transition-all"
-            >
-              Atualizar dados
-            </Button>
-          </div>
-        )}
-
-        {!isAssistancesLoading && paginatedAssistances && paginatedAssistances.length > 0 && (
-          <AssistanceList 
-            isLoading={isAssistancesLoading || isDeleting}
-            assistances={paginatedAssistances}
-            onSortOrderChange={toggleSortOrder}
-            sortOrder={sortOrder}
-            onViewAssistance={handleViewAssistance}
-            onDeleteAssistance={handleDeleteAssistance}
-            formatDate={formatDate}
-          />
-        )}
-
-        {/* Pagination controls - only show when we have data */}
+        {/* Pagination controls */}
         {!isAssistancesLoading && pagination.totalItems > 0 && (
           <div className="mt-6">
             <Pagination
