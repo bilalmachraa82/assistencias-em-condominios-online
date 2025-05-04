@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -38,12 +38,20 @@ export default function AssistanceDetails({
   additionalContent 
 }: AssistanceDetailsProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [status, setStatus] = useState(assistance?.status);
-  const [adminNotes, setAdminNotes] = useState(assistance?.admin_notes || '');
+  const [status, setStatus] = useState('');
+  const [adminNotes, setAdminNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get all valid statuses from the utility - use the mutable version
   const statuses = VALID_STATUS_VALUES;
+
+  // Update state when assistance changes - use useEffect instead of conditional hooks
+  useEffect(() => {
+    if (assistance) {
+      setStatus(assistance.status || '');
+      setAdminNotes(assistance.admin_notes || '');
+    }
+  }, [assistance]);
 
   const handleSaveChanges = async () => {
     try {
@@ -118,14 +126,6 @@ export default function AssistanceDetails({
 
   // Ensure we've loaded the assistance data before rendering
   if (!assistance) return null;
-
-  // Update state when assistance changes
-  React.useEffect(() => {
-    if (assistance) {
-      setStatus(assistance.status);
-      setAdminNotes(assistance.admin_notes || '');
-    }
-  }, [assistance]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

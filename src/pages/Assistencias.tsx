@@ -14,6 +14,7 @@ import useAssistanceData from '@/components/assistance/useAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
+import { getUserFriendlyError, logError } from '@/utils/ErrorUtils';
 
 export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
@@ -49,6 +50,7 @@ export default function Assistencias() {
   // Handle assistance deletion
   const handleDeleteAssistance = async (assistance: any) => {
     try {
+      console.log("Attempting to delete assistance:", assistance.id);
       setIsDeleting(true);
       
       // Delete the assistance from the database
@@ -59,25 +61,37 @@ export default function Assistencias() {
 
       if (error) {
         console.error('Erro ao excluir assistência:', error);
-        throw error;
+        toast.error(getUserFriendlyError(error, 'Erro ao excluir assistência'));
+        return;
       }
 
       // Log the activity
-      await supabase
+      const { error: logError } = await supabase
         .from('activity_log')
         .insert([{
           assistance_id: assistance.id,
           description: `Assistência #${assistance.id} excluída`,
           actor: 'admin' // Uses lowercase 'admin' which is valid
         }]);
+        
+      if (logError) {
+        console.error('Erro ao registrar atividade:', logError);
+        // Continue even if logging fails
+      }
+      
+      // Close the dialog if it was the selected assistance
+      if (selectedAssistance?.id === assistance.id) {
+        setIsViewDialogOpen(false);
+        setSelectedAssistance(null);
+      }
       
       // Refetch the data after successful deletion
       await refetchAssistances();
       
       toast.success(`Assistência #${assistance.id} excluída com sucesso!`);
     } catch (error: any) {
-      console.error('Erro ao excluir assistência:', error);
-      toast.error(`Erro ao excluir assistência: ${error.message}`);
+      logError('deleteAssistance', error);
+      toast.error(getUserFriendlyError(error, 'Erro ao excluir assistência'));
     } finally {
       setIsDeleting(false);
     }
