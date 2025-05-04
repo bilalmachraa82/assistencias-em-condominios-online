@@ -12,7 +12,7 @@ import {
 import { Pencil, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { VALID_STATUSES } from '@/utils/StatusUtils';
+import { VALID_STATUS_VALUES } from '@/utils/StatusUtils';
 
 // Import components
 import BasicInfoSection from './sections/BasicInfoSection';
@@ -42,8 +42,8 @@ export default function AssistanceDetails({
   const [adminNotes, setAdminNotes] = useState(assistance?.admin_notes || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get all valid statuses from the utility
-  const statuses = VALID_STATUSES;
+  // Get all valid statuses from the utility - use the mutable version
+  const statuses = VALID_STATUS_VALUES;
 
   const handleSaveChanges = async () => {
     try {

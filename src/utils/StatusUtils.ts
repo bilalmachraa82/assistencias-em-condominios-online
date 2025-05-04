@@ -14,6 +14,9 @@ export const VALID_STATUSES = [
   'Cancelado'
 ] as const;
 
+// Create a mutable version that can be used where string[] is expected
+export const VALID_STATUS_VALUES: string[] = [...VALID_STATUSES];
+
 export type AssistanceStatus = typeof VALID_STATUSES[number];
 
 // Check if a status is valid

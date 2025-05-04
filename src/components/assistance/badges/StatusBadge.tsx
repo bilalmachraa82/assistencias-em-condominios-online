@@ -11,7 +11,7 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
   const badgeClass = getStatusBadgeClass(status);
   
   return (
-    <Badge className={`${badgeClass} whitespace-nowrap font-medium`}>
+    <Badge variant="outline" className={`${badgeClass} whitespace-nowrap font-medium`}>
       {status}
     </Badge>
   );

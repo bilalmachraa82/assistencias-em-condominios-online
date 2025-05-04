@@ -11,10 +11,10 @@ const corsHeaders = {
 const VALID_STATUSES = [
   "Pendente Resposta Inicial",
   "Pendente Aceitação",
-  "Recusada Fornecedor", // Corrected from "Recusada" to match database constraint
+  "Recusada Fornecedor",
   "Pendente Agendamento",
   "Agendado",
-  "Em Progresso", // Corrected from "Em Andamento" to match database constraint
+  "Em Progresso",
   "Pendente Validação", 
   "Concluído",
   "Reagendamento Solicitado",
@@ -83,7 +83,7 @@ serve(async (req) => {
         break;
       case 'reject':
         tokenField = 'acceptance_token';
-        newStatus = 'Recusada Fornecedor'; // Updated to match database constraint
+        newStatus = 'Recusada Fornecedor';
         updateData = { rejection_reason: data?.reason || '' };
         break;
       case 'schedule':
