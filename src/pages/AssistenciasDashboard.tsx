@@ -10,8 +10,7 @@ import AssistanceDetailsWrapper from '@/components/assistance/AssistanceDetailsW
 import AssistanceList from '@/components/assistance/AssistanceList';
 import NewAssistanceButton from '@/components/assistance/NewAssistanceButton';
 import EmailSender from '@/components/assistance/EmailSender';
-import RunRemindersButton from '@/components/assistance/RunRemindersButton';
-import ProcessRemindersButton from '@/components/assistance/ProcessRemindersButton';
+import ReminderProcessorButton from '@/components/assistance/ReminderProcessorButton';
 import useAssistanceData from '@/components/assistance/useAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,8 +40,7 @@ const AssistanceActions = ({ assistance, onAssistanceUpdate }) => {
           Processar lembretes para fornecedores com ações pendentes.
         </div>
         <div className="flex flex-wrap gap-2">
-          <RunRemindersButton />
-          <ProcessRemindersButton />
+          <ReminderProcessorButton />
         </div>
       </div>
     </div>
