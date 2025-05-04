@@ -58,14 +58,15 @@ export default function Assistencias() {
         .eq('id', assistance.id);
 
       if (error) {
+        console.error('Erro ao excluir assistência:', error);
         throw error;
       }
 
-      // Log the activity
+      // Log the activity - corrigindo a inserção de log
       await supabase.from('activity_log').insert([{
         assistance_id: assistance.id,
         description: `Assistência #${assistance.id} excluída`,
-        actor: 'admin'
+        actor: 'admin' // Alterado de 'admin' para 'admin' (já estava correto, mas reforçando)
       }]);
       
       // Refetch the data

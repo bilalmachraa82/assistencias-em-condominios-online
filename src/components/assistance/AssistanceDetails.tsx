@@ -74,13 +74,14 @@ export default function AssistanceDetails({
         return;
       }
       
-      // Log the activity
+      // Log the activity - corrigindo o problema com o campo "actor"
+      // A tabela activity_log provavelmente tem uma restrição de valor para o campo actor
       await supabase
         .from('activity_log')
         .insert([{
           assistance_id: assistance.id,
           description: `Status atualizado para: ${status}`,
-          actor: 'Admin'
+          actor: 'admin' // Alterado de 'Admin' para 'admin' (lowercase)
         }]);
         
       toast.success('Assistência atualizada com sucesso!');

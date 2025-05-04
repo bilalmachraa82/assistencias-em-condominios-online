@@ -96,7 +96,7 @@ export default function AssistanceList({
     onViewAssistance(assistance);
   };
 
-  // Handle view button click
+  // Handle view button click - separate from row click
   const handleViewButtonClick = (assistance: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent row click event
@@ -145,7 +145,7 @@ export default function AssistanceList({
                   </div>
                 </TableCell>
               </TableRow>
-            ) : assistances?.length === 0 ? (
+            ) : !assistances || assistances.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8}>
                   <div className="text-center py-6">
@@ -154,7 +154,7 @@ export default function AssistanceList({
                 </TableCell>
               </TableRow>
             ) : (
-              assistances?.map((assistance) => {
+              assistances.map((assistance) => {
                 const supplierLink = getSupplierLink(assistance);
                 
                 return (
@@ -185,7 +185,7 @@ export default function AssistanceList({
                     <TableCell className="text-[#8E9196] hidden sm:table-cell">
                       {formatDate(assistance.created_at)}
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
+                    <TableCell className="hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
                       {supplierLink ? (
                         <TooltipProvider>
                           <Tooltip>
