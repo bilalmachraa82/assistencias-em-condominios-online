@@ -10,6 +10,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add a refresh trigger
 
   // Fetch assistances
   const { 
@@ -17,7 +18,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     isLoading: isAssistancesLoading, 
     refetch: refetchAssistances 
   } = useQuery({
-    queryKey: ['assistances', sortOrder],
+    queryKey: ['assistances', sortOrder, refreshTrigger], // Add refreshTrigger to queryKey
     queryFn: async () => {
       console.log('Fetching assistances with sort order:', sortOrder);
       
@@ -108,6 +109,13 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     setPage(1); // Reset to first page when changing page size
   };
 
+  // Force a refresh of the data
+  const forceRefresh = () => {
+    console.log('Force refreshing assistance data...');
+    setRefreshTrigger(prev => prev + 1); // Increment to trigger refetch
+    return refetchAssistances();
+  };
+
   return {
     assistances,
     buildings,
@@ -115,7 +123,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     paginatedAssistances,
     isAssistancesLoading,
     isBuildingsLoading,
-    refetchAssistances,
+    refetchAssistances: forceRefresh, // Use the enhanced refresh function
     pagination: {
       currentPage: page,
       pageSize,

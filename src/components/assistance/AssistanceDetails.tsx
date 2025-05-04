@@ -49,6 +49,7 @@ export default function AssistanceDetails({
   // Update state when assistance changes - using useEffect properly
   useEffect(() => {
     if (assistance) {
+      console.log('Setting initial status from assistance:', assistance.status);
       setStatus(assistance.status || '');
       setAdminNotes(assistance.admin_notes || '');
     }

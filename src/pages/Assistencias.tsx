@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
 
@@ -37,6 +37,7 @@ export default function Assistencias() {
   const handleViewAssistance = async (assistance: any) => {
     // Get fresh data when viewing an assistance to ensure we have the latest state
     try {
+      console.log(`Fetching fresh data for assistance #${assistance.id}`);
       const { data: freshAssistance, error } = await supabase
         .from('assistances')
         .select(`
@@ -53,6 +54,7 @@ export default function Assistencias() {
         toast.error('Erro ao buscar dados atualizados da assistência');
         setSelectedAssistance(assistance); // Fallback to the provided assistance
       } else {
+        console.log('Fresh assistance data fetched successfully');
         setSelectedAssistance(freshAssistance);
       }
       
@@ -69,13 +71,14 @@ export default function Assistencias() {
   };
 
   // Create a wrapper function to handle the Promise<void> return type
-  const handleRefetchAssistances = async (): Promise<void> => {
+  const handleRefetchAssistances = useCallback(async (): Promise<void> => {
     try {
       console.log('Refetching assistances data...');
       await refetchAssistances();
       
       // If an assistance is currently selected, refresh its data too
       if (selectedAssistance && isViewDialogOpen) {
+        console.log(`Refreshing selected assistance #${selectedAssistance.id}`);
         const { data: freshAssistance, error } = await supabase
           .from('assistances')
           .select(`
@@ -88,14 +91,17 @@ export default function Assistencias() {
           .single();
           
         if (!error && freshAssistance) {
+          console.log('Updated selected assistance with fresh data');
           setSelectedAssistance(freshAssistance);
         }
       }
+      
+      toast.success('Dados atualizados com sucesso');
     } catch (error) {
       console.error('Error refetching assistances:', error);
       toast.error('Erro ao atualizar a lista de assistências');
     }
-  };
+  }, [refetchAssistances, selectedAssistance, isViewDialogOpen]);
 
   // Handle assistance deletion
   const handleDeleteAssistance = async (assistance: any) => {
@@ -147,6 +153,13 @@ export default function Assistencias() {
     }
   };
 
+  // Handle dialog close with refresh
+  const handleDialogClose = useCallback(async () => {
+    setIsViewDialogOpen(false);
+    // Refresh data when dialog is closed to ensure list is updated
+    await handleRefetchAssistances();
+  }, [handleRefetchAssistances]);
+
   return (
     <DashboardLayout>
       <div className="animate-fade-in-up">
@@ -166,7 +179,7 @@ export default function Assistencias() {
 
         <AssistanceDetailsWrapper 
           isOpen={isViewDialogOpen}
-          onClose={() => setIsViewDialogOpen(false)}
+          onClose={handleDialogClose} // Use the enhanced close handler
           assistance={selectedAssistance}
           onAssistanceUpdate={handleRefetchAssistances}
         />
