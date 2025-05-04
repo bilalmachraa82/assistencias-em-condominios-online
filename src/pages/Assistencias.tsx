@@ -9,6 +9,7 @@ import AssistanceDetailsWrapper from '@/components/assistance/AssistanceDetailsW
 import AssistanceList from '@/components/assistance/AssistanceList';
 import NewAssistanceButton from '@/components/assistance/NewAssistanceButton';
 import RunRemindersButton from '@/components/assistance/RunRemindersButton';
+import ProcessRemindersButton from '@/components/assistance/ProcessRemindersButton';
 import useAssistanceData from '@/components/assistance/useAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
 
@@ -50,6 +51,7 @@ export default function Assistencias() {
             <p className="text-[#cbd5e1] mt-2 text-lg">Gerencie suas solicitações de manutenção</p>
           </div>
           <div className="flex gap-2">
+            <ProcessRemindersButton />
             <RunRemindersButton />
             <NewAssistanceButton 
               buildings={buildings}
