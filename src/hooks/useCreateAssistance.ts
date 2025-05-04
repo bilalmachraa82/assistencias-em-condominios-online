@@ -46,14 +46,19 @@ export default async function useCreateAssistance(
       throw error;
     }
 
-    // Log activity
-    await supabase
-      .from('activity_log')
-      .insert([{
-        assistance_id: data[0].id,
-        description: 'Assistência criada',
-        actor: 'Admin'
-      }]);
+    // Log activity - fix the actor parameter to match the allowed values in the database
+    try {
+      await supabase
+        .from('activity_log')
+        .insert([{
+          assistance_id: data[0].id,
+          description: 'Assistência criada',
+          actor: 'admin' // Changed from 'Admin' to 'admin' to match constraint
+        }]);
+    } catch (logError) {
+      // Don't throw if activity log fails, just log it
+      console.error('Error creating activity log:', logError);
+    }
 
     toast.success('Assistência criada com sucesso!');
     toast.info('Agora você pode enviar um email para o fornecedor com o link de aceitação.');
