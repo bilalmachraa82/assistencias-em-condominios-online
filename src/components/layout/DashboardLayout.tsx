@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Sidebar,
@@ -13,15 +14,13 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { CalendarDays, Home, Settings, ClipboardCheck, Building2, User, LogOut, Store } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CalendarDays, Settings, Building2, User, LogOut, Store } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Assistências', href: '/', icon: CalendarDays },
   { name: 'Edifícios', href: '/buildings', icon: Building2 },
   { name: 'Fornecedores', href: '/suppliers', icon: Store },
-  { name: 'Assistências', href: '/assistencias', icon: CalendarDays },
   { name: 'Configuração de Serviços', href: '/configuracao-servicos', icon: Settings },
 ];
 
@@ -47,22 +46,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <SidebarGroupLabel className="text-[#cbd5e1]/70">Menu Principal</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigation.map((item) => (
-                    <SidebarMenuItem key={item.name}>
-                      <SidebarMenuButton asChild tooltip={item.name}>
-                        <Link 
-                          to={item.href} 
-                          className={`flex items-center gap-3 ${location.pathname === item.href 
-                            ? 'menu-item-active' 
-                            : 'menu-item'
-                          }`}
-                        >
-                          <item.icon className="h-5 w-5" />
-                          <span>{item.name}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {navigation.map((item) => {
+                    // Match both the direct path and when accessed via root for Assistências
+                    const isActive = item.href === location.pathname || 
+                                    (item.href === '/' && (location.pathname === '/' || location.pathname === '/assistencias'));
+                    
+                    return (
+                      <SidebarMenuItem key={item.name}>
+                        <SidebarMenuButton asChild tooltip={item.name}>
+                          <Link 
+                            to={item.href} 
+                            className={`flex items-center gap-3 ${isActive 
+                              ? 'menu-item-active' 
+                              : 'menu-item'
+                            }`}
+                          >
+                            <item.icon className="h-5 w-5" />
+                            <span>{item.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>

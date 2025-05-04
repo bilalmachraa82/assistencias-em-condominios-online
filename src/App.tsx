@@ -6,7 +6,6 @@ import Buildings from "./pages/Buildings";
 import Suppliers from "./pages/Suppliers";
 import Assistencias from "./pages/Assistencias";
 import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
-import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
 // Supplier public pages
@@ -18,7 +17,7 @@ import Confirmation from "./pages/supplier/Confirmation";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Dashboard />,
+    element: <Assistencias />,
   },
   {
     path: "/buildings",
