@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText, Eye, SortAsc, SortDesc, Trash, Copy } from 'lucide-react';
+import { FileText, Eye, SortAsc, SortDesc, Trash, Copy, AlertTriangle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from 'sonner';
 import {

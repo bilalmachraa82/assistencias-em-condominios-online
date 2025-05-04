@@ -11,13 +11,15 @@ interface AssistanceDetailsWrapperProps {
   onClose: () => void;
   assistance: any;
   onAssistanceUpdate: () => Promise<void>;
+  additionalContent?: React.ReactNode; // Add this prop to support additional content
 }
 
 export default function AssistanceDetailsWrapper({
   isOpen,
   onClose,
   assistance,
-  onAssistanceUpdate
+  onAssistanceUpdate,
+  additionalContent
 }: AssistanceDetailsWrapperProps) {
   // Add Email button to the inner content of the AssistanceDetails
   const renderEmailButton = () => {
@@ -45,7 +47,7 @@ export default function AssistanceDetailsWrapper({
       onClose={onClose}
       assistance={assistance}
       onAssistanceUpdate={onAssistanceUpdate}
-      additionalContent={renderEmailButton()}
+      additionalContent={additionalContent || renderEmailButton()}
     />
   );
 }
