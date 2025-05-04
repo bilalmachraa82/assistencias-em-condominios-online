@@ -87,7 +87,7 @@ serve(async (req) => {
       case 'complete':
         tokenField = 'validation_token';
         newStatus = 'Pendente Validação';
-        // Photo URL will be handled separately
+        updateData.validation_reminder_count = 0;
         break;
       default:
         return new Response(
@@ -129,14 +129,18 @@ serve(async (req) => {
     // Handle file upload for completion action
     if (action === 'complete' && data?.photoBase64) {
       try {
-        const { data: bucket, error: bucketError } = await supabase
+        // Check if bucket exists
+        const { data: bucketData, error: bucketError } = await supabase
           .storage.getBucket('completion-photos');
           
         if (bucketError) {
+          console.log('Bucket does not exist, creating it...');
           // Bucket doesn't exist, create it
           await supabase.storage.createBucket('completion-photos', { 
             public: true 
           });
+        } else {
+          console.log('Bucket already exists:', bucketData);
         }
       } catch (e) {
         console.error('Erro ao verificar/criar bucket:', e);
@@ -171,7 +175,6 @@ serve(async (req) => {
         .getPublicUrl(fileName);
 
       updateData.completion_photo_url = publicUrlData.publicUrl;
-      updateData.validation_reminder_count = 0;
     }
 
     // Update assistance status and data

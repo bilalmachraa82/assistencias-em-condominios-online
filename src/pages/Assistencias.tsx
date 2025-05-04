@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
@@ -45,7 +44,12 @@ export default function Assistencias() {
 
   // Create a wrapper function to handle the Promise<void> return type
   const handleRefetchAssistances = async (): Promise<void> => {
-    await refetchAssistances();
+    try {
+      await refetchAssistances();
+    } catch (error) {
+      console.error('Error refetching assistances:', error);
+      toast.error('Erro ao atualizar a lista de assistências');
+    }
   };
 
   // Handle assistance deletion
@@ -87,7 +91,7 @@ export default function Assistencias() {
       }
       
       // Refetch the data after successful deletion
-      await refetchAssistances();
+      await handleRefetchAssistances();
       
       toast.success(`Assistência #${assistance.id} excluída com sucesso!`);
     } catch (error: any) {

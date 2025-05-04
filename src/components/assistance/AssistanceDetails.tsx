@@ -55,6 +55,8 @@ export default function AssistanceDetails({
   }, [assistance]);
 
   const handleSaveChanges = async () => {
+    if (!assistance) return;
+    
     try {
       setIsSubmitting(true);
       
@@ -74,13 +76,18 @@ export default function AssistanceDetails({
       }
       
       // Log the activity with correct actor value (lowercase)
-      await supabase
+      const { error: logError } = await supabase
         .from('activity_log')
         .insert([{
           assistance_id: assistance.id,
           description: `Status atualizado para: ${status}`,
           actor: 'admin'
         }]);
+        
+      if (logError) {
+        console.error('Erro ao registrar atividade:', logError);
+        // Continue even if logging fails
+      }
         
       toast.success('Assistência atualizada com sucesso!');
       setIsEditing(false);
@@ -94,6 +101,8 @@ export default function AssistanceDetails({
   };
 
   const handleResetTokens = async (tokenType: string) => {
+    if (!assistance) return;
+    
     try {
       setIsSubmitting(true);
       
