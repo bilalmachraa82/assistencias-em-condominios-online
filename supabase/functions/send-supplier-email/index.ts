@@ -133,7 +133,7 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'AssisTech <onboarding@resend.dev>',
+        from: 'LuvImg <onboarding@resend.dev>',
         to: [assistance.suppliers.email],
         subject: emailSubject,
         html: emailContent,
@@ -189,18 +189,23 @@ function generateAcceptanceEmail(assistance: any, actionUrl: string): string {
     <html>
     <head>
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #4f46e5; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background-color: #f9fafb; }
-        .footer { text-align: center; font-size: 12px; color: #6b7280; margin-top: 20px; }
-        .button { display: inline-block; background-color: #4f46e5; color: white; text-decoration: none; padding: 10px 20px; border-radius: 4px; margin: 20px 0; }
-        .details { margin: 20px 0; padding: 15px; background-color: white; border-left: 4px solid #4f46e5; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { background-color: #6347ED; color: white; padding: 25px; text-align: center; }
+        .logo { display: block; margin: 0 auto 15px; max-height: 50px; }
+        .content { padding: 30px; background-color: #ffffff; }
+        .footer { padding: 20px; text-align: center; background-color: #f7f7f9; font-size: 12px; color: #6b7280; }
+        .button { display: inline-block; background-color: #1EAEDB; color: white; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; margin: 25px 0; border: none; }
+        .details { margin: 25px 0; padding: 20px; background-color: #f7f7f9; border-left: 4px solid #6347ED; border-radius: 4px; }
+        h1 { margin: 0; font-size: 24px; }
+        .contact-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        .social-links a { display: inline-block; margin: 0 10px; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
+          <img src="https://luvimg.com/img/luvimg-brand.svg" alt="LuvImg Logo" class="logo">
           <h1>Nova Solicitação de Assistência</h1>
         </div>
         <div class="content">
@@ -219,10 +224,22 @@ function generateAcceptanceEmail(assistance: any, actionUrl: string): string {
             <a href="${actionUrl}" class="button">Responder à Solicitação</a>
           </div>
           <p>Este link é válido apenas para esta solicitação específica.</p>
+          
+          <div class="contact-info">
+            <p><strong>Precisa de ajuda?</strong> Entre em contato:</p>
+            <p>Email: info@luvimg.com</p>
+            <p>Telefone: +351 964 233 777</p>
+            <div class="social-links">
+              <a href="https://www.facebook.com/LuvImg">Facebook</a>
+              <a href="https://www.instagram.com/luv.img">Instagram</a>
+              <a href="https://www.linkedin.com/company/luvimg">LinkedIn</a>
+            </div>
+          </div>
         </div>
         <div class="footer">
           <p>Esta é uma mensagem automática, por favor não responda diretamente a este email.</p>
-          <p>© ${new Date().getFullYear()} AssisTech - Sistema de Assistências Técnicas</p>
+          <p>© ${new Date().getFullYear()} LuvImg - Lda. | NIF 515920380</p>
+          <p>Rua António Luís Gomes 28A, 2750-335 Cascais</p>
         </div>
       </div>
     </body>
@@ -236,18 +253,23 @@ function generateSchedulingEmail(assistance: any, actionUrl: string): string {
     <html>
     <head>
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #0ea5e9; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background-color: #f9fafb; }
-        .footer { text-align: center; font-size: 12px; color: #6b7280; margin-top: 20px; }
-        .button { display: inline-block; background-color: #0ea5e9; color: white; text-decoration: none; padding: 10px 20px; border-radius: 4px; margin: 20px 0; }
-        .details { margin: 20px 0; padding: 15px; background-color: white; border-left: 4px solid #0ea5e9; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { background-color: #6347ED; color: white; padding: 25px; text-align: center; }
+        .logo { display: block; margin: 0 auto 15px; max-height: 50px; }
+        .content { padding: 30px; background-color: #ffffff; }
+        .footer { padding: 20px; text-align: center; background-color: #f7f7f9; font-size: 12px; color: #6b7280; }
+        .button { display: inline-block; background-color: #1EAEDB; color: white; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; margin: 25px 0; border: none; }
+        .details { margin: 25px 0; padding: 20px; background-color: #f7f7f9; border-left: 4px solid #6347ED; border-radius: 4px; }
+        h1 { margin: 0; font-size: 24px; }
+        .contact-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        .social-links a { display: inline-block; margin: 0 10px; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
+          <img src="https://luvimg.com/img/luvimg-brand.svg" alt="LuvImg Logo" class="logo">
           <h1>Agende a Assistência</h1>
         </div>
         <div class="content">
@@ -267,10 +289,22 @@ function generateSchedulingEmail(assistance: any, actionUrl: string): string {
             <a href="${actionUrl}" class="button">Agendar Assistência</a>
           </div>
           <p>Este link é válido apenas para esta solicitação específica.</p>
+          
+          <div class="contact-info">
+            <p><strong>Precisa de ajuda?</strong> Entre em contato:</p>
+            <p>Email: info@luvimg.com</p>
+            <p>Telefone: +351 964 233 777</p>
+            <div class="social-links">
+              <a href="https://www.facebook.com/LuvImg">Facebook</a>
+              <a href="https://www.instagram.com/luv.img">Instagram</a>
+              <a href="https://www.linkedin.com/company/luvimg">LinkedIn</a>
+            </div>
+          </div>
         </div>
         <div class="footer">
           <p>Esta é uma mensagem automática, por favor não responda diretamente a este email.</p>
-          <p>© ${new Date().getFullYear()} AssisTech - Sistema de Assistências Técnicas</p>
+          <p>© ${new Date().getFullYear()} LuvImg - Lda. | NIF 515920380</p>
+          <p>Rua António Luís Gomes 28A, 2750-335 Cascais</p>
         </div>
       </div>
     </body>
@@ -284,18 +318,23 @@ function generateValidationEmail(assistance: any, actionUrl: string): string {
     <html>
     <head>
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #10b981; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background-color: #f9fafb; }
-        .footer { text-align: center; font-size: 12px; color: #6b7280; margin-top: 20px; }
-        .button { display: inline-block; background-color: #10b981; color: white; text-decoration: none; padding: 10px 20px; border-radius: 4px; margin: 20px 0; }
-        .details { margin: 20px 0; padding: 15px; background-color: white; border-left: 4px solid #10b981; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { background-color: #6347ED; color: white; padding: 25px; text-align: center; }
+        .logo { display: block; margin: 0 auto 15px; max-height: 50px; }
+        .content { padding: 30px; background-color: #ffffff; }
+        .footer { padding: 20px; text-align: center; background-color: #f7f7f9; font-size: 12px; color: #6b7280; }
+        .button { display: inline-block; background-color: #1EAEDB; color: white; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; margin: 25px 0; border: none; }
+        .details { margin: 25px 0; padding: 20px; background-color: #f7f7f9; border-left: 4px solid #6347ED; border-radius: 4px; }
+        h1 { margin: 0; font-size: 24px; }
+        .contact-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        .social-links a { display: inline-block; margin: 0 10px; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
+          <img src="https://luvimg.com/img/luvimg-brand.svg" alt="LuvImg Logo" class="logo">
           <h1>Confirme a Conclusão do Serviço</h1>
         </div>
         <div class="content">
@@ -314,10 +353,22 @@ function generateValidationEmail(assistance: any, actionUrl: string): string {
             <a href="${actionUrl}" class="button">Confirmar Conclusão</a>
           </div>
           <p>Este link é válido apenas para esta solicitação específica.</p>
+          
+          <div class="contact-info">
+            <p><strong>Precisa de ajuda?</strong> Entre em contato:</p>
+            <p>Email: info@luvimg.com</p>
+            <p>Telefone: +351 964 233 777</p>
+            <div class="social-links">
+              <a href="https://www.facebook.com/LuvImg">Facebook</a>
+              <a href="https://www.instagram.com/luv.img">Instagram</a>
+              <a href="https://www.linkedin.com/company/luvimg">LinkedIn</a>
+            </div>
+          </div>
         </div>
         <div class="footer">
           <p>Esta é uma mensagem automática, por favor não responda diretamente a este email.</p>
-          <p>© ${new Date().getFullYear()} AssisTech - Sistema de Assistências Técnicas</p>
+          <p>© ${new Date().getFullYear()} LuvImg - Lda. | NIF 515920380</p>
+          <p>Rua António Luís Gomes 28A, 2750-335 Cascais</p>
         </div>
       </div>
     </body>
