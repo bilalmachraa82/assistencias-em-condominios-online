@@ -7,21 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Define the allowed statuses directly as a constant
-const VALID_STATUSES = [
-  "Pendente Resposta Inicial",
-  "Pendente Aceitação",
-  "Recusada Fornecedor",
-  "Pendente Agendamento",
-  "Agendado",
-  "Em Progresso",
-  "Pendente Validação", 
-  "Concluído",
-  "Reagendamento Solicitado",
-  "Validação Expirada",
-  "Cancelado"
-];
-
+// Define the allowed statuses by querying from the database
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -49,24 +35,23 @@ serve(async (req) => {
     let tokenField;
     let updateData: any = {};
     
-    // Try to fetch valid statuses from database as a backup
-    let validStatuses = VALID_STATUSES;
-    try {
-      console.log('Fetching valid statuses from database');
-      const { data: statusValues, error: statusError } = await supabase
-        .from('valid_statuses')
-        .select('status_value')
-        .order('display_order');
-        
-      if (!statusError && statusValues && statusValues.length > 0) {
-        console.log(`Found ${statusValues.length} valid statuses in database`);
-        validStatuses = statusValues.map(item => item.status_value);
-      } else {
-        console.log('Using hardcoded valid statuses, database query failed:', statusError);
-      }
-    } catch (error) {
-      console.log('Using hardcoded valid statuses due to error:', error);
+    // Try to fetch valid statuses from database
+    console.log('Fetching valid statuses from database');
+    const { data: statusValues, error: statusError } = await supabase
+      .from('valid_statuses')
+      .select('status_value')
+      .order('display_order');
+      
+    if (statusError) {
+      console.error('Error fetching valid statuses:', statusError);
+      return new Response(
+        JSON.stringify({ error: 'Erro ao buscar status válidos' }),
+        { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
     }
+    
+    const validStatuses = statusValues.map(item => item.status_value);
+    console.log(`Found ${validStatuses.length} valid statuses in database`);
 
     let newStatus = '';
 

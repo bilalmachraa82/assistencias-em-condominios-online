@@ -30,7 +30,6 @@ serve(async (req) => {
     }
 
     // Validate token and get assistance
-    let query;
     let tokenField;
 
     switch(action) {

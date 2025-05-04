@@ -37,6 +37,7 @@ export default function AssistanceDetails({
   onAssistanceUpdate,
   additionalContent 
 }: AssistanceDetailsProps) {
+  // Initialize state with empty values first
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
@@ -45,7 +46,7 @@ export default function AssistanceDetails({
   // Get all valid statuses from the utility - use the mutable version
   const statuses = VALID_STATUS_VALUES;
 
-  // Update state when assistance changes - use useEffect instead of conditional hooks
+  // Update state when assistance changes - use useEffect to reset values
   useEffect(() => {
     if (assistance) {
       setStatus(assistance.status || '');
