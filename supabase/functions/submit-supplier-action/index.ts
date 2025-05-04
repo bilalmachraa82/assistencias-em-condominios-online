@@ -33,12 +33,37 @@ serve(async (req) => {
     // Validate token and get assistance
     let tokenField;
     let updateData: any = {};
+    
+    // Define the allowed statuses directly from the database
+    const { data: statusValues, error: statusError } = await supabase
+      .from('valid_statuses')
+      .select('status_value')
+      .order('display_order');
+      
+    if (statusError) {
+      console.error('Error fetching valid statuses:', statusError);
+      // Fallback to hardcoded list if cannot fetch from DB
+      var validStatuses = [
+        "Pendente Resposta Inicial",
+        "Pendente Aceitação",
+        "Recusada",
+        "Pendente Agendamento",
+        "Agendado",
+        "Em Andamento",
+        "Pendente Validação", 
+        "Concluído",
+        "Reagendamento Solicitado",
+        "Cancelado"
+      ];
+    } else {
+      var validStatuses = statusValues.map(item => item.status_value);
+    }
+
     let newStatus = '';
 
     switch(action) {
       case 'accept':
         tokenField = 'acceptance_token';
-        newStatus = 'Em Andamento';
         // If scheduling data is provided in the same action
         if (data?.datetime) {
           updateData.scheduled_datetime = data.datetime;
@@ -75,6 +100,15 @@ serve(async (req) => {
           JSON.stringify({ error: 'Ação inválida' }),
           { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
+    }
+
+    // Verify the new status is valid
+    if (!validStatuses.includes(newStatus)) {
+      console.error(`Invalid status: ${newStatus}. Valid statuses are: ${validStatuses.join(', ')}`);
+      return new Response(
+        JSON.stringify({ error: `Status inválido: ${newStatus}` }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
     }
 
     // Get assistance with the provided token
@@ -163,13 +197,18 @@ serve(async (req) => {
     }
 
     // Log the activity
-    await supabase
-      .from('activity_log')
-      .insert([{
-        assistance_id: assistance.id,
-        description: `Fornecedor: Ação ${action} realizada. Status atualizado para ${updateData.status}`,
-        actor: 'Fornecedor'
-      }]);
+    try {
+      await supabase
+        .from('activity_log')
+        .insert([{
+          description: `Fornecedor: Ação ${action} realizada. Status atualizado para ${updateData.status}`,
+          actor: 'Fornecedor',
+          assistance_id: assistance.id
+        }]);
+    } catch (logError) {
+      console.error('Erro ao registrar log de atividade:', logError);
+      // Continue without failing if logging fails
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: 'Ação processada com sucesso' }),
