@@ -3,6 +3,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { generateToken } from '@/utils/TokenUtils';
 
+// Valid statuses
+const VALID_STATUSES = [
+  "Pendente Resposta Inicial",
+  "Pendente Aceitação",
+  "Recusada",
+  "Pendente Agendamento",
+  "Agendado",
+  "Em Andamento",
+  "Pendente Validação", 
+  "Concluído",
+  "Reagendamento Solicitado",
+  "Cancelado"
+];
+
 export default async function useCreateAssistance(
   formData: any, 
   selectedBuilding: { id: number; name: string } | null
@@ -25,8 +39,13 @@ export default async function useCreateAssistance(
     });
 
     // Make sure tokens are properly generated
-    if (!acceptance_token || !scheduling_token || !validation_token) {
+    if (!interaction_token || !acceptance_token || !scheduling_token || !validation_token) {
       throw new Error('Falha ao gerar tokens de assistência');
+    }
+
+    // Ensure status is valid
+    if (!VALID_STATUSES.includes('Pendente Resposta Inicial')) {
+      console.warn('Status warning: Using default status despite not being in VALID_STATUSES list');
     }
 
     const { data, error } = await supabase
@@ -55,14 +74,14 @@ export default async function useCreateAssistance(
       throw new Error('Nenhum dado retornado após inserção');
     }
 
-    // Log activity - fix the actor parameter to match the allowed values in the database
+    // Log activity
     try {
       await supabase
         .from('activity_log')
         .insert([{
           assistance_id: data[0].id,
           description: 'Assistência criada',
-          actor: 'admin' // Changed from 'Admin' to 'admin' to match constraint
+          actor: 'admin' 
         }]);
     } catch (logError) {
       // Don't throw if activity log fails, just log it

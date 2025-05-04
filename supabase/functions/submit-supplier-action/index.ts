@@ -7,6 +7,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Define the allowed statuses directly as a constant
+const VALID_STATUSES = [
+  "Pendente Resposta Inicial",
+  "Pendente Aceitação",
+  "Recusada",
+  "Pendente Agendamento",
+  "Agendado",
+  "Em Andamento",
+  "Pendente Validação", 
+  "Concluído",
+  "Reagendamento Solicitado",
+  "Cancelado"
+];
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -34,29 +48,19 @@ serve(async (req) => {
     let tokenField;
     let updateData: any = {};
     
-    // Define the allowed statuses directly from the database
-    const { data: statusValues, error: statusError } = await supabase
-      .from('valid_statuses')
-      .select('status_value')
-      .order('display_order');
-      
-    if (statusError) {
-      console.error('Error fetching valid statuses:', statusError);
-      // Fallback to hardcoded list if cannot fetch from DB
-      var validStatuses = [
-        "Pendente Resposta Inicial",
-        "Pendente Aceitação",
-        "Recusada",
-        "Pendente Agendamento",
-        "Agendado",
-        "Em Andamento",
-        "Pendente Validação", 
-        "Concluído",
-        "Reagendamento Solicitado",
-        "Cancelado"
-      ];
-    } else {
-      var validStatuses = statusValues.map(item => item.status_value);
+    // Try to fetch valid statuses from database as a backup
+    let validStatuses = VALID_STATUSES;
+    try {
+      const { data: statusValues, error: statusError } = await supabase
+        .from('valid_statuses')
+        .select('status_value')
+        .order('display_order');
+        
+      if (!statusError && statusValues && statusValues.length > 0) {
+        validStatuses = statusValues.map(item => item.status_value);
+      }
+    } catch (error) {
+      console.log('Using hardcoded valid statuses due to error:', error);
     }
 
     let newStatus = '';
@@ -202,7 +206,7 @@ serve(async (req) => {
         .from('activity_log')
         .insert([{
           description: `Fornecedor: Ação ${action} realizada. Status atualizado para ${updateData.status}`,
-          actor: 'Fornecedor',
+          actor: 'supplier',
           assistance_id: assistance.id
         }]);
     } catch (logError) {

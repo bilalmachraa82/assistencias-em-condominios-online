@@ -21,8 +21,5 @@ INSERT INTO public.valid_statuses (status_value, display_order) VALUES
 ('Cancelado', 100)
 ON CONFLICT (status_value) DO NOTHING;
 
--- Update the constraint on assistances table
-ALTER TABLE public.assistances DROP CONSTRAINT IF EXISTS assistances_status_check;
-ALTER TABLE public.assistances ADD CONSTRAINT assistances_status_check CHECK (
-  status IN (SELECT status_value FROM public.valid_statuses)
-);
+-- Note: We cannot use subquery in check constraints, so this is handled in the application code instead
+-- ALTER TABLE public.assistances ADD CONSTRAINT assistances_status_check CHECK (status IN (...));
