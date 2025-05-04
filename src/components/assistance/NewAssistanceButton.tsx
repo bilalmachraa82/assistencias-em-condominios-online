@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Building } from 'lucide-react';
 import BuildingSelectorDialog from './BuildingSelectorDialog';
 import AssistanceFormDialog from './AssistanceFormDialog';
+import useCreateAssistance from '@/hooks/useCreateAssistance';
 
 interface NewAssistanceButtonProps {
   buildings: any[] | undefined;
