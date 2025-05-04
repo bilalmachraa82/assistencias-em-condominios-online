@@ -26,7 +26,7 @@ serve(async (req) => {
       .select('status_value')
       .order('display_order');
     
-    if (statusError) {
+    if (statusError || !statusData || statusData.length === 0) {
       console.error('Error fetching statuses from valid_statuses table:', statusError);
       
       // Fallback: use hardcoded values that match exactly with the StatusUtils.ts values

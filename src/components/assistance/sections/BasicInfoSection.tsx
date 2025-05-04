@@ -33,7 +33,9 @@ export default function BasicInfoSection({
   };
 
   // Use the provided statuses list, but fall back to VALID_STATUS_VALUES if statuses is empty
-  const statusOptions = statuses.length > 0 ? statuses : VALID_STATUS_VALUES;
+  const statusOptions = statuses && statuses.length > 0 ? statuses : VALID_STATUS_VALUES;
+
+  console.log('Available status options:', statusOptions);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

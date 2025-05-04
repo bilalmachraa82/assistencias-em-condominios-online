@@ -7,7 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Define the allowed statuses by querying from the database
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -43,90 +42,28 @@ serve(async (req) => {
       .select('status_value')
       .order('display_order');
       
-    if (statusError) {
-      console.error('Error fetching valid statuses:', statusError);
-      
-      // Fallback to hardcoded values if database query fails
-      console.log('Using fallback hardcoded valid statuses');
-      const validStatuses = [
-        'Pendente Resposta Inicial',
-        'Pendente Aceitação',
-        'Recusada Fornecedor',
-        'Pendente Agendamento',
-        'Agendado',
-        'Em Progresso',
-        'Pendente Validação',
-        'Concluído',
-        'Reagendamento Solicitado',
-        'Validação Expirada',
-        'Cancelado'
-      ];
-      
-      console.log(`Using ${validStatuses.length} hardcoded valid statuses`);
-      
-      // Continue with the hardcoded values
-      let newStatus = '';
-
-      switch(action) {
-        case 'accept':
-          tokenField = 'acceptance_token';
-          // If scheduling data is provided in the same action
-          if (data?.datetime) {
-            updateData.scheduled_datetime = data.datetime;
-            newStatus = 'Agendado';
-          } else {
-            newStatus = 'Pendente Agendamento';
-          }
-          break;
-        case 'reject':
-          tokenField = 'acceptance_token';
-          newStatus = 'Recusada Fornecedor';
-          updateData = { rejection_reason: data?.reason || '' };
-          break;
-        case 'schedule':
-          tokenField = 'scheduling_token';
-          newStatus = 'Agendado';
-          updateData = { scheduled_datetime: data?.datetime || null };
-          break;
-        case 'reschedule':
-          tokenField = 'scheduling_token';
-          newStatus = 'Agendado';
-          updateData = { 
-            scheduled_datetime: data?.datetime || null,
-            reschedule_reason: data?.reason || '' 
-          };
-          break;
-        case 'complete':
-          tokenField = 'validation_token';
-          newStatus = 'Pendente Validação';
-          updateData.validation_reminder_count = 0;
-          break;
-        default:
-          return new Response(
-            JSON.stringify({ error: 'Ação inválida' }),
-            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-          );
-      }
-      
-      // Instead of using a function to match status, do a direct check for exact status
-      if (!validStatuses.includes(newStatus)) {
-        console.error(`Invalid status: ${newStatus}. Not found in valid statuses.`);
-        return new Response(
-          JSON.stringify({ error: `Status inválido: ${newStatus}. Não encontrado na lista de status válidos.` }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
-      }
-
-      console.log(`Using status: ${newStatus}`);
-      
-      // Continue with the update using the hardcoded values
-      return await processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders);
-    }
+    // Hard-coded valid statuses as fallback
+    const validStatusArray = [
+      'Pendente Resposta Inicial',
+      'Pendente Aceitação',
+      'Recusada Fornecedor',
+      'Pendente Agendamento',
+      'Agendado',
+      'Em Progresso',
+      'Pendente Validação',
+      'Concluído',
+      'Reagendamento Solicitado',
+      'Validação Expirada',
+      'Cancelado'
+    ];
     
-    const validStatuses = statusValues.map(item => item.status_value);
-    console.log(`Found ${validStatuses.length} valid statuses in database`);
-    console.log('Valid statuses are:', validStatuses.join(', '));
-
+    // Use database values if available, fallback to hard-coded values
+    const validStatuses = statusError || !statusValues?.length 
+      ? validStatusArray 
+      : statusValues.map(item => item.status_value);
+    
+    console.log(`Using ${validStatuses.length} valid statuses`);
+    
     let newStatus = '';
 
     switch(action) {
@@ -169,32 +106,33 @@ serve(async (req) => {
           { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
     }
-
-    // Print out the current valid statuses array for debugging
-    console.log('New status being applied:', newStatus);
-
-    // Do direct check instead of using a separate function
-    if (!validStatuses.includes(newStatus)) {
-      // Try case-insensitive match if exact match fails
-      const normalizedStatus = newStatus.toLowerCase().trim();
-      const matchingStatus = validStatuses.find(s => s.toLowerCase().trim() === normalizedStatus);
-      
-      if (matchingStatus) {
-        console.log(`Found case-insensitive match for ${newStatus}: ${matchingStatus}`);
-        newStatus = matchingStatus;
-      } else {
-        console.error(`Invalid status: ${newStatus}. Not found in valid statuses (case insensitive).`);
-        return new Response(
-          JSON.stringify({ 
-            error: `Status inválido: ${newStatus}. Não encontrado na lista de status válidos.`,
-            validStatuses: validStatuses
-          }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+    
+    // Check if status is valid (case-insensitive match)
+    let validStatus = false;
+    let matchedStatus = '';
+    
+    for (const status of validStatuses) {
+      if (status.toLowerCase() === newStatus.toLowerCase()) {
+        validStatus = true;
+        matchedStatus = status; // Use the exact case from the valid statuses
+        break;
       }
     }
-
-    console.log(`Using status: ${newStatus}`);
+    
+    if (!validStatus) {
+      console.error(`Invalid status: ${newStatus}. Not found in valid statuses list.`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Status inválido: ${newStatus}. Não encontrado na lista de status válidos.`,
+          validStatuses: validStatuses 
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+    
+    // Use the matched status with exact casing from validStatuses
+    newStatus = matchedStatus;
+    console.log(`Using validated status: ${newStatus}`);
 
     return await processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders);
     
@@ -206,8 +144,6 @@ serve(async (req) => {
     );
   }
 });
-
-// Helper function has been removed as we're doing direct checks now
 
 async function processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders) {
   try {
@@ -285,31 +221,42 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
 
     console.log('Updating assistance with data:', updateData);
     
-    // Before update, check whether the status change is valid
-    const { data: allAssistances, error: assistancesError } = await supabase
-      .from('assistances')
-      .select('status')
-      .limit(1);
-      
-    if (assistancesError) {
-      console.error('Error checking existing assistances:', assistancesError);
-    } else {
-      console.log('Successfully confirmed database has assistances');
-    }
-
-    // Get valid status transitions based on current status
-    const { data: currentValids, error: currentError } = await supabase
+    // Get current valid values to debug any issues
+    const { data: currentStatus, error: currentStatusError } = await supabase
       .from('assistances')
       .select('status')
       .eq('id', assistance.id)
       .single();
       
-    if (currentError) {
-      console.error('Error getting current status:', currentError);
+    if (currentStatusError) {
+      console.error('Error getting current status:', currentStatusError);
     } else {
-      console.log('Current status:', currentValids.status);
+      console.log('Current status:', currentStatus.status);
     }
 
+    // Check if the status from updateData matches a valid status in valid_statuses table
+    const { data: validCheck, error: validCheckError } = await supabase
+      .from('valid_statuses')
+      .select('status_value')
+      .eq('status_value', updateData.status)
+      .single();
+      
+    if (validCheckError) {
+      console.error('Status validation check failed:', validCheckError);
+      console.log('Attempted status was:', updateData.status);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: 'O status especificado não existe na lista de status válidos.',
+          details: `Tentativa de status: ${updateData.status}`
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+    
+    // Status is valid according to the database, proceed with update
+    console.log('Status validated successfully, proceeding with update');
+    
     // Update the assistance
     const { error: updateError } = await supabase
       .from('assistances')
@@ -319,29 +266,11 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
     if (updateError) {
       console.error('Erro ao atualizar assistência:', updateError);
       
-      if (updateError.message && updateError.message.includes('assistances_status_check')) {
-        // Extract all status values directly for debugging
-        const { data: statusDebug, error: statusDebugError } = await supabase
-          .from('valid_statuses')
-          .select('status_value, display_order');
-          
-        console.log('Status debug values:', JSON.stringify(statusDebug), statusDebugError);
-        
-        return new Response(
-          JSON.stringify({ 
-            error: 'O status especificado não é permitido pelo sistema. Por favor contacte o administrador.',
-            details: `Tentativa de status: ${newStatus}`,
-            debug: {
-              updateData,
-              validStatuses: statusDebug?.map(s => s.status_value) || []
-            }
-          }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
-      }
-      
       return new Response(
-        JSON.stringify({ error: `Erro ao processar ação: ${updateError.message}` }),
+        JSON.stringify({ 
+          error: `Erro ao processar ação: ${updateError.message}`,
+          details: `Status: ${updateData.status}`
+        }),
         { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
