@@ -24,6 +24,11 @@ export default async function useCreateAssistance(
       status: 'Pendente Resposta Inicial'
     });
 
+    // Make sure tokens are properly generated
+    if (!acceptance_token || !scheduling_token || !validation_token) {
+      throw new Error('Falha ao gerar tokens de assistência');
+    }
+
     const { data, error } = await supabase
       .from('assistances')
       .insert([
@@ -44,6 +49,10 @@ export default async function useCreateAssistance(
       console.error('Erro ao criar assistência:', error);
       toast.error(`Erro ao criar assistência: ${error.message}`);
       throw error;
+    }
+
+    if (!data || data.length === 0) {
+      throw new Error('Nenhum dado retornado após inserção');
     }
 
     // Log activity - fix the actor parameter to match the allowed values in the database

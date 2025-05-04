@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
 
 interface EmailSenderProps {
   assistanceId: number;
@@ -63,6 +64,33 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
     setErrorMessage(null);
     
     try {
+      // First verify the token exists for the selected email type
+      const tokenField = emailType === 'acceptance' 
+        ? 'acceptance_token' 
+        : emailType === 'scheduling' 
+          ? 'scheduling_token' 
+          : 'validation_token';
+      
+      const { data: assistance, error: fetchError } = await supabase
+        .from('assistances')
+        .select(tokenField)
+        .eq('id', assistanceId)
+        .single();
+      
+      if (fetchError) {
+        throw new Error(`Erro ao buscar dados da assistência: ${fetchError.message}`);
+      }
+      
+      if (!assistance || !assistance[tokenField]) {
+        // If token doesn't exist, generate a new one
+        const newToken = await regenerateToken(assistanceId, tokenField);
+        if (!newToken) {
+          throw new Error(`Token de ${emailType} não encontrado. Falha ao gerar um novo token.`);
+        }
+        toast.success(`Um novo token de ${emailType} foi gerado pois não havia um token válido.`);
+      }
+      
+      // Now send the email with the existing or new token
       const response = await fetch('https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/send-supplier-email', {
         method: 'POST',
         headers: {
@@ -89,6 +117,35 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  // Function to regenerate token if missing
+  const regenerateToken = async (assistanceId: number, tokenField: string): Promise<string | null> => {
+    try {
+      // Generate a new token
+      const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let token = '';
+      for (let i = 0; i < 22; i++) {
+        token += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      
+      // Update the assistance with the new token
+      const { data, error } = await supabase
+        .from('assistances')
+        .update({ [tokenField]: token })
+        .eq('id', assistanceId)
+        .select();
+      
+      if (error) {
+        console.error(`Erro ao atualizar ${tokenField}:`, error);
+        return null;
+      }
+      
+      return token;
+    } catch (err) {
+      console.error('Erro ao gerar novo token:', err);
+      return null;
     }
   };
 

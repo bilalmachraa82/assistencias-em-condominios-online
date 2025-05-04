@@ -4,11 +4,24 @@
  * @returns {string} A random token string
  */
 export const generateToken = (): string => {
-  // Generate a larger, more secure random string
-  const randomPart1 = Math.random().toString(36).substring(2, 15);
-  const randomPart2 = Math.random().toString(36).substring(2, 15);
-  const randomPart3 = Math.random().toString(36).substring(2, 15);
-  const timestamp = Date.now().toString(36);
+  // Generate a more reliable token using random values and timestamp
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const length = 22; // Keep token length reasonable but long enough for security
+  let token = '';
   
-  return `${randomPart1}-${timestamp}-${randomPart2}-${randomPart3}`;
+  // Use crypto API if available for better randomness
+  if (window.crypto && window.crypto.getRandomValues) {
+    const values = new Uint32Array(length);
+    window.crypto.getRandomValues(values);
+    for (let i = 0; i < length; i++) {
+      token += characters.charAt(values[i] % characters.length);
+    }
+  } else {
+    // Fallback to Math.random if crypto API is not available
+    for (let i = 0; i < length; i++) {
+      token += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+  }
+  
+  return token;
 };
