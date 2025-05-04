@@ -21,7 +21,7 @@ export default async function useCreateAssistance(
       scheduling_token,
       validation_token,
       building_id: selectedBuilding?.id,
-      status: 'Pendente Aceitação'
+      status: 'Pendente Resposta Inicial'
     });
 
     const { data, error } = await supabase
@@ -34,7 +34,7 @@ export default async function useCreateAssistance(
           scheduling_token,
           validation_token,
           building_id: selectedBuilding?.id,
-          status: 'Pendente Aceitação',
+          status: 'Pendente Resposta Inicial',
           alert_level: 1
         }
       ])
