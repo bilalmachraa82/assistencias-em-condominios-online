@@ -173,10 +173,21 @@ serve(async (req) => {
     // Verify the new status is valid
     if (!validStatuses.includes(newStatus)) {
       console.error(`Invalid status: ${newStatus}. Valid statuses are: ${validStatuses.join(', ')}`);
-      return new Response(
-        JSON.stringify({ error: `Status inválido: ${newStatus}` }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      
+      // Check if there's a similar status with a different case or spacing
+      const potentialMatch = validStatuses.find(s => 
+        s.toLowerCase().replace(/\s+/g, '') === newStatus.toLowerCase().replace(/\s+/g, '')
       );
+      
+      if (potentialMatch) {
+        console.log(`Found a potential match: ${potentialMatch}. Using this instead.`);
+        newStatus = potentialMatch;
+      } else {
+        return new Response(
+          JSON.stringify({ error: `Status inválido: ${newStatus}. Valores válidos: ${validStatuses.join(', ')}` }),
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
     }
 
     return await processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders);
@@ -265,6 +276,18 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
     updateData.updated_at = new Date().toISOString();
 
     console.log('Updating assistance with data:', updateData);
+    
+    // Before update, check whether the status change is valid
+    const { data: allAssistances, error: assistancesError } = await supabase
+      .from('assistances')
+      .select('status')
+      .limit(1);
+      
+    if (assistancesError) {
+      console.error('Error checking existing assistances:', assistancesError);
+    } else {
+      console.log('Successfully confirmed database has valid entries already');
+    }
 
     // Update the assistance
     const { error: updateError } = await supabase
@@ -274,6 +297,27 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
 
     if (updateError) {
       console.error('Erro ao atualizar assistência:', updateError);
+      
+      if (updateError.message && updateError.message.includes('assistances_status_check')) {
+        // Get the exact constraint definition to understand what's happening
+        const { data: constraintData, error: constraintError } = await supabase
+          .from('pg_constraint')
+          .select('conname, consrc')
+          .eq('conname', 'assistances_status_check')
+          .single();
+        
+        console.log('Constraint details:', constraintData, constraintError);
+        
+        // If we can't get constraint details, provide a more general error
+        return new Response(
+          JSON.stringify({ 
+            error: 'O status especificado não é permitido pelo sistema. Por favor contacte o administrador.',
+            details: `Tentativa de status: ${newStatus}`
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: `Erro ao processar ação: ${updateError.message}` }),
         { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
