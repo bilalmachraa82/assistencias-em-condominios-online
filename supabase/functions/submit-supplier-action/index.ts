@@ -38,7 +38,14 @@ serve(async (req) => {
     switch(action) {
       case 'accept':
         tokenField = 'acceptance_token';
-        newStatus = 'Pendente Agendamento';
+        newStatus = 'Em Andamento';
+        // If scheduling data is provided in the same action
+        if (data?.datetime) {
+          updateData.scheduled_datetime = data.datetime;
+          newStatus = 'Agendado';
+        } else {
+          newStatus = 'Pendente Agendamento';
+        }
         break;
       case 'reject':
         tokenField = 'acceptance_token';
@@ -52,7 +59,7 @@ serve(async (req) => {
         break;
       case 'reschedule':
         tokenField = 'scheduling_token';
-        newStatus = 'Reagendamento';
+        newStatus = 'Agendado';
         updateData = { 
           scheduled_datetime: data?.datetime || null,
           reschedule_reason: data?.reason || '' 
@@ -89,18 +96,15 @@ serve(async (req) => {
 
     // Handle file upload for completion action
     if (action === 'complete' && data?.photoBase64) {
-      // Create storage bucket if it doesn't exist (this is normally done in SQL migration)
       try {
         const { data: bucket, error: bucketError } = await supabase
           .storage.getBucket('completion-photos');
           
         if (bucketError) {
-          const { data: newBucket, error: createBucketError } = await supabase
-            .storage.createBucket('completion-photos', { public: true });
-            
-          if (createBucketError) {
-            console.error('Erro ao criar bucket:', createBucketError);
-          }
+          // Bucket doesn't exist, create it
+          await supabase.storage.createBucket('completion-photos', { 
+            public: true 
+          });
         }
       } catch (e) {
         console.error('Erro ao verificar/criar bucket:', e);
@@ -144,29 +148,7 @@ serve(async (req) => {
 
     console.log('Updating assistance with data:', updateData);
 
-    // First, check if the status value is allowed in the database
-    const { data: allowedStatuses, error: statusCheckError } = await supabase
-      .rpc('get_allowed_status_values');
-    
-    if (statusCheckError) {
-      // If the function doesn't exist, continue with the update
-      console.warn('Could not check allowed status values:', statusCheckError);
-    } else {
-      // If function exists and returns values, validate the status
-      if (allowedStatuses && !allowedStatuses.includes(newStatus)) {
-        console.error('Status inválido:', newStatus, 'Allowed values:', allowedStatuses);
-        // Try to use a fallback status that is likely to work
-        if (action === 'accept') {
-          updateData.status = 'Em Andamento';
-        } else if (action === 'reject') {
-          updateData.status = 'Cancelada';
-        } else if (action === 'complete') {
-          updateData.status = 'Concluída';
-        }
-        console.log('Using fallback status:', updateData.status);
-      }
-    }
-
+    // Update the assistance
     const { error: updateError } = await supabase
       .from('assistances')
       .update(updateData)

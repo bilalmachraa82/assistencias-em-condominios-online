@@ -18,31 +18,45 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Get allowed status values from the database
-    const { data: statusValues, error } = await supabase
+    // Get the list of allowed status values
+    const { data, error } = await supabase
       .from('assistances')
       .select('status')
       .limit(1000);
     
     if (error) {
+      console.error('Error fetching statuses:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao buscar valores permitidos' }),
+        JSON.stringify({ error: 'Error fetching valid status values', details: error }),
         { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
-
+    
     // Extract unique status values
-    const uniqueStatusValues = [...new Set(statusValues.map(item => item.status))];
+    const statusValues = [...new Set(data.map(item => item.status))];
+    
+    // Add default/common status values that might not be in the database yet
+    const defaultStatuses = [
+      'Pendente Resposta Inicial',
+      'Pendente Aceitação',
+      'Pendente Agendamento',
+      'Agendado',
+      'Em Andamento',
+      'Concluída',
+      'Pendente Validação',
+      'Reagendamento',
+      'Recusada',
+      'Cancelada'
+    ];
+    
+    const allStatusValues = [...new Set([...statusValues, ...defaultStatuses])];
     
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        data: uniqueStatusValues 
-      }),
+      JSON.stringify(allStatusValues),
       { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
   } catch (error) {
-    console.error('Erro:', error.message);
+    console.error('Erro ao obter valores de status válidos:', error);
     return new Response(
       JSON.stringify({ error: 'Erro interno do servidor' }),
       { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
