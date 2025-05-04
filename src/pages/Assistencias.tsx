@@ -13,11 +13,13 @@ import ProcessRemindersButton from '@/components/assistance/ProcessRemindersButt
 import useAssistanceData from '@/components/assistance/useAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Use custom hook to fetch and filter data
   const {
@@ -44,6 +46,40 @@ export default function Assistencias() {
     setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
   };
 
+  // Handle assistance deletion
+  const handleDeleteAssistance = async (assistance: any) => {
+    try {
+      setIsDeleting(true);
+      
+      // Delete the assistance from the database
+      const { error } = await supabase
+        .from('assistances')
+        .delete()
+        .eq('id', assistance.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Log the activity
+      await supabase.from('activity_log').insert([{
+        assistance_id: assistance.id,
+        description: `Assistência #${assistance.id} excluída`,
+        actor: 'admin'
+      }]);
+      
+      // Refetch the data
+      await refetchAssistances();
+      
+      toast.success(`Assistência #${assistance.id} excluída com sucesso!`);
+    } catch (error: any) {
+      console.error('Erro ao excluir assistência:', error);
+      toast.error(`Erro ao excluir assistência: ${error.message}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="animate-fade-in-up">
@@ -53,8 +89,6 @@ export default function Assistencias() {
             <p className="text-[#cbd5e1] mt-2 text-lg">Gerencie suas solicitações de manutenção</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <ProcessRemindersButton />
-            <RunRemindersButton />
             <NewAssistanceButton 
               buildings={buildings}
               isBuildingsLoading={isBuildingsLoading}
@@ -84,25 +118,28 @@ export default function Assistencias() {
         />
 
         <AssistanceList 
-          isLoading={isAssistancesLoading}
+          isLoading={isAssistancesLoading || isDeleting}
           assistances={paginatedAssistances}
           onSortOrderChange={toggleSortOrder}
           sortOrder={sortOrder}
           onViewAssistance={handleViewAssistance}
+          onDeleteAssistance={handleDeleteAssistance}
           formatDate={formatDate}
         />
 
-        {/* Add pagination controls */}
+        {/* Pagination controls */}
         {!isAssistancesLoading && pagination.totalItems > 0 && (
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            pageSize={pagination.pageSize}
-            totalItems={pagination.totalItems}
-            onPageChange={pagination.goToPage}
-            onPageSizeChange={pagination.setPageSize}
-            pageSizeOptions={[10, 20, 50, 100]}
-          />
+          <div className="mt-6">
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              pageSize={pagination.pageSize}
+              totalItems={pagination.totalItems}
+              onPageChange={pagination.goToPage}
+              onPageSizeChange={pagination.setPageSize}
+              pageSizeOptions={[10, 20, 50, 100]}
+            />
+          </div>
         )}
       </div>
     </DashboardLayout>

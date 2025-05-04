@@ -1,15 +1,18 @@
 
 import React from 'react';
 import { getStatusBadgeClass } from '@/utils/StatusUtils';
+import { Badge } from '@/components/ui/badge';
 
 interface StatusBadgeProps {
   status: string;
 }
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
+  const badgeClass = getStatusBadgeClass(status);
+  
   return (
-    <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeClass(status)}`}>
+    <Badge className={`${badgeClass} whitespace-nowrap font-medium`}>
       {status}
-    </span>
+    </Badge>
   );
 }

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface PaginationOptions {
   initialPage?: number;
@@ -10,6 +10,7 @@ interface PaginationResult<T> {
   currentPage: number;
   pageSize: number;
   totalPages: number;
+  totalItems: number;
   paginatedData: T[];
   goToPage: (page: number) => void;
   nextPage: () => void;
@@ -26,20 +27,21 @@ export function usePagination<T>(
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState(initialPageSize);
 
-  // Reset to page 1 when data changes
-  const resetPage = () => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  };
+  // Reset to page 1 when data or pageSize changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [pageSize, data?.length]);
 
-  // Calculate total pages
-  const totalPages = data ? Math.ceil(data.length / pageSize) : 0;
+  // Calculate total items and pages
+  const totalItems = data?.length || 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   // Ensure current page is valid
-  if (currentPage > totalPages && totalPages > 0) {
-    setCurrentPage(totalPages);
-  }
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Get data for current page
   const paginatedData = data
@@ -50,29 +52,32 @@ export function usePagination<T>(
   const goToPage = (page: number) => {
     const pageNumber = Math.max(1, Math.min(page, totalPages));
     setCurrentPage(pageNumber);
+    // Scroll to top of the list when changing pages
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const nextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      goToPage(currentPage + 1);
     }
   };
 
   const prevPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      goToPage(currentPage - 1);
     }
   };
 
   const changePageSize = (size: number) => {
     setPageSize(size);
-    resetPage();
+    // Reset to page 1 when changing page size is handled by the useEffect
   };
 
   return {
     currentPage,
     pageSize,
     totalPages,
+    totalItems,
     paginatedData,
     goToPage,
     nextPage,

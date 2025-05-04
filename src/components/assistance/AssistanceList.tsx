@@ -1,9 +1,19 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText, ExternalLink, Copy, Eye, SortAsc, SortDesc } from 'lucide-react';
+import { FileText, Eye, SortAsc, SortDesc, Trash, Copy, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import StatusBadge from './badges/StatusBadge';
 
 interface AssistanceListProps {
@@ -12,6 +22,7 @@ interface AssistanceListProps {
   onSortOrderChange: () => void;
   sortOrder: 'desc' | 'asc';
   onViewAssistance: (assistance: any) => void;
+  onDeleteAssistance?: (assistance: any) => void;
   formatDate: (dateString: string) => string;
 }
 
@@ -21,6 +32,7 @@ export default function AssistanceList({
   onSortOrderChange,
   sortOrder,
   onViewAssistance,
+  onDeleteAssistance,
   formatDate
 }: AssistanceListProps) {
   // Get appropriate link for current status
@@ -46,6 +58,25 @@ export default function AssistanceList({
   const copyLinkToClipboard = (link: string) => {
     navigator.clipboard.writeText(link);
     toast.success('Link copiado para a área de transferência');
+  };
+
+  // State for delete dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [assistanceToDelete, setAssistanceToDelete] = React.useState<any>(null);
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    if (assistanceToDelete && onDeleteAssistance) {
+      onDeleteAssistance(assistanceToDelete);
+      setDeleteDialogOpen(false);
+      setAssistanceToDelete(null);
+    }
+  };
+
+  // Open delete dialog
+  const openDeleteDialog = (assistance: any) => {
+    setAssistanceToDelete(assistance);
+    setDeleteDialogOpen(true);
   };
 
   return (
@@ -106,12 +137,16 @@ export default function AssistanceList({
                   return (
                     <tr key={assistance.id} className="hover:bg-white/5">
                       <td className="px-4 py-3 text-[#cbd5e1]">{assistance.id}</td>
-                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.buildings?.name}</td>
-                      <td className="px-4 py-3 text-[#cbd5e1] hidden md:table-cell">{assistance.suppliers?.name}</td>
                       <td className="px-4 py-3 text-[#cbd5e1]">
-                        <StatusBadge status={assistance.status} />
+                        {assistance.buildings?.name || '-'}
                       </td>
                       <td className="px-4 py-3 text-[#cbd5e1] hidden md:table-cell">
+                        {assistance.suppliers?.name || '-'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={assistance.status} />
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           assistance.type === 'Normal' ? 'bg-green-500/20 text-green-300' :
                           assistance.type === 'Urgente' ? 'bg-orange-500/20 text-orange-300' :
@@ -120,7 +155,9 @@ export default function AssistanceList({
                           {assistance.type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center text-[#8E9196] hidden sm:table-cell">{formatDate(assistance.created_at)}</td>
+                      <td className="px-4 py-3 text-center text-[#8E9196] hidden sm:table-cell">
+                        {formatDate(assistance.created_at)}
+                      </td>
                       <td className="px-4 py-3 text-center hidden lg:table-cell">
                         {supplierLink ? (
                           <TooltipProvider>
@@ -145,15 +182,29 @@ export default function AssistanceList({
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => onViewAssistance(assistance)}
-                          className="flex items-center gap-1"
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">Ver</span>
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => onViewAssistance(assistance)}
+                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                            title="Ver detalhes"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          
+                          {onDeleteAssistance && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => openDeleteDialog(assistance)}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              title="Excluir assistência"
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -163,6 +214,28 @@ export default function AssistanceList({
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-white text-black">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a assistência #{assistanceToDelete?.id}?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
