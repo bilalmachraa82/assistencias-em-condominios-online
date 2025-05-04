@@ -11,13 +11,14 @@ const corsHeaders = {
 const VALID_STATUSES = [
   "Pendente Resposta Inicial",
   "Pendente Aceitação",
-  "Recusada",
+  "Recusada Fornecedor", // Corrected from "Recusada" to match database constraint
   "Pendente Agendamento",
   "Agendado",
-  "Em Andamento",
+  "Em Progresso", // Corrected from "Em Andamento" to match database constraint
   "Pendente Validação", 
   "Concluído",
   "Reagendamento Solicitado",
+  "Validação Expirada",
   "Cancelado"
 ];
 
@@ -82,7 +83,7 @@ serve(async (req) => {
         break;
       case 'reject':
         tokenField = 'acceptance_token';
-        newStatus = 'Recusada';
+        newStatus = 'Recusada Fornecedor'; // Updated to match database constraint
         updateData = { rejection_reason: data?.reason || '' };
         break;
       case 'schedule':
@@ -109,6 +110,10 @@ serve(async (req) => {
           { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
     }
+
+    // Print out the current valid statuses array for debugging
+    console.log('Valid statuses are:', validStatuses.join(', '));
+    console.log('New status being applied:', newStatus);
 
     // Verify the new status is valid
     if (!validStatuses.includes(newStatus)) {

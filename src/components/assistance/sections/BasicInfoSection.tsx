@@ -88,7 +88,7 @@ export default function BasicInfoSection({
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <Calendar className="h-4 w-4" /> Agendamento
         </h3>
-        <p className="mt-1 text-base">{formatDateTime(assistance.scheduled_datetime)}</p>
+        <p className="mt-1 text-base">{assistance.scheduled_datetime ? formatDateTime(assistance.scheduled_datetime) : "Não agendado"}</p>
       </div>
 
       <div>
@@ -107,7 +107,7 @@ export default function BasicInfoSection({
             <Clock className="h-4 w-4" /> Lembretes de Validação
           </h3>
           <p className="mt-1 text-sm">
-            Último lembrete: {formatDateTime(assistance.validation_email_sent_at || '')}
+            Último lembrete: {assistance.validation_email_sent_at ? formatDateTime(assistance.validation_email_sent_at) : 'Nenhum'}
           </p>
           <p className="mt-1 text-sm">
             Total de lembretes: {assistance.validation_reminder_count}

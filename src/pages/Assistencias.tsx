@@ -62,14 +62,16 @@ export default function Assistencias() {
         throw error;
       }
 
-      // Log the activity - corrigindo a inserção de log
-      await supabase.from('activity_log').insert([{
-        assistance_id: assistance.id,
-        description: `Assistência #${assistance.id} excluída`,
-        actor: 'admin' // Alterado de 'admin' para 'admin' (já estava correto, mas reforçando)
-      }]);
+      // Log the activity
+      await supabase
+        .from('activity_log')
+        .insert([{
+          assistance_id: assistance.id,
+          description: `Assistência #${assistance.id} excluída`,
+          actor: 'admin' // Uses lowercase 'admin' which is valid
+        }]);
       
-      // Refetch the data
+      // Refetch the data after successful deletion
       await refetchAssistances();
       
       toast.success(`Assistência #${assistance.id} excluída com sucesso!`);

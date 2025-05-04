@@ -12,6 +12,7 @@ import {
 import { Pencil, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { VALID_STATUSES } from '@/utils/StatusUtils';
 
 // Import components
 import BasicInfoSection from './sections/BasicInfoSection';
@@ -41,19 +42,8 @@ export default function AssistanceDetails({
   const [adminNotes, setAdminNotes] = useState(assistance?.admin_notes || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const statuses = [
-    "Pendente Resposta Inicial",
-    "Pendente Aceitação",
-    "Recusada Fornecedor",
-    "Pendente Agendamento",
-    "Agendado",
-    "Em Progresso",
-    "Pendente Validação",
-    "Concluído",
-    "Reagendamento Solicitado", 
-    "Validação Expirada",
-    "Cancelado",
-  ];
+  // Get all valid statuses from the utility
+  const statuses = VALID_STATUSES;
 
   const handleSaveChanges = async () => {
     try {
@@ -70,26 +60,25 @@ export default function AssistanceDetails({
         
       if (error) {
         console.error('Erro ao atualizar assistência:', error);
-        toast.error('Erro ao atualizar assistência.');
+        toast.error(`Erro ao atualizar assistência: ${error.message}`);
         return;
       }
       
-      // Log the activity - corrigindo o problema com o campo "actor"
-      // A tabela activity_log provavelmente tem uma restrição de valor para o campo actor
+      // Log the activity - usando o valor correto para o campo "actor"
       await supabase
         .from('activity_log')
         .insert([{
           assistance_id: assistance.id,
           description: `Status atualizado para: ${status}`,
-          actor: 'admin' // Alterado de 'Admin' para 'admin' (lowercase)
+          actor: 'admin' // Usando lowercase para o campo actor
         }]);
         
       toast.success('Assistência atualizada com sucesso!');
       setIsEditing(false);
       onAssistanceUpdate();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar assistência:', error);
-      toast.error('Ocorreu um erro ao atualizar a assistência.');
+      toast.error(`Ocorreu um erro ao atualizar a assistência: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -119,7 +108,7 @@ export default function AssistanceDetails({
       
       toast.success(`Token ${tokenType} atualizado com sucesso!`);
       onAssistanceUpdate();
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Erro ao atualizar token ${tokenType}:`, error);
       toast.error(`Ocorreu um erro ao atualizar o token ${tokenType}.`);
     } finally {
@@ -127,7 +116,16 @@ export default function AssistanceDetails({
     }
   };
 
+  // Ensure we've loaded the assistance data before rendering
   if (!assistance) return null;
+
+  // Update state when assistance changes
+  React.useEffect(() => {
+    if (assistance) {
+      setStatus(assistance.status);
+      setAdminNotes(assistance.admin_notes || '');
+    }
+  }, [assistance]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
