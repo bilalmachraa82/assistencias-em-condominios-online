@@ -37,7 +37,7 @@ export default function AssistanceDetails({
   onAssistanceUpdate,
   additionalContent 
 }: AssistanceDetailsProps) {
-  // Initialize state with empty values first
+  // Initialize all state hooks first - before any conditional code
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
@@ -46,7 +46,7 @@ export default function AssistanceDetails({
   // Get all valid statuses from the utility - use the mutable version
   const statuses = VALID_STATUS_VALUES;
 
-  // Update state when assistance changes - use useEffect to reset values
+  // Update state when assistance changes - using useEffect properly
   useEffect(() => {
     if (assistance) {
       setStatus(assistance.status || '');
@@ -73,18 +73,18 @@ export default function AssistanceDetails({
         return;
       }
       
-      // Log the activity - usando o valor correto para o campo "actor"
+      // Log the activity with correct actor value (lowercase)
       await supabase
         .from('activity_log')
         .insert([{
           assistance_id: assistance.id,
           description: `Status atualizado para: ${status}`,
-          actor: 'admin' // Usando lowercase para o campo actor
+          actor: 'admin'
         }]);
         
       toast.success('Assistência atualizada com sucesso!');
       setIsEditing(false);
-      onAssistanceUpdate();
+      await onAssistanceUpdate();
     } catch (error: any) {
       console.error('Erro ao atualizar assistência:', error);
       toast.error(`Ocorreu um erro ao atualizar a assistência: ${error.message}`);
@@ -116,7 +116,7 @@ export default function AssistanceDetails({
       }
       
       toast.success(`Token ${tokenType} atualizado com sucesso!`);
-      onAssistanceUpdate();
+      await onAssistanceUpdate();
     } catch (error: any) {
       console.error(`Erro ao atualizar token ${tokenType}:`, error);
       toast.error(`Ocorreu um erro ao atualizar o token ${tokenType}.`);
@@ -125,7 +125,7 @@ export default function AssistanceDetails({
     }
   };
 
-  // Ensure we've loaded the assistance data before rendering
+  // Only render content if assistance is available
   if (!assistance) return null;
 
   return (

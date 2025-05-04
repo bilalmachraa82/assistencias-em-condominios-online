@@ -33,11 +33,7 @@ export default function Assistencias() {
     filters
   } = useAssistanceData(sortOrder);
 
-  // Create a wrapper function to handle the Promise<void> return type
-  const handleRefetchAssistances = async (): Promise<void> => {
-    await refetchAssistances();
-  };
-
+  // Handle assistance view
   const handleViewAssistance = (assistance: any) => {
     setSelectedAssistance(assistance);
     setIsViewDialogOpen(true);
@@ -45,6 +41,11 @@ export default function Assistencias() {
 
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+  };
+
+  // Create a wrapper function to handle the Promise<void> return type
+  const handleRefetchAssistances = async (): Promise<void> => {
+    await refetchAssistances();
   };
 
   // Handle assistance deletion
@@ -71,7 +72,7 @@ export default function Assistencias() {
         .insert([{
           assistance_id: assistance.id,
           description: `Assistência #${assistance.id} excluída`,
-          actor: 'admin' // Uses lowercase 'admin' which is valid
+          actor: 'admin'
         }]);
         
       if (logError) {
