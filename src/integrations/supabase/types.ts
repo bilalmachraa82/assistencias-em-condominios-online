@@ -269,6 +269,27 @@ export type Database = {
         }
         Relationships: []
       }
+      valid_statuses: {
+        Row: {
+          created_at: string | null
+          display_order: number
+          id: number
+          status_value: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order: number
+          id?: number
+          status_value: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number
+          id?: number
+          status_value?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

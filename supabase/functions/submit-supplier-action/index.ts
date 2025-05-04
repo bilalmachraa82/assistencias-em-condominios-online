@@ -23,6 +23,7 @@ serve(async (req) => {
     const { action, token, data } = body;
 
     console.log('Processing action:', action, 'with token:', token);
+    console.log('Data received:', JSON.stringify(data));
 
     if (!token || !action) {
       return new Response(
@@ -44,10 +45,79 @@ serve(async (req) => {
       
     if (statusError) {
       console.error('Error fetching valid statuses:', statusError);
-      return new Response(
-        JSON.stringify({ error: 'Erro ao buscar status válidos' }),
-        { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      
+      // Fallback to hardcoded values if database query fails
+      console.log('Using fallback hardcoded valid statuses');
+      const validStatuses = [
+        'Pendente Resposta Inicial',
+        'Pendente Aceitação',
+        'Recusada Fornecedor',
+        'Pendente Agendamento',
+        'Agendado',
+        'Em Progresso',
+        'Pendente Validação',
+        'Concluído',
+        'Reagendamento Solicitado',
+        'Validação Expirada',
+        'Cancelado'
+      ];
+      
+      console.log(`Using ${validStatuses.length} hardcoded valid statuses`);
+      
+      // Continue with the hardcoded values
+      let newStatus = '';
+
+      switch(action) {
+        case 'accept':
+          tokenField = 'acceptance_token';
+          // If scheduling data is provided in the same action
+          if (data?.datetime) {
+            updateData.scheduled_datetime = data.datetime;
+            newStatus = 'Agendado';
+          } else {
+            newStatus = 'Pendente Agendamento';
+          }
+          break;
+        case 'reject':
+          tokenField = 'acceptance_token';
+          newStatus = 'Recusada Fornecedor';
+          updateData = { rejection_reason: data?.reason || '' };
+          break;
+        case 'schedule':
+          tokenField = 'scheduling_token';
+          newStatus = 'Agendado';
+          updateData = { scheduled_datetime: data?.datetime || null };
+          break;
+        case 'reschedule':
+          tokenField = 'scheduling_token';
+          newStatus = 'Agendado';
+          updateData = { 
+            scheduled_datetime: data?.datetime || null,
+            reschedule_reason: data?.reason || '' 
+          };
+          break;
+        case 'complete':
+          tokenField = 'validation_token';
+          newStatus = 'Pendente Validação';
+          updateData.validation_reminder_count = 0;
+          break;
+        default:
+          return new Response(
+            JSON.stringify({ error: 'Ação inválida' }),
+            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+      }
+      
+      if (!validStatuses.includes(newStatus)) {
+        console.error(`Invalid status: ${newStatus}. Using hardcoded values, this should not happen.`);
+        return new Response(
+          JSON.stringify({ error: `Status inválido: ${newStatus}` }),
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+      
+      // Continue with the update using the hardcoded values
+      return await processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders);
     }
     
     const validStatuses = statusValues.map(item => item.status_value);
@@ -109,6 +179,19 @@ serve(async (req) => {
       );
     }
 
+    return await processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders);
+    
+  } catch (error) {
+    console.error('Erro:', error.message);
+    return new Response(
+      JSON.stringify({ error: 'Erro interno do servidor', details: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+    );
+  }
+});
+
+async function processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders) {
+  try {
     // Get assistance with the provided token
     const { data: assistance, error: assistanceError } = await supabase
       .from('assistances')
@@ -216,10 +299,10 @@ serve(async (req) => {
       { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
   } catch (error) {
-    console.error('Erro:', error.message);
+    console.error('Erro no processamento:', error.message);
     return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
+      JSON.stringify({ error: 'Erro ao processar assistência', details: error.message }),
       { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
   }
-});
+}
