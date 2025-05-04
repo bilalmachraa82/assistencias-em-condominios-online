@@ -74,7 +74,9 @@ export default function AssistanceList({
   };
 
   // Open delete dialog
-  const openDeleteDialog = (assistance: any) => {
+  const openDeleteDialog = (assistance: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setAssistanceToDelete(assistance);
     setDeleteDialogOpen(true);
   };
@@ -197,7 +199,7 @@ export default function AssistanceList({
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              onClick={() => openDeleteDialog(assistance)}
+                              onClick={(e) => openDeleteDialog(assistance, e)}
                               className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                               title="Excluir assistência"
                             >
