@@ -8,6 +8,8 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const [buildingFilter, setBuildingFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Fetch assistances
   const { data: assistances, isLoading: isAssistancesLoading, refetch: refetchAssistances } = useQuery({
@@ -52,8 +54,8 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const filteredAssistances = assistances?.filter((assistance) => {
     // Search query filter
     if (searchQuery && !assistance.description.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !assistance.buildings.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !assistance.suppliers.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+        !assistance.buildings?.name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !assistance.suppliers?.name?.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
 
@@ -75,13 +77,43 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     return true;
   });
 
+  // Calculate total items and pages
+  const totalItems = filteredAssistances?.length || 0;
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  // Get paginated items
+  const paginatedAssistances = filteredAssistances?.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
+
+  // Handle page navigation
+  const goToPage = (newPage: number) => {
+    setPage(Math.max(1, Math.min(newPage, totalPages)));
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setPage(1); // Reset to first page when changing page size
+  };
+
   return {
     assistances,
     buildings,
     filteredAssistances,
+    paginatedAssistances,
     isAssistancesLoading,
     isBuildingsLoading,
     refetchAssistances,
+    pagination: {
+      currentPage: page,
+      pageSize,
+      totalPages,
+      totalItems,
+      goToPage,
+      setPageSize: handlePageSizeChange
+    },
     filters: {
       searchQuery,
       setSearchQuery,

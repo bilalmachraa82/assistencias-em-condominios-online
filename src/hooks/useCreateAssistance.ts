@@ -2,20 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { generateToken } from '@/utils/TokenUtils';
-
-// Valid statuses
-const VALID_STATUSES = [
-  "Pendente Resposta Inicial",
-  "Pendente Aceitação",
-  "Recusada",
-  "Pendente Agendamento",
-  "Agendado",
-  "Em Andamento",
-  "Pendente Validação", 
-  "Concluído",
-  "Reagendamento Solicitado",
-  "Cancelado"
-];
+import { VALID_STATUSES } from '@/utils/StatusUtils';
 
 export default async function useCreateAssistance(
   formData: any, 
@@ -44,7 +31,7 @@ export default async function useCreateAssistance(
     }
 
     // Ensure status is valid
-    if (!VALID_STATUSES.includes('Pendente Resposta Inicial')) {
+    if (!VALID_STATUSES.includes('Pendente Resposta Inicial' as any)) {
       console.warn('Status warning: Using default status despite not being in VALID_STATUSES list');
     }
 
@@ -92,7 +79,7 @@ export default async function useCreateAssistance(
     toast.info('Agora você pode enviar um email para o fornecedor com o link de aceitação.');
     
     return data[0];
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao criar assistência:', error);
     toast.error('Erro ao criar assistência. Tente novamente.');
     throw error;

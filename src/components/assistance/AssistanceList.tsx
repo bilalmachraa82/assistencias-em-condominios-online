@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText, ExternalLink } from 'lucide-react';
+import { FileText, ExternalLink, Copy, Eye, SortAsc, SortDesc } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from 'sonner';
+import StatusBadge from './badges/StatusBadge';
 
 interface AssistanceListProps {
   isLoading: boolean;
@@ -21,34 +23,6 @@ export default function AssistanceList({
   onViewAssistance,
   formatDate
 }: AssistanceListProps) {
-  // Helper function to get status badge color class
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'Pendente Resposta Inicial':
-      case 'Pendente Aceitação':
-        return 'bg-yellow-500/20 text-yellow-300';
-      case 'Recusada Fornecedor':
-        return 'bg-red-500/20 text-red-300';
-      case 'Pendente Agendamento':
-      case 'Agendado':
-        return 'bg-blue-500/20 text-blue-300';
-      case 'Em Progresso':
-      case 'Pendente Validação':
-        return 'bg-purple-500/20 text-purple-300';
-      case 'Concluído':
-        return 'bg-green-500/20 text-green-300';
-      case 'Reagendamento Solicitado':
-        return 'bg-orange-500/20 text-orange-300';
-      case 'Validação Expirada':
-        return 'bg-gray-500/20 text-gray-300';
-      case 'Cancelado':
-      case 'Cancelada Admin':
-        return 'bg-red-500/20 text-red-300';
-      default:
-        return 'bg-gray-500/20 text-gray-300';
-    }
-  };
-
   // Get appropriate link for current status
   const getSupplierLink = (assistance: any) => {
     const baseUrl = window.location.origin;
@@ -71,12 +45,13 @@ export default function AssistanceList({
   // Copy link to clipboard
   const copyLinkToClipboard = (link: string) => {
     navigator.clipboard.writeText(link);
+    toast.success('Link copiado para a área de transferência');
   };
 
   return (
-    <div className="bg-white/5 rounded-3xl p-6 backdrop-blur-lg shadow-xl mt-8">
+    <div className="bg-white/5 rounded-3xl p-4 md:p-6 backdrop-blur-lg shadow-xl mt-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
+        <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
           <FileText className="h-5 w-5" />
           Listagem de Assistências
         </h2>
@@ -88,104 +63,105 @@ export default function AssistanceList({
           className="flex items-center gap-1"
         >
           <span>Data</span>
-          {sortOrder === 'desc' ? '↓' : '↑'}
+          {sortOrder === 'desc' ? <SortDesc className="h-4 w-4" /> : <SortAsc className="h-4 w-4" />}
         </Button>
       </div>
       
-      <div className="overflow-hidden rounded-lg border border-white/10">
-        <table className="w-full text-sm">
-          <thead className="bg-white/5">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium">ID</th>
-              <th className="px-4 py-3 text-left font-medium">Edifício</th>
-              <th className="px-4 py-3 text-left font-medium">Tipo</th>
-              <th className="px-4 py-3 text-left font-medium">Fornecedor</th>
-              <th className="px-4 py-3 text-left font-medium">Status</th>
-              <th className="px-4 py-3 text-left font-medium">Urgência</th>
-              <th className="px-4 py-3 text-left font-medium">Data</th>
-              <th className="px-4 py-3 text-left font-medium">Link</th>
-              <th className="px-4 py-3 text-left font-medium">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {isLoading ? (
+      <div className="overflow-x-auto">
+        <div className="overflow-hidden rounded-lg border border-white/10">
+          <table className="w-full text-sm">
+            <thead className="bg-white/5">
               <tr>
-                <td className="px-4 py-3 text-[#cbd5e1]" colSpan={9}>
-                  Carregando assistências...
-                </td>
+                <th className="px-4 py-3 text-left font-medium">ID</th>
+                <th className="px-4 py-3 text-left font-medium">Edifício</th>
+                <th className="px-4 py-3 text-left font-medium hidden md:table-cell">Fornecedor</th>
+                <th className="px-4 py-3 text-left font-medium">Status</th>
+                <th className="px-4 py-3 text-left font-medium hidden md:table-cell">Urgência</th>
+                <th className="px-4 py-3 text-left font-medium hidden sm:table-cell">Data</th>
+                <th className="px-4 py-3 text-left font-medium hidden lg:table-cell">Link</th>
+                <th className="px-4 py-3 text-left font-medium">Ações</th>
               </tr>
-            ) : assistances?.length === 0 ? (
-              <tr>
-                <td className="px-4 py-3 text-[#cbd5e1]" colSpan={9}>
-                  Nenhuma assistência encontrada com os filtros atuais.
-                </td>
-              </tr>
-            ) : (
-              assistances?.map((assistance) => {
-                const supplierLink = getSupplierLink(assistance);
-                
-                return (
-                  <tr key={assistance.id}>
-                    <td className="px-4 py-3 text-[#cbd5e1]">{assistance.id}</td>
-                    <td className="px-4 py-3 text-[#cbd5e1]">{assistance.buildings?.name}</td>
-                    <td className="px-4 py-3 text-[#cbd5e1]">{assistance.intervention_types?.name}</td>
-                    <td className="px-4 py-3 text-[#cbd5e1]">{assistance.suppliers?.name}</td>
-                    <td className="px-4 py-3 text-[#cbd5e1]">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeClass(assistance.status)}`}>
-                        {assistance.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-[#cbd5e1]">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        assistance.type === 'Normal' ? 'bg-green-500/20 text-green-300' :
-                        assistance.type === 'Urgente' ? 'bg-orange-500/20 text-orange-300' :
-                        'bg-red-500/20 text-red-300'
-                      }`}>
-                        {assistance.type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center text-[#8E9196]">{formatDate(assistance.created_at)}</td>
-                    <td className="px-4 py-3 text-center">
-                      {supplierLink ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8"
-                                onClick={() => {
-                                  copyLinkToClipboard(supplierLink);
-                                  navigator.clipboard.writeText(supplierLink);
-                                }}
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Copiar link para fornecedor</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        <span>-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => onViewAssistance(assistance)}
-                      >
-                        Ver
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {isLoading ? (
+                <tr>
+                  <td className="px-4 py-3 text-[#cbd5e1]" colSpan={8}>
+                    <div className="flex justify-center items-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                    </div>
+                  </td>
+                </tr>
+              ) : assistances?.length === 0 ? (
+                <tr>
+                  <td className="px-4 py-3 text-[#cbd5e1]" colSpan={8}>
+                    <div className="text-center py-6">
+                      Nenhuma assistência encontrada com os filtros atuais.
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                assistances?.map((assistance) => {
+                  const supplierLink = getSupplierLink(assistance);
+                  
+                  return (
+                    <tr key={assistance.id} className="hover:bg-white/5">
+                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.id}</td>
+                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.buildings?.name}</td>
+                      <td className="px-4 py-3 text-[#cbd5e1] hidden md:table-cell">{assistance.suppliers?.name}</td>
+                      <td className="px-4 py-3 text-[#cbd5e1]">
+                        <StatusBadge status={assistance.status} />
+                      </td>
+                      <td className="px-4 py-3 text-[#cbd5e1] hidden md:table-cell">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          assistance.type === 'Normal' ? 'bg-green-500/20 text-green-300' :
+                          assistance.type === 'Urgente' ? 'bg-orange-500/20 text-orange-300' :
+                          'bg-red-500/20 text-red-300'
+                        }`}>
+                          {assistance.type}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center text-[#8E9196] hidden sm:table-cell">{formatDate(assistance.created_at)}</td>
+                      <td className="px-4 py-3 text-center hidden lg:table-cell">
+                        {supplierLink ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8"
+                                  onClick={() => copyLinkToClipboard(supplierLink)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Copiar link para fornecedor</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <span>-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => onViewAssistance(assistance)}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          <span className="hidden sm:inline">Ver</span>
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

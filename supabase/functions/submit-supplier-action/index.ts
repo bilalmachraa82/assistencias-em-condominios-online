@@ -51,13 +51,17 @@ serve(async (req) => {
     // Try to fetch valid statuses from database as a backup
     let validStatuses = VALID_STATUSES;
     try {
+      console.log('Fetching valid statuses from database');
       const { data: statusValues, error: statusError } = await supabase
         .from('valid_statuses')
         .select('status_value')
         .order('display_order');
         
       if (!statusError && statusValues && statusValues.length > 0) {
+        console.log(`Found ${statusValues.length} valid statuses in database`);
         validStatuses = statusValues.map(item => item.status_value);
+      } else {
+        console.log('Using hardcoded valid statuses, database query failed:', statusError);
       }
     } catch (error) {
       console.log('Using hardcoded valid statuses due to error:', error);

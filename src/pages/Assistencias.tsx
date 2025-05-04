@@ -12,6 +12,7 @@ import RunRemindersButton from '@/components/assistance/RunRemindersButton';
 import ProcessRemindersButton from '@/components/assistance/ProcessRemindersButton';
 import useAssistanceData from '@/components/assistance/useAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
+import { Pagination } from '@/components/ui/pagination';
 
 export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
@@ -21,10 +22,11 @@ export default function Assistencias() {
   // Use custom hook to fetch and filter data
   const {
     buildings,
-    filteredAssistances,
+    paginatedAssistances,
     isAssistancesLoading,
     isBuildingsLoading,
     refetchAssistances,
+    pagination,
     filters
   } = useAssistanceData(sortOrder);
 
@@ -45,12 +47,12 @@ export default function Assistencias() {
   return (
     <DashboardLayout>
       <div className="animate-fade-in-up">
-        <div className="flex justify-between items-center mb-10">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 lg:mb-10 gap-4">
           <div>
-            <h1 className="text-5xl font-extrabold leading-tight">Assistências</h1>
+            <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight">Assistências</h1>
             <p className="text-[#cbd5e1] mt-2 text-lg">Gerencie suas solicitações de manutenção</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <ProcessRemindersButton />
             <RunRemindersButton />
             <NewAssistanceButton 
@@ -83,12 +85,25 @@ export default function Assistencias() {
 
         <AssistanceList 
           isLoading={isAssistancesLoading}
-          assistances={filteredAssistances}
+          assistances={paginatedAssistances}
           onSortOrderChange={toggleSortOrder}
           sortOrder={sortOrder}
           onViewAssistance={handleViewAssistance}
           formatDate={formatDate}
         />
+
+        {/* Add pagination controls */}
+        {!isAssistancesLoading && pagination.totalItems > 0 && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            pageSize={pagination.pageSize}
+            totalItems={pagination.totalItems}
+            onPageChange={pagination.goToPage}
+            onPageSizeChange={pagination.setPageSize}
+            pageSizeOptions={[10, 20, 50, 100]}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
