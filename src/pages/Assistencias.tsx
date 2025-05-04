@@ -15,6 +15,8 @@ import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserFriendlyError, logError } from '@/utils/ErrorUtils';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, AlertCircle } from 'lucide-react';
 
 export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
@@ -23,6 +25,7 @@ export default function Assistencias() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   
   // Use custom hook to fetch and filter data
   const {
@@ -47,10 +50,10 @@ export default function Assistencias() {
       );
       setLoadingError(errorMessage);
       console.error('Assistance loading error:', error);
-    } else {
+    } else if (!isAssistancesLoading && initialLoadComplete) {
       setLoadingError(null);
     }
-  }, [assistancesError, fetchError]);
+  }, [assistancesError, fetchError, isAssistancesLoading, initialLoadComplete]);
 
   // Force a refresh when the component mounts with retry logic
   useEffect(() => {
@@ -72,6 +75,8 @@ export default function Assistencias() {
           err, 
           'Erro ao carregar dados iniciais. Tente novamente mais tarde.'
         ));
+      } finally {
+        setInitialLoadComplete(true);
       }
     };
     
@@ -80,6 +85,12 @@ export default function Assistencias() {
 
   // Handle assistance view
   const handleViewAssistance = async (assistance: any) => {
+    if (!assistance || !assistance.id) {
+      console.error('Invalid assistance data:', assistance);
+      toast.error('Dados de assistência inválidos');
+      return;
+    }
+
     try {
       console.log(`Fetching fresh data for assistance #${assistance.id}`);
       const { data: freshAssistance, error } = await supabase
@@ -98,7 +109,7 @@ export default function Assistencias() {
         toast.error('Erro ao buscar dados atualizados da assistência');
         setSelectedAssistance(assistance); // Fallback to the provided assistance
       } else {
-        console.log('Fresh assistance data fetched successfully');
+        console.log('Fresh assistance data fetched successfully:', freshAssistance);
         setSelectedAssistance(freshAssistance);
       }
       
@@ -117,6 +128,7 @@ export default function Assistencias() {
   // Create a wrapper function to handle the Promise<void> return type
   const handleRefetchAssistances = useCallback(async (): Promise<void> => {
     try {
+      setIsRetrying(true);
       console.log('Refetching assistances data...');
       const result = await refetchAssistances();
       
@@ -148,6 +160,9 @@ export default function Assistencias() {
     } catch (error) {
       console.error('Error refetching assistances:', error);
       toast.error('Erro ao atualizar a lista de assistências');
+      throw error;
+    } finally {
+      setIsRetrying(false);
     }
   }, [refetchAssistances, selectedAssistance, isViewDialogOpen]);
 
@@ -170,6 +185,11 @@ export default function Assistencias() {
 
   // Handle assistance deletion
   const handleDeleteAssistance = async (assistance: any) => {
+    if (!assistance || !assistance.id) {
+      toast.error('Dados de assistência inválidos');
+      return;
+    }
+
     try {
       console.log("Attempting to delete assistance:", assistance.id);
       setIsDeleting(true);
@@ -227,35 +247,6 @@ export default function Assistencias() {
     await handleRefetchAssistances();
   }, [handleRefetchAssistances]);
 
-  // Show loading error if data fetching failed
-  if (loadingError && !isAssistancesLoading) {
-    return (
-      <DashboardLayout>
-        <div className="animate-fade-in-up">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 lg:mb-10 gap-4">
-            <div>
-              <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight">Assistências</h1>
-              <p className="text-[#cbd5e1] mt-2 text-lg">Gerencie suas solicitações de manutenção</p>
-            </div>
-          </div>
-          
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
-            <h3 className="text-xl font-semibold text-red-400 mb-2">Erro ao carregar dados</h3>
-            <p className="text-white/80">{loadingError}</p>
-            <button 
-              onClick={handleRetry}
-              disabled={isRetrying}
-              className="mt-4 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isRetrying ? 'Tentando...' : 'Tentar novamente'}
-            </button>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // Main render
   return (
     <DashboardLayout>
       <div className="animate-fade-in-up">
@@ -265,6 +256,15 @@ export default function Assistencias() {
             <p className="text-[#cbd5e1] mt-2 text-lg">Gerencie suas solicitações de manutenção</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleRetry}
+              disabled={isRetrying}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} />
+              {isRetrying ? 'Atualizando...' : 'Atualizar dados'}
+            </Button>
             <NewAssistanceButton 
               buildings={buildings || []}
               isBuildingsLoading={isBuildingsLoading}
@@ -279,6 +279,23 @@ export default function Assistencias() {
           assistance={selectedAssistance}
           onAssistanceUpdate={handleRefetchAssistances}
         />
+
+        {loadingError && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center mb-6">
+            <div className="flex items-center justify-center gap-2 text-red-400 mb-2">
+              <AlertCircle className="h-5 w-5" />
+              <h3 className="text-xl font-semibold">Erro ao carregar dados</h3>
+            </div>
+            <p className="text-white/80 mb-4">{loadingError}</p>
+            <Button 
+              onClick={handleRetry}
+              disabled={isRetrying}
+              variant="destructive"
+            >
+              {isRetrying ? 'Tentando...' : 'Tentar novamente'}
+            </Button>
+          </div>
+        )}
 
         <AssistanceFilter
           searchQuery={filters.searchQuery}
@@ -306,12 +323,12 @@ export default function Assistencias() {
         {!isAssistancesLoading && (!paginatedAssistances || paginatedAssistances.length === 0) && (
           <div className="bg-white/5 rounded-3xl p-6 text-center my-8">
             <p className="text-gray-400 py-12">Nenhuma assistência encontrada.</p>
-            <button
+            <Button
               onClick={handleRetry}
               className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded transition-all"
             >
               Atualizar dados
-            </button>
+            </Button>
           </div>
         )}
 

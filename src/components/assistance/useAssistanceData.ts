@@ -14,7 +14,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [fetchError, setFetchError] = useState<Error | null>(null);
 
-  // Fetch assistances with better error handling
+  // Fetch assistances with improved error handling and retry logic
   const { 
     data: assistances, 
     isLoading: isAssistancesLoading, 
@@ -42,22 +42,22 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
           throw error;
         }
         
-        console.log(`Fetched ${data?.length || 0} assistances`);
+        // Log the data for debugging
+        console.log(`Fetched ${data?.length || 0} assistances:`, data);
         return data || [];
       } catch (err) {
         console.error('Exception in assistance fetch:', err);
         setFetchError(err instanceof Error ? err : new Error('Unknown error'));
-        // Return empty array instead of throwing to prevent query from going into error state
-        return [];
+        return []; // Return empty array to prevent error state
       }
     },
     staleTime: 0,
-    retry: 2,
+    retry: 3, // Increase retry attempts
     retryDelay: 1000,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: true // Enable refetch on window focus
   });
 
-  // Fetch buildings with better error handling
+  // Fetch buildings with improved error handling
   const { 
     data: buildings, 
     isLoading: isBuildingsLoading,
@@ -75,16 +75,17 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
           console.error('Error fetching buildings:', error);
           throw error;
         }
+        
+        console.log(`Fetched ${data?.length || 0} buildings`);
         return data || [];
       } catch (err) {
         console.error('Exception in buildings fetch:', err);
-        // Return empty array instead of throwing
         return [];
       }
     },
-    retry: 2,
+    retry: 3,
     retryDelay: 1000,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: true
   });
 
   // Show toast once when there's an error
@@ -92,15 +93,18 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     if (assistancesError || buildingsError) {
       const errorMessage = (assistancesError || buildingsError)?.message || 'Error fetching data';
       toast.error(`Failed to load data: ${errorMessage}`);
+      console.error('Data loading error:', assistancesError || buildingsError);
     }
   }, [assistancesError, buildingsError]);
 
-  // Apply filters to assistances
+  // Apply filters to assistances with null checks
   const filteredAssistances = assistances?.filter((assistance) => {
+    if (!assistance) return false;
+    
     // Search query filter
-    if (searchQuery && !assistance.description?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !assistance.buildings?.name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !assistance.suppliers?.name?.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (searchQuery && !((assistance.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (assistance.buildings?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (assistance.suppliers?.name || '').toLowerCase().includes(searchQuery.toLowerCase()))) {
       return false;
     }
 
@@ -124,15 +128,15 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
 
   // Calculate total items and pages
   const totalItems = filteredAssistances.length || 0;
-  const totalPages = Math.ceil(totalItems / pageSize);
+  const totalPages = Math.ceil(totalItems / pageSize) || 1; // Ensure at least 1 page
 
-  // Get paginated items
+  // Get paginated items with bounds checking
   const paginatedAssistances = filteredAssistances.slice(
     (page - 1) * pageSize,
     page * pageSize
   );
 
-  // Handle page navigation
+  // Handle page navigation with bounds checking
   const goToPage = (newPage: number) => {
     setPage(Math.max(1, Math.min(newPage, totalPages || 1)));
   };
