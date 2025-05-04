@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
@@ -33,9 +34,34 @@ export default function Assistencias() {
   } = useAssistanceData(sortOrder);
 
   // Handle assistance view
-  const handleViewAssistance = (assistance: any) => {
-    setSelectedAssistance(assistance);
-    setIsViewDialogOpen(true);
+  const handleViewAssistance = async (assistance: any) => {
+    // Get fresh data when viewing an assistance to ensure we have the latest state
+    try {
+      const { data: freshAssistance, error } = await supabase
+        .from('assistances')
+        .select(`
+          *,
+          buildings(name),
+          suppliers(name),
+          intervention_types(name)
+        `)
+        .eq('id', assistance.id)
+        .single();
+        
+      if (error) {
+        console.error('Error fetching fresh assistance data:', error);
+        toast.error('Erro ao buscar dados atualizados da assistência');
+        setSelectedAssistance(assistance); // Fallback to the provided assistance
+      } else {
+        setSelectedAssistance(freshAssistance);
+      }
+      
+      setIsViewDialogOpen(true);
+    } catch (error) {
+      console.error('Error in handleViewAssistance:', error);
+      setSelectedAssistance(assistance);
+      setIsViewDialogOpen(true);
+    }
   };
 
   const toggleSortOrder = () => {
@@ -45,7 +71,26 @@ export default function Assistencias() {
   // Create a wrapper function to handle the Promise<void> return type
   const handleRefetchAssistances = async (): Promise<void> => {
     try {
+      console.log('Refetching assistances data...');
       await refetchAssistances();
+      
+      // If an assistance is currently selected, refresh its data too
+      if (selectedAssistance && isViewDialogOpen) {
+        const { data: freshAssistance, error } = await supabase
+          .from('assistances')
+          .select(`
+            *,
+            buildings(name),
+            suppliers(name),
+            intervention_types(name)
+          `)
+          .eq('id', selectedAssistance.id)
+          .single();
+          
+        if (!error && freshAssistance) {
+          setSelectedAssistance(freshAssistance);
+        }
+      }
     } catch (error) {
       console.error('Error refetching assistances:', error);
       toast.error('Erro ao atualizar a lista de assistências');

@@ -26,6 +26,11 @@ export default function BasicInfoSection({
   formatDateTime,
   isSubmitting
 }: BasicInfoSectionProps) {
+  const handleStatusChange = (value: string) => {
+    console.log('Status changed to:', value);
+    setStatus(value);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -56,7 +61,7 @@ export default function BasicInfoSection({
         {isEditing ? (
           <Select 
             value={status} 
-            onValueChange={setStatus}
+            onValueChange={handleStatusChange}
             disabled={isSubmitting}
           >
             <SelectTrigger className="w-full mt-1">

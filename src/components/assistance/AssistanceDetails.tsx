@@ -43,7 +43,7 @@ export default function AssistanceDetails({
   const [adminNotes, setAdminNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get all valid statuses from the utility - use the mutable version
+  // Get all valid statuses from the utility
   const statuses = VALID_STATUS_VALUES;
 
   // Update state when assistance changes - using useEffect properly
@@ -59,6 +59,8 @@ export default function AssistanceDetails({
     
     try {
       setIsSubmitting(true);
+      
+      console.log('Saving changes with status:', status);
       
       const { error } = await supabase
         .from('assistances')
@@ -91,6 +93,8 @@ export default function AssistanceDetails({
         
       toast.success('Assistência atualizada com sucesso!');
       setIsEditing(false);
+      
+      // Make sure to call the update function to refresh the data
       await onAssistanceUpdate();
     } catch (error: any) {
       console.error('Erro ao atualizar assistência:', error);

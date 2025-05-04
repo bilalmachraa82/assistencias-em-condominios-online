@@ -12,9 +12,15 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const [pageSize, setPageSize] = useState(10);
 
   // Fetch assistances
-  const { data: assistances, isLoading: isAssistancesLoading, refetch: refetchAssistances } = useQuery({
+  const { 
+    data: assistances, 
+    isLoading: isAssistancesLoading, 
+    refetch: refetchAssistances 
+  } = useQuery({
     queryKey: ['assistances', sortOrder],
     queryFn: async () => {
+      console.log('Fetching assistances with sort order:', sortOrder);
+      
       const { data, error } = await supabase
         .from('assistances')
         .select(`
@@ -29,8 +35,12 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
         console.error('Error fetching assistances:', error);
         throw error;
       }
+      
+      console.log(`Fetched ${data?.length || 0} assistances`);
       return data;
     },
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnWindowFocus: true, // Refresh when window regains focus
   });
 
   // Fetch buildings
@@ -53,14 +63,14 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   // Apply filters to assistances
   const filteredAssistances = assistances?.filter((assistance) => {
     // Search query filter
-    if (searchQuery && !assistance.description.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    if (searchQuery && !assistance.description?.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !assistance.buildings?.name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !assistance.suppliers?.name?.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
 
     // Building filter
-    if (buildingFilter && assistance.building_id.toString() !== buildingFilter) {
+    if (buildingFilter && assistance.building_id?.toString() !== buildingFilter) {
       return false;
     }
 
@@ -89,7 +99,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
 
   // Handle page navigation
   const goToPage = (newPage: number) => {
-    setPage(Math.max(1, Math.min(newPage, totalPages)));
+    setPage(Math.max(1, Math.min(newPage, totalPages || 1)));
   };
 
   // Handle page size change
