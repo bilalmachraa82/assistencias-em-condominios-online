@@ -5,7 +5,7 @@ import {
   Calendar, Clock, AlertTriangle, CheckCircle, 
   Filter, ChevronDown, ChevronUp, Users, Building,
   MessageCircle, Calendar as CalendarIcon, Search,
-  X as XIcon
+  X, Eye, Trash
 } from 'lucide-react';
 import { Tab } from '@headlessui/react';
 import { toast } from 'sonner';
@@ -393,8 +393,8 @@ export default function AssistanceManagement() {
                         {buildings?.map(building => (
                           <DropdownMenuItem
                             key={building.id}
-                            onClick={() => filters.setBuildingFilter(building.id)}
-                            className={filters.buildingFilter === building.id ? "bg-white/10" : ""}
+                            onClick={() => filters.setBuildingFilter(String(building.id))}
+                            className={filters.buildingFilter === String(building.id) ? "bg-white/10" : ""}
                           >
                             {building.name}
                           </DropdownMenuItem>
@@ -542,7 +542,7 @@ export default function AssistanceManagement() {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Assistência #{selectedAssistance.id}</h2>
                 <Button variant="ghost" size="sm" onClick={handleCloseModal}>
-                  <x-circle className="h-5 w-5" />
+                  <X className="h-5 w-5" />
                 </Button>
               </div>
               
