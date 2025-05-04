@@ -71,9 +71,9 @@ export default function BasicInfoSection({
             </SelectContent>
           </Select>
         ) : (
-          <p className="mt-1">
+          <div className="mt-1">
             <StatusBadge status={assistance.status} />
-          </p>
+          </div>
         )}
       </div>
       
@@ -95,9 +95,9 @@ export default function BasicInfoSection({
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <AlertTriangle className="h-4 w-4" /> Urgência
         </h3>
-        <p className="mt-1">
+        <div className="mt-1">
           <TypeBadge type={assistance.type} />
-        </p>
+        </div>
       </div>
       
       {(assistance.status === 'Pendente Validação' || 
