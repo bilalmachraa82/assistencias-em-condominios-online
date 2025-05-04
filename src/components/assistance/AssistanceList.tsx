@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText, Eye, SortAsc, SortDesc, Trash, Copy, X } from 'lucide-react';
+import { FileText, Eye, SortAsc, SortDesc, Trash, Copy } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from 'sonner';
 import {
@@ -15,6 +15,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import StatusBadge from './badges/StatusBadge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface AssistanceListProps {
   isLoading: boolean;
@@ -55,7 +63,8 @@ export default function AssistanceList({
   };
   
   // Copy link to clipboard
-  const copyLinkToClipboard = (link: string) => {
+  const copyLinkToClipboard = (link: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click
     navigator.clipboard.writeText(link);
     toast.success('Link copiado para a área de transferência');
   };
@@ -74,11 +83,16 @@ export default function AssistanceList({
   };
 
   // Open delete dialog
-  const openDeleteDialog = (assistance: any, e: React.MouseEvent) => {
+  const handleDeleteClick = (assistance: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setAssistanceToDelete(assistance);
     setDeleteDialogOpen(true);
+  };
+
+  // Handle row click for viewing assistance
+  const handleRowClick = (assistance: any) => {
+    onViewAssistance(assistance);
   };
 
   return (
@@ -101,134 +115,139 @@ export default function AssistanceList({
       </div>
       
       <div className="overflow-x-auto">
-        <div className="overflow-hidden rounded-lg border border-white/10">
-          <table className="w-full text-sm">
-            <thead className="bg-white/5">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">ID</th>
-                <th className="px-4 py-3 text-left font-medium">Edifício</th>
-                <th className="px-4 py-3 text-left font-medium hidden md:table-cell">Fornecedor</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium hidden md:table-cell">Urgência</th>
-                <th className="px-4 py-3 text-left font-medium hidden sm:table-cell">Data</th>
-                <th className="px-4 py-3 text-left font-medium hidden lg:table-cell">Link</th>
-                <th className="px-4 py-3 text-left font-medium">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {isLoading ? (
-                <tr>
-                  <td className="px-4 py-3 text-[#cbd5e1]" colSpan={8}>
-                    <div className="flex justify-center items-center py-4">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : assistances?.length === 0 ? (
-                <tr>
-                  <td className="px-4 py-3 text-[#cbd5e1]" colSpan={8}>
-                    <div className="text-center py-6">
-                      Nenhuma assistência encontrada com os filtros atuais.
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                assistances?.map((assistance) => {
-                  const supplierLink = getSupplierLink(assistance);
-                  
-                  return (
-                    <tr key={assistance.id} className="hover:bg-white/5">
-                      <td className="px-4 py-3 text-[#cbd5e1]">{assistance.id}</td>
-                      <td className="px-4 py-3 text-[#cbd5e1]">
-                        {assistance.buildings?.name || '-'}
-                      </td>
-                      <td className="px-4 py-3 text-[#cbd5e1] hidden md:table-cell">
-                        {assistance.suppliers?.name || '-'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={assistance.status} />
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          assistance.type === 'Normal' ? 'bg-green-500/20 text-green-300' :
-                          assistance.type === 'Urgente' ? 'bg-orange-500/20 text-orange-300' :
-                          'bg-red-500/20 text-red-300'
-                        }`}>
-                          {assistance.type}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center text-[#8E9196] hidden sm:table-cell">
-                        {formatDate(assistance.created_at)}
-                      </td>
-                      <td className="px-4 py-3 text-center hidden lg:table-cell">
-                        {supplierLink ? (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8"
-                                  onClick={() => copyLinkToClipboard(supplierLink)}
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Copiar link para fornecedor</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ) : (
-                          <span>-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
+        <Table className="border border-white/10 rounded-lg">
+          <TableHeader className="bg-white/5">
+            <TableRow>
+              <TableHead className="text-left font-medium">ID</TableHead>
+              <TableHead className="text-left font-medium">Edifício</TableHead>
+              <TableHead className="text-left font-medium hidden md:table-cell">Fornecedor</TableHead>
+              <TableHead className="text-left font-medium">Status</TableHead>
+              <TableHead className="text-left font-medium hidden md:table-cell">Urgência</TableHead>
+              <TableHead className="text-left font-medium hidden sm:table-cell">Data</TableHead>
+              <TableHead className="text-left font-medium hidden lg:table-cell">Link</TableHead>
+              <TableHead className="text-left font-medium">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-white/5">
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={8}>
+                  <div className="flex justify-center items-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : assistances?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8}>
+                  <div className="text-center py-6">
+                    Nenhuma assistência encontrada com os filtros atuais.
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              assistances?.map((assistance) => {
+                const supplierLink = getSupplierLink(assistance);
+                
+                return (
+                  <TableRow 
+                    key={assistance.id} 
+                    className="hover:bg-white/5 cursor-pointer"
+                    onClick={() => handleRowClick(assistance)}
+                  >
+                    <TableCell className="text-[#cbd5e1]">{assistance.id}</TableCell>
+                    <TableCell className="text-[#cbd5e1]">
+                      {assistance.buildings?.name || '-'}
+                    </TableCell>
+                    <TableCell className="text-[#cbd5e1] hidden md:table-cell">
+                      {assistance.suppliers?.name || '-'}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={assistance.status} />
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        assistance.type === 'Normal' ? 'bg-green-500/20 text-green-300' :
+                        assistance.type === 'Urgente' ? 'bg-orange-500/20 text-orange-300' :
+                        'bg-red-500/20 text-red-300'
+                      }`}>
+                        {assistance.type}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center text-[#8E9196] hidden sm:table-cell">
+                      {formatDate(assistance.created_at)}
+                    </TableCell>
+                    <TableCell className="text-center hidden lg:table-cell">
+                      {supplierLink ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8"
+                                onClick={(e) => copyLinkToClipboard(supplierLink, e)}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Copiar link para fornecedor</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <span>-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewAssistance(assistance);
+                          }}
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                          title="Ver detalhes"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        
+                        {onDeleteAssistance && (
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => onViewAssistance(assistance)}
-                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                            title="Ver detalhes"
+                            onClick={(e) => handleDeleteClick(assistance, e)}
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            title="Excluir assistência"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Trash className="h-4 w-4" />
                           </Button>
-                          
-                          {onDeleteAssistance && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={(e) => openDeleteDialog(assistance, e)}
-                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                              title="Excluir assistência"
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white text-black">
+        <AlertDialogContent className="bg-gray-800 text-white border border-gray-700">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-gray-300">
               Tem certeza que deseja excluir a assistência #{assistanceToDelete?.id}?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="bg-gray-700 text-white hover:bg-gray-600">Cancelar</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteConfirm}
               className="bg-red-500 hover:bg-red-600 text-white"
