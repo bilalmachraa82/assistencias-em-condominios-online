@@ -7,6 +7,7 @@ import Suppliers from "./pages/Suppliers";
 import Assistencias from "./pages/Assistencias";
 import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
 import Dashboard from "./pages/Dashboard";
+import NotFound from "./pages/NotFound";
 
 // Supplier public pages
 import AcceptRequest from "./pages/supplier/AcceptRequest";
@@ -51,6 +52,11 @@ const router = createBrowserRouter([
   {
     path: "/supplier/confirmation",
     element: <Confirmation />,
+  },
+  // Catch-all route for 404 pages
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 

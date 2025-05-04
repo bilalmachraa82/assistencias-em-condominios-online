@@ -18,7 +18,11 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseKey);
     const resendApiKey = Deno.env.get('RESEND_API_KEY') || '';
-    const appBaseUrl = Deno.env.get('APP_BASE_URL') || 'http://localhost:5173';
+    
+    // Get request origin to use as base URL
+    const origin = req.headers.get('origin') || Deno.env.get('APP_BASE_URL') || '';
+    
+    console.log('Request origin:', origin);
     
     if (!resendApiKey) {
       return new Response(
@@ -67,6 +71,10 @@ serve(async (req) => {
     let emailContent = '';
     let supplierActionUrl = '';
     
+    // Use the origin from the request as the base URL
+    const baseUrl = origin;
+    console.log('Using base URL:', baseUrl);
+    
     switch(emailType) {
       case 'acceptance':
         if (!assistance.acceptance_token) {
@@ -76,7 +84,7 @@ serve(async (req) => {
           );
         }
         emailSubject = `Nova Solicitação de Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${appBaseUrl}/supplier/accept?token=${assistance.acceptance_token}`;
+        supplierActionUrl = `${baseUrl}/supplier/accept?token=${assistance.acceptance_token}`;
         emailContent = generateAcceptanceEmail(assistance, supplierActionUrl);
         break;
         
@@ -88,7 +96,7 @@ serve(async (req) => {
           );
         }
         emailSubject = `Agende a Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${appBaseUrl}/supplier/schedule?token=${assistance.scheduling_token}`;
+        supplierActionUrl = `${baseUrl}/supplier/schedule?token=${assistance.scheduling_token}`;
         emailContent = generateSchedulingEmail(assistance, supplierActionUrl);
         break;
         
@@ -100,7 +108,7 @@ serve(async (req) => {
           );
         }
         emailSubject = `Confirme a Conclusão da Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${appBaseUrl}/supplier/complete?token=${assistance.validation_token}`;
+        supplierActionUrl = `${baseUrl}/supplier/complete?token=${assistance.validation_token}`;
         emailContent = generateValidationEmail(assistance, supplierActionUrl);
         break;
         
@@ -115,6 +123,7 @@ serve(async (req) => {
     console.log('From: onboarding@resend.dev');
     console.log('To:', assistance.suppliers.email);
     console.log('Subject:', emailSubject);
+    console.log('Action URL:', supplierActionUrl);
 
     // Send email using Resend API
     const emailResponse = await fetch('https://api.resend.com/emails', {

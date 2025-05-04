@@ -1,5 +1,8 @@
-import { useLocation } from "react-router-dom";
+
+import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
+import { AlertCircle, Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
   const location = useLocation();
@@ -13,12 +16,33 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+      <div className="max-w-md w-full bg-white shadow-lg rounded-lg overflow-hidden p-6">
+        <div className="flex items-center justify-center mb-6">
+          <AlertCircle className="h-12 w-12 text-red-500 mr-4" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">404</h1>
+            <p className="text-lg text-gray-600">Página não encontrada</p>
+          </div>
+        </div>
+        
+        <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4">
+          <p className="text-sm text-red-700">
+            O endereço <code className="bg-red-100 px-1 py-0.5 rounded">{location.pathname}</code> não existe ou não está disponível.
+          </p>
+        </div>
+        
+        <p className="text-gray-600 mb-6">
+          Verifique se o link que você seguiu está correto ou navegue para uma das nossas páginas principais.
+        </p>
+        
+        <div className="flex justify-center">
+          <Button asChild variant="default">
+            <Link to="/" className="flex items-center">
+              <Home className="h-4 w-4 mr-2" />
+              Voltar para o Início
+            </Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
