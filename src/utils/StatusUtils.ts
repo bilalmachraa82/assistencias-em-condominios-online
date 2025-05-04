@@ -19,9 +19,31 @@ export const VALID_STATUS_VALUES: string[] = [...VALID_STATUSES];
 
 export type AssistanceStatus = typeof VALID_STATUSES[number];
 
-// Check if a status is valid
+/**
+ * Check if a status is valid
+ * This function is case-sensitive and space-sensitive
+ */
 export function isValidStatus(status: string): status is AssistanceStatus {
   return VALID_STATUSES.includes(status as AssistanceStatus);
+}
+
+/**
+ * Find a valid status that matches the given status (case-insensitive)
+ * This is helpful for fixing status values from external sources
+ */
+export function findMatchingStatus(status: string): AssistanceStatus | null {
+  // First check for exact match
+  if (isValidStatus(status)) {
+    return status;
+  }
+  
+  // Try case-insensitive match
+  const normalizedStatus = status.toLowerCase().trim();
+  const match = VALID_STATUSES.find(
+    s => s.toLowerCase().trim() === normalizedStatus
+  );
+  
+  return match || null;
 }
 
 // Get the CSS class for a status badge

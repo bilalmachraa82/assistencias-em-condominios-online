@@ -4,6 +4,7 @@ import { Building, Wrench, User, AlertTriangle, Calendar, Clock } from 'lucide-r
 import StatusBadge from '../badges/StatusBadge';
 import TypeBadge from '../badges/TypeBadge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { VALID_STATUS_VALUES } from '@/utils/StatusUtils';
 
 interface BasicInfoSectionProps {
   assistance: any;
@@ -30,6 +31,9 @@ export default function BasicInfoSection({
     console.log('Status changed to:', value);
     setStatus(value);
   };
+
+  // Use the provided statuses list, but fall back to VALID_STATUS_VALUES if statuses is empty
+  const statusOptions = statuses.length > 0 ? statuses : VALID_STATUS_VALUES;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -68,7 +72,7 @@ export default function BasicInfoSection({
               <SelectValue placeholder="Selecione um status" />
             </SelectTrigger>
             <SelectContent>
-              {statuses.map((s) => (
+              {statusOptions.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
                 </SelectItem>

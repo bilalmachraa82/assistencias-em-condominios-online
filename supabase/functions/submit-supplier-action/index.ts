@@ -108,13 +108,18 @@ serve(async (req) => {
           );
       }
       
-      if (!validStatuses.includes(newStatus)) {
-        console.error(`Invalid status: ${newStatus}. Using hardcoded values, this should not happen.`);
+      // Ensure the status is in the exact format as needed
+      const matchedStatus = findMatchingStatus(newStatus, validStatuses);
+      if (!matchedStatus) {
+        console.error(`Invalid status: ${newStatus}. No matching status found.`);
         return new Response(
-          JSON.stringify({ error: `Status inválido: ${newStatus}` }),
+          JSON.stringify({ error: `Status inválido: ${newStatus}. Nenhum status correspondente encontrado.` }),
           { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
+
+      newStatus = matchedStatus;
+      console.log(`Using matched status: ${newStatus}`);
       
       // Continue with the update using the hardcoded values
       return await processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders);
@@ -170,25 +175,18 @@ serve(async (req) => {
     console.log('Valid statuses are:', validStatuses.join(', '));
     console.log('New status being applied:', newStatus);
 
-    // Verify the new status is valid
-    if (!validStatuses.includes(newStatus)) {
-      console.error(`Invalid status: ${newStatus}. Valid statuses are: ${validStatuses.join(', ')}`);
-      
-      // Check if there's a similar status with a different case or spacing
-      const potentialMatch = validStatuses.find(s => 
-        s.toLowerCase().replace(/\s+/g, '') === newStatus.toLowerCase().replace(/\s+/g, '')
+    // Ensure the status is in the exact format as needed
+    const matchedStatus = findMatchingStatus(newStatus, validStatuses);
+    if (!matchedStatus) {
+      console.error(`Invalid status: ${newStatus}. No matching status found.`);
+      return new Response(
+        JSON.stringify({ error: `Status inválido: ${newStatus}. Nenhum status correspondente encontrado.` }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
-      
-      if (potentialMatch) {
-        console.log(`Found a potential match: ${potentialMatch}. Using this instead.`);
-        newStatus = potentialMatch;
-      } else {
-        return new Response(
-          JSON.stringify({ error: `Status inválido: ${newStatus}. Valores válidos: ${validStatuses.join(', ')}` }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
-      }
     }
+
+    newStatus = matchedStatus;
+    console.log(`Using matched status: ${newStatus}`);
 
     return await processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders);
     
@@ -200,6 +198,22 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to find a matching status from a list
+function findMatchingStatus(status: string, validStatuses: string[]): string | null {
+  // First check for exact match
+  if (validStatuses.includes(status)) {
+    return status;
+  }
+  
+  // Try case-insensitive match
+  const normalizedStatus = status.toLowerCase().trim();
+  const match = validStatuses.find(
+    s => s.toLowerCase().trim() === normalizedStatus
+  );
+  
+  return match || null;
+}
 
 async function processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders) {
   try {

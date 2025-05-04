@@ -29,40 +29,25 @@ serve(async (req) => {
     if (statusError) {
       console.error('Error fetching statuses from valid_statuses table:', statusError);
       
-      // Fallback: get the list of allowed status values from assistances table
-      console.log('Falling back to fetching from assistances table');
-      const { data, error } = await supabase
-        .from('assistances')
-        .select('status')
-        .limit(1000);
-      
-      if (error) {
-        console.error('Error fetching statuses from assistances table:', error);
-        throw error;
-      }
-      
-      // Extract unique status values
-      const statusValues = [...new Set(data.map(item => item.status))];
-      
-      // Add default/common status values that might not be in the database yet
-      const defaultStatuses = [
+      // Fallback: use hardcoded values that match exactly with the StatusUtils.ts values
+      console.log('Falling back to hardcoded status values');
+      const validStatuses = [
         'Pendente Resposta Inicial',
         'Pendente Aceitação',
+        'Recusada Fornecedor',
         'Pendente Agendamento',
         'Agendado',
-        'Em Andamento',
-        'Concluído',
+        'Em Progresso',
         'Pendente Validação',
+        'Concluído',
         'Reagendamento Solicitado',
-        'Recusada',
+        'Validação Expirada',
         'Cancelado'
       ];
       
-      const allStatusValues = [...new Set([...statusValues, ...defaultStatuses])];
-      
-      console.log(`Returning ${allStatusValues.length} status values (from fallback)`);
+      console.log(`Returning ${validStatuses.length} status values (from fallback)`);
       return new Response(
-        JSON.stringify(allStatusValues),
+        JSON.stringify(validStatuses),
         { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
