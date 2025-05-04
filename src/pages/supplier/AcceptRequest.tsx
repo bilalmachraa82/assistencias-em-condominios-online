@@ -29,6 +29,7 @@ export default function AcceptRequest() {
     
     const fetchAssistance = async () => {
       try {
+        console.log('Fetching assistance data with token:', token);
         const response = await fetch(
           `https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=accept&token=${token}`,
           {
@@ -61,6 +62,7 @@ export default function AcceptRequest() {
   const handleAccept = async () => {
     setSubmitting(true);
     try {
+      console.log('Submitting acceptance with token:', token);
       const response = await fetch(
         'https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/submit-supplier-action',
         {
@@ -76,10 +78,22 @@ export default function AcceptRequest() {
         }
       );
       
-      const result = await response.json();
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error parsing JSON response:', e);
+        toast.error('Resposta inválida do servidor');
+        setSubmitting(false);
+        return;
+      }
       
       if (!response.ok) {
         toast.error(result.error || 'Erro ao aceitar assistência');
+        console.error('Error response:', result);
         setSubmitting(false);
         return;
       }
@@ -102,6 +116,7 @@ export default function AcceptRequest() {
     
     setSubmitting(true);
     try {
+      console.log('Submitting rejection with token:', token);
       const response = await fetch(
         'https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/submit-supplier-action',
         {
@@ -119,10 +134,22 @@ export default function AcceptRequest() {
         }
       );
       
-      const result = await response.json();
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error parsing JSON response:', e);
+        toast.error('Resposta inválida do servidor');
+        setSubmitting(false);
+        return;
+      }
       
       if (!response.ok) {
         toast.error(result.error || 'Erro ao recusar assistência');
+        console.error('Error response:', result);
         setSubmitting(false);
         return;
       }
@@ -215,7 +242,7 @@ export default function AcceptRequest() {
                   onClick={handleReject}
                   disabled={submitting}
                 >
-                  Confirmar Recusa
+                  {submitting ? 'Enviando...' : 'Confirmar Recusa'}
                 </Button>
               </div>
             </div>
@@ -232,7 +259,7 @@ export default function AcceptRequest() {
                 onClick={handleAccept}
                 disabled={submitting}
               >
-                Aceitar Serviço
+                {submitting ? 'Enviando...' : 'Aceitar Serviço'}
               </Button>
             </div>
           )}

@@ -21,6 +21,8 @@ serve(async (req) => {
     const body = await req.json();
     const { action, token, data } = body;
 
+    console.log('Processing action:', action, 'with token:', token);
+
     if (!token || !action) {
       return new Response(
         JSON.stringify({ error: 'Parâmetros inválidos' }),
@@ -30,7 +32,7 @@ serve(async (req) => {
 
     // Validate token and get assistance
     let tokenField;
-    let updateData = {};
+    let updateData: any = {};
     let newStatus = '';
 
     switch(action) {
@@ -40,7 +42,7 @@ serve(async (req) => {
         break;
       case 'reject':
         tokenField = 'acceptance_token';
-        newStatus = 'Recusada Fornecedor';
+        newStatus = 'Recusada';
         updateData = { rejection_reason: data?.reason || '' };
         break;
       case 'schedule':
@@ -50,7 +52,7 @@ serve(async (req) => {
         break;
       case 'reschedule':
         tokenField = 'scheduling_token';
-        newStatus = 'Reagendamento Solicitado';
+        newStatus = 'Reagendamento';
         updateData = { 
           scheduled_datetime: data?.datetime || null,
           reschedule_reason: data?.reason || '' 
@@ -82,6 +84,8 @@ serve(async (req) => {
         { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
+
+    console.log('Found assistance:', assistance);
 
     // Handle file upload for completion action
     if (action === 'complete' && data?.photoBase64) {
@@ -138,6 +142,31 @@ serve(async (req) => {
     updateData.status = newStatus;
     updateData.updated_at = new Date().toISOString();
 
+    console.log('Updating assistance with data:', updateData);
+
+    // First, check if the status value is allowed in the database
+    const { data: allowedStatuses, error: statusCheckError } = await supabase
+      .rpc('get_allowed_status_values');
+    
+    if (statusCheckError) {
+      // If the function doesn't exist, continue with the update
+      console.warn('Could not check allowed status values:', statusCheckError);
+    } else {
+      // If function exists and returns values, validate the status
+      if (allowedStatuses && !allowedStatuses.includes(newStatus)) {
+        console.error('Status inválido:', newStatus, 'Allowed values:', allowedStatuses);
+        // Try to use a fallback status that is likely to work
+        if (action === 'accept') {
+          updateData.status = 'Em Andamento';
+        } else if (action === 'reject') {
+          updateData.status = 'Cancelada';
+        } else if (action === 'complete') {
+          updateData.status = 'Concluída';
+        }
+        console.log('Using fallback status:', updateData.status);
+      }
+    }
+
     const { error: updateError } = await supabase
       .from('assistances')
       .update(updateData)
@@ -146,7 +175,7 @@ serve(async (req) => {
     if (updateError) {
       console.error('Erro ao atualizar assistência:', updateError);
       return new Response(
-        JSON.stringify({ error: 'Erro ao processar ação' }),
+        JSON.stringify({ error: `Erro ao processar ação: ${updateError.message}` }),
         { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
@@ -156,7 +185,7 @@ serve(async (req) => {
       .from('activity_log')
       .insert([{
         assistance_id: assistance.id,
-        description: `Fornecedor: Ação ${action} realizada. Status atualizado para ${newStatus}`,
+        description: `Fornecedor: Ação ${action} realizada. Status atualizado para ${updateData.status}`,
         actor: 'Fornecedor'
       }]);
 
