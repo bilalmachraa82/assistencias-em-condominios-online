@@ -56,6 +56,8 @@ serve(async (req) => {
     const validStatuses = statusData.map(item => item.status_value);
     
     console.log(`Returning ${validStatuses.length} status values from valid_statuses table`);
+    console.log('Status values:', validStatuses.join(', '));
+    
     return new Response(
       JSON.stringify(validStatuses),
       { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
