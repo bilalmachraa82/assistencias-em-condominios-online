@@ -21,6 +21,7 @@ export default function Assistencias() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   
   // Use custom hook to fetch and filter data
   const {
@@ -28,16 +29,39 @@ export default function Assistencias() {
     paginatedAssistances,
     isAssistancesLoading,
     isBuildingsLoading,
+    assistancesError,
     refetchAssistances,
     pagination,
     filters
   } = useAssistanceData(sortOrder);
 
+  // Handle errors from data fetching
+  useEffect(() => {
+    if (assistancesError) {
+      const errorMessage = getUserFriendlyError(
+        assistancesError, 
+        'Erro ao carregar assistências. Tente novamente mais tarde.'
+      );
+      setLoadingError(errorMessage);
+      console.error('Assistance loading error:', assistancesError);
+    } else {
+      setLoadingError(null);
+    }
+  }, [assistancesError]);
+
   // Force a refresh when the component mounts
   useEffect(() => {
     const initialLoad = async () => {
-      console.log("Initial loading of assistances");
-      await refetchAssistances();
+      try {
+        console.log("Initial loading of assistances");
+        await refetchAssistances();
+      } catch (err) {
+        console.error("Error during initial data load:", err);
+        toast.error(getUserFriendlyError(
+          err, 
+          'Erro ao carregar dados iniciais. Tente novamente mais tarde.'
+        ));
+      }
     };
     
     initialLoad();
@@ -45,7 +69,6 @@ export default function Assistencias() {
 
   // Handle assistance view
   const handleViewAssistance = async (assistance: any) => {
-    // Get fresh data when viewing an assistance to ensure we have the latest state
     try {
       console.log(`Fetching fresh data for assistance #${assistance.id}`);
       const { data: freshAssistance, error } = await supabase
@@ -132,18 +155,19 @@ export default function Assistencias() {
       }
 
       // Log the activity
-      const { error: logError } = await supabase
+      await supabase
         .from('activity_log')
         .insert([{
           assistance_id: assistance.id,
           description: `Assistência #${assistance.id} excluída`,
           actor: 'admin'
-        }]);
-        
-      if (logError) {
-        console.error('Erro ao registrar atividade:', logError);
-        // Continue even if logging fails
-      }
+        }])
+        .then(({ error: logError }) => {
+          if (logError) {
+            console.error('Erro ao registrar atividade:', logError);
+            // Continue even if logging fails
+          }
+        });
       
       // Close the dialog if it was the selected assistance
       if (selectedAssistance?.id === assistance.id) {
@@ -171,6 +195,33 @@ export default function Assistencias() {
     await handleRefetchAssistances();
   }, [handleRefetchAssistances]);
 
+  // Show loading error if data fetching failed
+  if (loadingError && !isAssistancesLoading) {
+    return (
+      <DashboardLayout>
+        <div className="animate-fade-in-up">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 lg:mb-10 gap-4">
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight">Assistências</h1>
+              <p className="text-[#cbd5e1] mt-2 text-lg">Gerencie suas solicitações de manutenção</p>
+            </div>
+          </div>
+          
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
+            <h3 className="text-xl font-semibold text-red-400 mb-2">Erro ao carregar dados</h3>
+            <p className="text-white/80">{loadingError}</p>
+            <button 
+              onClick={() => refetchAssistances()}
+              className="mt-4 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded transition-all"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="animate-fade-in-up">
@@ -190,7 +241,7 @@ export default function Assistencias() {
 
         <AssistanceDetailsWrapper 
           isOpen={isViewDialogOpen}
-          onClose={handleDialogClose} // Use the enhanced close handler
+          onClose={handleDialogClose}
           assistance={selectedAssistance}
           onAssistanceUpdate={handleRefetchAssistances}
         />

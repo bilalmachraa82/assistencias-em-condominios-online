@@ -37,21 +37,21 @@ export default function BasicInfoSection({
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <Building className="h-4 w-4" /> Edifício
         </h3>
-        <p className="mt-1 text-base">{assistance.buildings?.name}</p>
+        <p className="mt-1 text-base">{assistance.buildings?.name || 'N/A'}</p>
       </div>
       
       <div>
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <Wrench className="h-4 w-4" /> Tipo de Intervenção
         </h3>
-        <p className="mt-1 text-base">{assistance.intervention_types?.name}</p>
+        <p className="mt-1 text-base">{assistance.intervention_types?.name || 'N/A'}</p>
       </div>
       
       <div>
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <User className="h-4 w-4" /> Fornecedor
         </h3>
-        <p className="mt-1 text-base">{assistance.suppliers?.name}</p>
+        <p className="mt-1 text-base">{assistance.suppliers?.name || 'N/A'}</p>
       </div>
       
       <div>
@@ -86,7 +86,7 @@ export default function BasicInfoSection({
         <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
           <Calendar className="h-4 w-4" /> Data Criação
         </h3>
-        <p className="mt-1 text-base">{formatDate(assistance.created_at)}</p>
+        <p className="mt-1 text-base">{assistance.created_at ? formatDate(assistance.created_at) : 'N/A'}</p>
       </div>
       
       <div>
@@ -101,7 +101,7 @@ export default function BasicInfoSection({
           <AlertTriangle className="h-4 w-4" /> Urgência
         </h3>
         <div className="mt-1">
-          <TypeBadge type={assistance.type} />
+          <TypeBadge type={assistance.type || 'Normal'} />
         </div>
       </div>
       

@@ -42,16 +42,18 @@ export default function AssistanceDetails({
   const [status, setStatus] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Get all valid statuses from the utility
   const statuses = VALID_STATUS_VALUES;
 
-  // Update state when assistance changes - using useEffect properly
+  // Reset states when assistance changes to prevent stale data
   useEffect(() => {
     if (assistance) {
       console.log('Setting initial status from assistance:', assistance.status);
       setStatus(assistance.status || '');
       setAdminNotes(assistance.admin_notes || '');
+      setSaveError(null);
     }
   }, [assistance]);
 
@@ -60,6 +62,7 @@ export default function AssistanceDetails({
     
     try {
       setIsSubmitting(true);
+      setSaveError(null);
       
       console.log('Saving changes with status:', status);
       
@@ -74,6 +77,7 @@ export default function AssistanceDetails({
         
       if (error) {
         console.error('Erro ao atualizar assistência:', error);
+        setSaveError(`Erro ao atualizar assistência: ${error.message}`);
         toast.error(`Erro ao atualizar assistência: ${error.message}`);
         return;
       }
@@ -99,6 +103,7 @@ export default function AssistanceDetails({
       await onAssistanceUpdate();
     } catch (error: any) {
       console.error('Erro ao atualizar assistência:', error);
+      setSaveError(`Ocorreu um erro ao atualizar a assistência: ${error.message}`);
       toast.error(`Ocorreu um erro ao atualizar a assistência: ${error.message}`);
     } finally {
       setIsSubmitting(false);
@@ -145,7 +150,8 @@ export default function AssistanceDetails({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
-        // When dialog is closed, call onClose which should refresh the data
+        // When dialog is closed, reset editing state and call onClose
+        setIsEditing(false);
         onClose();
       }
     }}>
@@ -172,7 +178,9 @@ export default function AssistanceDetails({
                     setIsEditing(false);
                     setStatus(assistance.status);
                     setAdminNotes(assistance.admin_notes || '');
+                    setSaveError(null);
                   }}
+                  disabled={isSubmitting}
                 >
                   <X className="h-4 w-4" /> Cancelar
                 </Button>
@@ -183,7 +191,7 @@ export default function AssistanceDetails({
                   onClick={handleSaveChanges}
                   disabled={isSubmitting}
                 >
-                  <Save className="h-4 w-4" /> Salvar
+                  <Save className="h-4 w-4" /> {isSubmitting ? 'Salvando...' : 'Salvar'}
                 </Button>
               </div>
             )}
@@ -192,6 +200,12 @@ export default function AssistanceDetails({
             Informações detalhadas da solicitação de assistência.
           </DialogDescription>
         </DialogHeader>
+        
+        {saveError && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
+            <p className="text-red-400 text-sm">{saveError}</p>
+          </div>
+        )}
         
         <div className="space-y-6 py-4">
           <BasicInfoSection 
@@ -246,6 +260,7 @@ export default function AssistanceDetails({
           <Button 
             variant="outline" 
             onClick={onClose}
+            disabled={isSubmitting}
           >
             Fechar
           </Button>

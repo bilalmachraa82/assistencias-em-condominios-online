@@ -10,56 +10,75 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add a refresh trigger
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Fetch assistances
   const { 
     data: assistances, 
     isLoading: isAssistancesLoading, 
-    refetch: refetchAssistances 
+    refetch: refetchAssistances,
+    error: assistancesError
   } = useQuery({
-    queryKey: ['assistances', sortOrder, refreshTrigger], // Add refreshTrigger to queryKey
+    queryKey: ['assistances', sortOrder, refreshTrigger],
     queryFn: async () => {
       console.log('Fetching assistances with sort order:', sortOrder);
       
-      const { data, error } = await supabase
-        .from('assistances')
-        .select(`
-          *,
-          buildings(name),
-          suppliers(name),
-          intervention_types(name)
-        `)
-        .order('created_at', { ascending: sortOrder === 'asc' });
-      
-      if (error) {
-        console.error('Error fetching assistances:', error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('assistances')
+          .select(`
+            *,
+            buildings(name),
+            suppliers(name),
+            intervention_types(name)
+          `)
+          .order('created_at', { ascending: sortOrder === 'asc' });
+        
+        if (error) {
+          console.error('Error fetching assistances:', error);
+          throw error;
+        }
+        
+        console.log(`Fetched ${data?.length || 0} assistances`);
+        return data || [];
+      } catch (err) {
+        console.error('Exception in assistance fetch:', err);
+        throw err;
       }
-      
-      console.log(`Fetched ${data?.length || 0} assistances`);
-      return data;
     },
-    staleTime: 0, // Always consider data stale to ensure fresh data
-    refetchOnWindowFocus: true, // Refresh when window regains focus
-    refetchOnMount: true // Ensure data is refreshed whenever component mounts
+    staleTime: 0,
+    retry: 2,
+    retryDelay: 1000,
+    refetchOnWindowFocus: false
   });
 
   // Fetch buildings
-  const { data: buildings, isLoading: isBuildingsLoading } = useQuery({
+  const { 
+    data: buildings, 
+    isLoading: isBuildingsLoading,
+    error: buildingsError
+  } = useQuery({
     queryKey: ['buildings'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('buildings')
-        .select('*')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching buildings:', error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('buildings')
+          .select('*')
+          .order('name');
+        
+        if (error) {
+          console.error('Error fetching buildings:', error);
+          throw error;
+        }
+        return data || [];
+      } catch (err) {
+        console.error('Exception in buildings fetch:', err);
+        throw err;
       }
-      return data;
     },
+    retry: 2,
+    retryDelay: 1000,
+    refetchOnWindowFocus: false
   });
 
   // Apply filters to assistances
@@ -114,7 +133,14 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const forceRefresh = async () => {
     console.log('Force refreshing assistance data...');
     setRefreshTrigger(prev => prev + 1); // Increment to trigger refetch
-    return await refetchAssistances();
+    try {
+      const result = await refetchAssistances();
+      console.log('Data refresh complete', result.data?.length || 0, 'records');
+      return result;
+    } catch (err) {
+      console.error('Error during forced refresh:', err);
+      throw err;
+    }
   };
 
   return {
@@ -124,7 +150,9 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     paginatedAssistances,
     isAssistancesLoading,
     isBuildingsLoading,
-    refetchAssistances: forceRefresh, // Use the enhanced refresh function
+    assistancesError,
+    buildingsError,
+    refetchAssistances: forceRefresh,
     pagination: {
       currentPage: page,
       pageSize,
