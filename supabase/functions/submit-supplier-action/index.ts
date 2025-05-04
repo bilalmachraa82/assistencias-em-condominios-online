@@ -62,7 +62,7 @@ serve(async (req) => {
       ? validStatusArray 
       : statusValues.map(item => item.status_value);
     
-    console.log(`Using ${validStatuses.length} valid statuses`);
+    console.log(`Using ${validStatuses.length} valid statuses:`, validStatuses);
     
     let newStatus = '';
 
