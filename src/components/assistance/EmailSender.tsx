@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface EmailSenderProps {
   assistanceId: number;
@@ -24,10 +26,12 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [emailType, setEmailType] = useState<'acceptance' | 'scheduling' | 'validation'>('acceptance');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const getAvailableEmailTypes = () => {
     // Determine which email types are available based on the current status
     switch(assistanceStatus) {
+      case 'Pendente Resposta Inicial':
       case 'Pendente Aceitação':
         return [{ value: 'acceptance', label: 'Email de Aceitação' }];
       case 'Pendente Agendamento':
@@ -46,8 +50,18 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
 
   const availableTypes = getAvailableEmailTypes();
 
+  // Set default email type based on status
+  React.useEffect(() => {
+    const types = getAvailableEmailTypes();
+    if (types.length > 0) {
+      setEmailType(types[0].value as 'acceptance' | 'scheduling' | 'validation');
+    }
+  }, [assistanceStatus]);
+
   const handleSendEmail = async () => {
     setIsLoading(true);
+    setErrorMessage(null);
+    
     try {
       const response = await fetch('https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/send-supplier-email', {
         method: 'POST',
@@ -70,7 +84,9 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Erro ao enviar email:', error);
-      toast.error(error instanceof Error ? error.message : 'Erro ao enviar email');
+      const errorMsg = error instanceof Error ? error.message : 'Erro ao enviar email';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -98,6 +114,15 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
           </DialogHeader>
           
           <div className="py-4">
+            {errorMessage && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {errorMessage}
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <RadioGroup 
               value={emailType} 
               onValueChange={(value) => setEmailType(value as 'acceptance' | 'scheduling' | 'validation')}

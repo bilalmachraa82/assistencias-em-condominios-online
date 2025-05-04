@@ -5,6 +5,7 @@ import { Building } from 'lucide-react';
 import BuildingSelectorDialog from './BuildingSelectorDialog';
 import AssistanceFormDialog from './AssistanceFormDialog';
 import useCreateAssistance from '@/hooks/useCreateAssistance';
+import { toast } from 'sonner';
 
 interface NewAssistanceButtonProps {
   buildings: any[] | undefined;
@@ -23,6 +24,11 @@ export default function NewAssistanceButton({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleBuildingSelect = (building: any) => {
+    if (!building) {
+      toast.error('Por favor, selecione um edifício.');
+      return;
+    }
+    
     setSelectedBuilding(building);
     setIsNewAssistanceDialogOpen(false);
     setIsAssistanceFormOpen(true);
@@ -55,10 +61,18 @@ export default function NewAssistanceButton({
         onSubmit={async (formData) => {
           setIsSubmitting(true);
           try {
-            await useCreateAssistance(formData, selectedBuilding);
+            const createdAssistance = await useCreateAssistance(formData, selectedBuilding);
             setIsAssistanceFormOpen(false);
             setSelectedBuilding(null);
             await onAssistanceCreated();
+            
+            // Show specific message about next steps
+            toast.info(
+              'Para enviar um email ao fornecedor, abra os detalhes da assistência e clique em "Enviar Email".',
+              { duration: 6000 }
+            );
+          } catch (error) {
+            console.error('Error creating assistance:', error);
           } finally {
             setIsSubmitting(false);
           }

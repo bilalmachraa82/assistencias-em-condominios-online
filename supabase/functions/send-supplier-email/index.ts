@@ -111,6 +111,11 @@ serve(async (req) => {
         );
     }
 
+    console.log('Sending email with Resend...');
+    console.log('From: onboarding@resend.dev');
+    console.log('To:', assistance.suppliers.email);
+    console.log('Subject:', emailSubject);
+
     // Send email using Resend API
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -119,7 +124,7 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'AssisTech <noreply@assistech.app>',
+        from: 'AssisTech <onboarding@resend.dev>',
         to: [assistance.suppliers.email],
         subject: emailSubject,
         html: emailContent,
