@@ -7,6 +7,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function for CORS responses
+function createCorsResponse(body: any, status = 200) {
+  return new Response(
+    JSON.stringify(body),
+    { 
+      status, 
+      headers: { 
+        'Content-Type': 'application/json', 
+        ...corsHeaders 
+      } 
+    }
+  );
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -23,10 +37,7 @@ serve(async (req) => {
     const token = url.searchParams.get('token');
 
     if (!token) {
-      return new Response(
-        JSON.stringify({ error: 'Token não fornecido' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      return createCorsResponse({ error: 'Token não fornecido' }, 400);
     }
 
     // Validate token and get assistance
@@ -43,10 +54,7 @@ serve(async (req) => {
         tokenField = 'validation_token';
         break;
       default:
-        return new Response(
-          JSON.stringify({ error: 'Ação inválida' }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+        return createCorsResponse({ error: 'Ação inválida' }, 400);
     }
     
     // Get assistance data with the provided token
@@ -66,25 +74,16 @@ serve(async (req) => {
 
     if (assistanceError) {
       console.error('Erro ao buscar assistência:', assistanceError);
-      return new Response(
-        JSON.stringify({ error: 'Token inválido ou assistência não encontrada' }),
-        { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      return createCorsResponse({ error: 'Token inválido ou assistência não encontrada' }, 404);
     }
 
     // Return assistance data
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        data: assistance 
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    );
+    return createCorsResponse({ 
+      success: true, 
+      data: assistance 
+    });
   } catch (error) {
     console.error('Erro:', error.message);
-    return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    );
+    return createCorsResponse({ error: 'Erro interno do servidor' }, 500);
   }
 });

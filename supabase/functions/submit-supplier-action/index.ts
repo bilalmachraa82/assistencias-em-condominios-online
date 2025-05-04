@@ -7,6 +7,71 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function for CORS responses
+function createCorsResponse(body: any, status = 200) {
+  return new Response(
+    JSON.stringify(body),
+    { 
+      status, 
+      headers: { 
+        'Content-Type': 'application/json', 
+        ...corsHeaders 
+      } 
+    }
+  );
+}
+
+// Helper function to handle errors consistently
+function handleError(message: string, details: any = null, status = 500) {
+  console.error(`Error: ${message}`, details);
+  return createCorsResponse({ 
+    error: message,
+    details: details || undefined 
+  }, status);
+}
+
+// Mapping of action to required token field names
+const tokenFieldMap = {
+  'accept': 'acceptance_token',
+  'reject': 'acceptance_token',
+  'schedule': 'scheduling_token',
+  'reschedule': 'scheduling_token',
+  'complete': 'validation_token'
+};
+
+// Status transitions based on actions
+const statusTransitions = {
+  'accept': (data?: any) => data?.datetime ? 'Agendado' : 'Pendente Agendamento',
+  'reject': () => 'Recusada Fornecedor',
+  'schedule': () => 'Agendado',
+  'reschedule': () => 'Agendado',
+  'complete': () => 'Pendente Validação'
+};
+
+// Extra data to include with updates based on action
+function getExtraUpdateData(action: string, data?: any): Record<string, any> {
+  switch(action) {
+    case 'reject':
+      return { rejection_reason: data?.reason || '' };
+    case 'schedule':
+      return { scheduled_datetime: data?.datetime || null };
+    case 'reschedule':
+      return { 
+        scheduled_datetime: data?.datetime || null,
+        reschedule_reason: data?.reason || '' 
+      };
+    case 'complete':
+      return { validation_reminder_count: 0 };
+    case 'accept':
+      if (data?.datetime) {
+        return { scheduled_datetime: data.datetime };
+      }
+      return {};
+    default:
+      return {};
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -25,17 +90,18 @@ serve(async (req) => {
     console.log('Data received:', JSON.stringify(data));
 
     if (!token || !action) {
-      return new Response(
-        JSON.stringify({ error: 'Parâmetros inválidos' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      return handleError('Parâmetros inválidos', null, 400);
+    }
+    
+    // Validate action type
+    if (!tokenFieldMap[action]) {
+      return handleError('Ação inválida', null, 400);
     }
 
-    // Validate token and get assistance
-    let tokenField;
-    let updateData: any = {};
-    
-    // Try to fetch valid statuses from database
+    // Get token field for this action
+    const tokenField = tokenFieldMap[action];
+
+    // Get valid status values from the database
     console.log('Fetching valid statuses from database');
     const { data: statusValues, error: statusError } = await supabase
       .from('valid_statuses')
@@ -64,50 +130,15 @@ serve(async (req) => {
     
     console.log(`Using ${validStatuses.length} valid statuses:`, validStatuses);
     
-    let newStatus = '';
-
-    switch(action) {
-      case 'accept':
-        tokenField = 'acceptance_token';
-        // If scheduling data is provided in the same action
-        if (data?.datetime) {
-          updateData.scheduled_datetime = data.datetime;
-          newStatus = 'Agendado';
-        } else {
-          newStatus = 'Pendente Agendamento';
-        }
-        break;
-      case 'reject':
-        tokenField = 'acceptance_token';
-        newStatus = 'Recusada Fornecedor';
-        updateData = { rejection_reason: data?.reason || '' };
-        break;
-      case 'schedule':
-        tokenField = 'scheduling_token';
-        newStatus = 'Agendado';
-        updateData = { scheduled_datetime: data?.datetime || null };
-        break;
-      case 'reschedule':
-        tokenField = 'scheduling_token';
-        newStatus = 'Agendado';
-        updateData = { 
-          scheduled_datetime: data?.datetime || null,
-          reschedule_reason: data?.reason || '' 
-        };
-        break;
-      case 'complete':
-        tokenField = 'validation_token';
-        newStatus = 'Pendente Validação';
-        updateData.validation_reminder_count = 0;
-        break;
-      default:
-        return new Response(
-          JSON.stringify({ error: 'Ação inválida' }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+    // Determine the new status based on the action
+    const determineStatus = statusTransitions[action] || (() => '');
+    const newStatus = determineStatus(data);
+    
+    if (!newStatus) {
+      return handleError('Status não pôde ser determinado para esta ação', null, 400);
     }
     
-    // Check if status is valid (case-insensitive match)
+    // Validate the new status against the list of valid statuses (case-insensitive)
     let validStatus = false;
     let matchedStatus = '';
     
@@ -121,31 +152,46 @@ serve(async (req) => {
     
     if (!validStatus) {
       console.error(`Invalid status: ${newStatus}. Not found in valid statuses list.`);
-      return new Response(
-        JSON.stringify({ 
-          error: `Status inválido: ${newStatus}. Não encontrado na lista de status válidos.`,
-          validStatuses: validStatuses 
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      return handleError(
+        `Status inválido: ${newStatus}. Não encontrado na lista de status válidos.`,
+        { validStatuses },
+        400
       );
     }
     
     // Use the matched status with exact casing from validStatuses
-    newStatus = matchedStatus;
-    console.log(`Using validated status: ${newStatus}`);
-
-    return await processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders);
+    const validatedStatus = matchedStatus;
+    console.log(`Using validated status: ${validatedStatus}`);
+    
+    try {
+      const result = await processAssistance(
+        supabase, 
+        token, 
+        tokenField, 
+        getExtraUpdateData(action, data), 
+        validatedStatus, 
+        action, 
+        data
+      );
+      return result;
+    } catch (error) {
+      return handleError('Erro ao processar assistência', error.message);
+    }
     
   } catch (error) {
-    console.error('Erro:', error.message);
-    return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor', details: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    );
+    return handleError('Erro interno do servidor', error.message);
   }
 });
 
-async function processAssistance(supabase, token, tokenField, updateData, newStatus, action, data, corsHeaders) {
+async function processAssistance(
+  supabase, 
+  token, 
+  tokenField, 
+  updateData, 
+  newStatus, 
+  action, 
+  data
+) {
   try {
     // Get assistance with the provided token
     const { data: assistance, error: assistanceError } = await supabase
@@ -156,9 +202,9 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
 
     if (assistanceError) {
       console.error('Erro ao buscar assistência:', assistanceError);
-      return new Response(
-        JSON.stringify({ error: 'Token inválido ou assistência não encontrada' }),
-        { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      return createCorsResponse(
+        { error: 'Token inválido ou assistência não encontrada' },
+        404
       );
     }
 
@@ -166,53 +212,14 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
 
     // Handle file upload for completion action
     if (action === 'complete' && data?.photoBase64) {
-      try {
-        // Check if bucket exists
-        const { data: bucketData, error: bucketError } = await supabase
-          .storage.getBucket('completion-photos');
-          
-        if (bucketError) {
-          console.log('Bucket does not exist, creating it...');
-          // Bucket doesn't exist, create it
-          await supabase.storage.createBucket('completion-photos', { 
-            public: true 
-          });
-        } else {
-          console.log('Bucket already exists:', bucketData);
-        }
-      } catch (e) {
-        console.error('Erro ao verificar/criar bucket:', e);
+      const photoUrl = await uploadCompletionPhoto(
+        supabase, 
+        assistance.id, 
+        data.photoBase64
+      );
+      if (photoUrl) {
+        updateData.completion_photo_url = photoUrl;
       }
-
-      // Convert base64 to file
-      const base64Data = data.photoBase64.split(',')[1];
-      const photoBuffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
-      
-      // Upload to storage
-      const fileName = `assistance_${assistance.id}_completion_${Date.now()}.jpg`;
-      const { data: uploadData, error: uploadError } = await supabase
-        .storage
-        .from('completion-photos')
-        .upload(fileName, photoBuffer, {
-          contentType: 'image/jpeg',
-          upsert: true
-        });
-
-      if (uploadError) {
-        console.error('Erro ao fazer upload da foto:', uploadError);
-        return new Response(
-          JSON.stringify({ error: 'Erro ao fazer upload da foto' }),
-          { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
-      }
-
-      // Get public URL
-      const { data: publicUrlData } = supabase
-        .storage
-        .from('completion-photos')
-        .getPublicUrl(fileName);
-
-      updateData.completion_photo_url = publicUrlData.publicUrl;
     }
 
     // Update assistance status and data
@@ -221,7 +228,7 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
 
     console.log('Updating assistance with data:', updateData);
     
-    // Get current valid values to debug any issues
+    // Get current status to debug any issues
     const { data: currentStatus, error: currentStatusError } = await supabase
       .from('assistances')
       .select('status')
@@ -234,27 +241,23 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
       console.log('Current status:', currentStatus.status);
     }
 
-    // Check if the status from updateData matches a valid status in valid_statuses table
+    // Verify status existence in valid_statuses table
     const { data: validCheck, error: validCheckError } = await supabase
       .from('valid_statuses')
       .select('status_value')
-      .eq('status_value', updateData.status)
+      .eq('status_value', newStatus)
       .single();
       
     if (validCheckError) {
       console.error('Status validation check failed:', validCheckError);
-      console.log('Attempted status was:', updateData.status);
+      console.log('Attempted status was:', newStatus);
       
-      return new Response(
-        JSON.stringify({ 
-          error: 'O status especificado não existe na lista de status válidos.',
-          details: `Tentativa de status: ${updateData.status}`
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      return createCorsResponse({ 
+        error: 'O status especificado não existe na lista de status válidos.',
+        details: `Tentativa de status: ${newStatus}`
+      }, 400);
     }
     
-    // Status is valid according to the database, proceed with update
     console.log('Status validated successfully, proceeding with update');
     
     // Update the assistance
@@ -266,13 +269,10 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
     if (updateError) {
       console.error('Erro ao atualizar assistência:', updateError);
       
-      return new Response(
-        JSON.stringify({ 
-          error: `Erro ao processar ação: ${updateError.message}`,
-          details: `Status: ${updateData.status}`
-        }),
-        { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      return createCorsResponse({ 
+        error: `Erro ao processar ação: ${updateError.message}`,
+        details: `Status: ${updateData.status}`
+      }, 500);
     }
 
     // Log the activity
@@ -289,15 +289,64 @@ async function processAssistance(supabase, token, tokenField, updateData, newSta
       // Continue without failing if logging fails
     }
 
-    return new Response(
-      JSON.stringify({ success: true, message: 'Ação processada com sucesso' }),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    );
+    return createCorsResponse({ 
+      success: true, 
+      message: 'Ação processada com sucesso' 
+    });
   } catch (error) {
     console.error('Erro no processamento:', error.message);
-    return new Response(
-      JSON.stringify({ error: 'Erro ao processar assistência', details: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    );
+    return createCorsResponse({ 
+      error: 'Erro ao processar assistência', 
+      details: error.message 
+    }, 500);
   }
+}
+
+// Helper function to upload completion photos
+async function uploadCompletionPhoto(supabase, assistanceId, photoBase64) {
+  try {
+    // Check if bucket exists
+    const { data: bucketData, error: bucketError } = await supabase
+      .storage.getBucket('completion-photos');
+      
+    if (bucketError) {
+      console.log('Bucket does not exist, creating it...');
+      // Bucket doesn't exist, create it
+      await supabase.storage.createBucket('completion-photos', { 
+        public: true 
+      });
+    } else {
+      console.log('Bucket already exists:', bucketData);
+    }
+  } catch (e) {
+    console.error('Erro ao verificar/criar bucket:', e);
+    return null;
+  }
+
+  // Convert base64 to file
+  const base64Data = photoBase64.split(',')[1];
+  const photoBuffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+  
+  // Upload to storage
+  const fileName = `assistance_${assistanceId}_completion_${Date.now()}.jpg`;
+  const { data: uploadData, error: uploadError } = await supabase
+    .storage
+    .from('completion-photos')
+    .upload(fileName, photoBuffer, {
+      contentType: 'image/jpeg',
+      upsert: true
+    });
+
+  if (uploadError) {
+    console.error('Erro ao fazer upload da foto:', uploadError);
+    return null;
+  }
+
+  // Get public URL
+  const { data: publicUrlData } = supabase
+    .storage
+    .from('completion-photos')
+    .getPublicUrl(fileName);
+
+  return publicUrlData.publicUrl;
 }

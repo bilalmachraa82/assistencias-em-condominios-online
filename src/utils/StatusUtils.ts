@@ -78,7 +78,12 @@ export function getStatusBadgeClass(status: string): string {
 
 // Get the next possible statuses based on current status
 export function getNextPossibleStatuses(currentStatus: string): AssistanceStatus[] {
-  switch(currentStatus) {
+  const matchedStatus = findMatchingStatus(currentStatus);
+  if (!matchedStatus) {
+    return [];
+  }
+  
+  switch(matchedStatus) {
     case 'Pendente Resposta Inicial':
       return ['Pendente Aceitação', 'Cancelado'];
     case 'Pendente Aceitação':

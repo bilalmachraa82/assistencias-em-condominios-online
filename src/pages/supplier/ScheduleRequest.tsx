@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Building, CalendarIcon, Clock, Wrench } from 'lucide-react';
-import { format, addDays, parse, isValid } from 'date-fns';
+import { Building, CalendarIcon, Wrench } from 'lucide-react';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import SupplierActionLayout from '@/components/supplier/SupplierActionLayout';
+import { submitSupplierAction, fetchAssistanceData, getTypeBadgeClass } from '@/utils/SupplierActionUtils';
 
 export default function ScheduleRequest() {
   const [searchParams] = useSearchParams();
@@ -39,25 +40,12 @@ export default function ScheduleRequest() {
       return;
     }
     
-    const fetchAssistance = async () => {
-      try {
-        const response = await fetch(
-          `https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=schedule&token=${token}`,
-          {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        const result = await response.json();
-        
-        if (!response.ok) {
-          setError(result.error || 'Erro ao carregar os detalhes da assistência');
-          setLoading(false);
-          return;
-        }
-        
+    const loadAssistance = async () => {
+      const result = await fetchAssistanceData('schedule', token);
+      
+      if (!result.success) {
+        setError(result.error || 'Erro ao carregar os detalhes da assistência');
+      } else {
         setAssistance(result.data);
         
         // If there's already a scheduled date, select it
@@ -67,16 +55,12 @@ export default function ScheduleRequest() {
           setSelectedTime(format(date, 'HH:mm'));
           setIsReschedule(true);
         }
-        
-        setLoading(false);
-      } catch (err) {
-        console.error('Erro ao buscar assistência:', err);
-        setError('Erro ao carregar os detalhes da assistência. Por favor, tente novamente mais tarde.');
-        setLoading(false);
       }
+      
+      setLoading(false);
     };
     
-    fetchAssistance();
+    loadAssistance();
   }, [token]);
 
   const handleSchedule = async () => {
@@ -92,52 +76,20 @@ export default function ScheduleRequest() {
     const scheduledDate = new Date(selectedDate);
     scheduledDate.setHours(hours, minutes);
     
-    try {
-      const response = await fetch(
-        'https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/submit-supplier-action',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            action: isReschedule ? 'reschedule' : 'schedule',
-            token,
-            data: {
-              datetime: scheduledDate.toISOString(),
-              reason: rescheduleReason
-            }
-          })
-        }
-      );
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        toast.error(result.error || 'Erro ao agendar assistência');
-        setSubmitting(false);
-        return;
+    const result = await submitSupplierAction(
+      isReschedule ? 'reschedule' : 'schedule',
+      token!, 
+      {
+        datetime: scheduledDate.toISOString(),
+        reason: rescheduleReason
       }
-      
+    );
+    
+    if (result.success) {
       toast.success(`Assistência ${isReschedule ? 'reagendada' : 'agendada'} com sucesso!`);
       navigate(`/supplier/confirmation?action=${isReschedule ? 'rescheduled' : 'scheduled'}`);
-    } catch (err) {
-      console.error('Erro ao agendar assistência:', err);
-      toast.error('Erro ao processar sua solicitação. Por favor, tente novamente.');
+    } else {
       setSubmitting(false);
-    }
-  };
-
-  const getTypeBadgeClass = (type: string) => {
-    switch (type) {
-      case 'Normal':
-        return 'bg-green-500/20 text-green-300';
-      case 'Urgente':
-        return 'bg-orange-500/20 text-orange-300';
-      case 'Emergência':
-        return 'bg-red-500/20 text-red-300';
-      default:
-        return 'bg-gray-500/20 text-gray-300';
     }
   };
 

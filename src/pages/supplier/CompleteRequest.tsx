@@ -2,10 +2,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Building, Camera, Upload, Check, Wrench } from 'lucide-react';
+import { Camera, Check, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import SupplierActionLayout from '@/components/supplier/SupplierActionLayout';
+import { submitSupplierAction, fetchAssistanceData, getTypeBadgeClass } from '@/utils/SupplierActionUtils';
+import { Building } from 'lucide-react';
 
 export default function CompleteRequest() {
   const [searchParams] = useSearchParams();
@@ -27,35 +28,19 @@ export default function CompleteRequest() {
       return;
     }
     
-    const fetchAssistance = async () => {
-      try {
-        const response = await fetch(
-          `https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=validate&token=${token}`,
-          {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        const result = await response.json();
-        
-        if (!response.ok) {
-          setError(result.error || 'Erro ao carregar os detalhes da assistência');
-          setLoading(false);
-          return;
-        }
-        
+    const loadAssistance = async () => {
+      const result = await fetchAssistanceData('validate', token);
+      
+      if (!result.success) {
+        setError(result.error || 'Erro ao carregar os detalhes da assistência');
+      } else {
         setAssistance(result.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Erro ao buscar assistência:', err);
-        setError('Erro ao carregar os detalhes da assistência. Por favor, tente novamente mais tarde.');
-        setLoading(false);
       }
+      
+      setLoading(false);
     };
     
-    fetchAssistance();
+    loadAssistance();
   }, [token]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,51 +73,16 @@ export default function CompleteRequest() {
     }
     
     setSubmitting(true);
-    try {
-      const response = await fetch(
-        'https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/submit-supplier-action',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            action: 'complete',
-            token,
-            data: {
-              photoBase64: photo
-            }
-          })
-        }
-      );
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        toast.error(result.error || 'Erro ao completar assistência');
-        setSubmitting(false);
-        return;
-      }
-      
+    
+    const result = await submitSupplierAction('complete', token!, {
+      photoBase64: photo
+    });
+    
+    if (result.success) {
       toast.success('Assistência marcada como concluída com sucesso!');
       navigate('/supplier/confirmation?action=completed');
-    } catch (err) {
-      console.error('Erro ao completar assistência:', err);
-      toast.error('Erro ao processar sua solicitação. Por favor, tente novamente.');
+    } else {
       setSubmitting(false);
-    }
-  };
-
-  const getTypeBadgeClass = (type: string) => {
-    switch (type) {
-      case 'Normal':
-        return 'bg-green-500/20 text-green-300';
-      case 'Urgente':
-        return 'bg-orange-500/20 text-orange-300';
-      case 'Emergência':
-        return 'bg-red-500/20 text-red-300';
-      default:
-        return 'bg-gray-500/20 text-gray-300';
     }
   };
 
