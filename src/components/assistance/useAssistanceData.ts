@@ -1,7 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,8 +12,9 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [fetchError, setFetchError] = useState<Error | null>(null);
 
-  // Fetch assistances
+  // Fetch assistances with better error handling
   const { 
     data: assistances, 
     isLoading: isAssistancesLoading, 
@@ -36,6 +38,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
         
         if (error) {
           console.error('Error fetching assistances:', error);
+          setFetchError(new Error(error.message));
           throw error;
         }
         
@@ -43,7 +46,9 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
         return data || [];
       } catch (err) {
         console.error('Exception in assistance fetch:', err);
-        throw err;
+        setFetchError(err instanceof Error ? err : new Error('Unknown error'));
+        // Return empty array instead of throwing to prevent query from going into error state
+        return [];
       }
     },
     staleTime: 0,
@@ -52,7 +57,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     refetchOnWindowFocus: false
   });
 
-  // Fetch buildings
+  // Fetch buildings with better error handling
   const { 
     data: buildings, 
     isLoading: isBuildingsLoading,
@@ -73,13 +78,22 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
         return data || [];
       } catch (err) {
         console.error('Exception in buildings fetch:', err);
-        throw err;
+        // Return empty array instead of throwing
+        return [];
       }
     },
     retry: 2,
     retryDelay: 1000,
     refetchOnWindowFocus: false
   });
+
+  // Show toast once when there's an error
+  useEffect(() => {
+    if (assistancesError || buildingsError) {
+      const errorMessage = (assistancesError || buildingsError)?.message || 'Error fetching data';
+      toast.error(`Failed to load data: ${errorMessage}`);
+    }
+  }, [assistancesError, buildingsError]);
 
   // Apply filters to assistances
   const filteredAssistances = assistances?.filter((assistance) => {
@@ -106,14 +120,14 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     }
 
     return true;
-  });
+  }) || [];
 
   // Calculate total items and pages
-  const totalItems = filteredAssistances?.length || 0;
+  const totalItems = filteredAssistances.length || 0;
   const totalPages = Math.ceil(totalItems / pageSize);
 
   // Get paginated items
-  const paginatedAssistances = filteredAssistances?.slice(
+  const paginatedAssistances = filteredAssistances.slice(
     (page - 1) * pageSize,
     page * pageSize
   );
@@ -129,17 +143,25 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     setPage(1); // Reset to first page when changing page size
   };
 
-  // Force a refresh of the data
+  // Force a refresh of the data with better error handling
   const forceRefresh = async () => {
     console.log('Force refreshing assistance data...');
     setRefreshTrigger(prev => prev + 1); // Increment to trigger refetch
     try {
       const result = await refetchAssistances();
       console.log('Data refresh complete', result.data?.length || 0, 'records');
-      return result;
+      
+      if (result.isError) {
+        toast.error(`Failed to refresh: ${result.error.message}`);
+        return { success: false, error: result.error };
+      }
+      
+      return { success: true, data: result.data };
     } catch (err) {
-      console.error('Error during forced refresh:', err);
-      throw err;
+      const error = err instanceof Error ? err : new Error('Unknown error during refresh');
+      console.error('Error during forced refresh:', error);
+      toast.error(`Failed to refresh: ${error.message}`);
+      return { success: false, error };
     }
   };
 
@@ -152,6 +174,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     isBuildingsLoading,
     assistancesError,
     buildingsError,
+    fetchError,
     refetchAssistances: forceRefresh,
     pagination: {
       currentPage: page,

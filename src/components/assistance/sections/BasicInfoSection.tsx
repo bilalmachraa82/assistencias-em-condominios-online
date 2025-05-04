@@ -26,6 +26,11 @@ export default function BasicInfoSection({
   formatDateTime,
   isSubmitting
 }: BasicInfoSectionProps) {
+  // Handle situation where assistance might be null or undefined
+  if (!assistance) {
+    return <div className="text-sm text-muted-foreground">Carregando dados da assistência...</div>;
+  }
+
   const handleStatusChange = (value: string) => {
     console.log('Status changed to:', value);
     setStatus(value);
@@ -77,7 +82,7 @@ export default function BasicInfoSection({
           </Select>
         ) : (
           <div className="mt-1">
-            <StatusBadge status={assistance.status} />
+            <StatusBadge status={assistance.status || 'Desconhecido'} />
           </div>
         )}
       </div>
@@ -106,7 +111,7 @@ export default function BasicInfoSection({
       </div>
       
       {(assistance.status === 'Pendente Validação' || 
-        assistance.validation_reminder_count > 0) && (
+        (assistance.validation_reminder_count && assistance.validation_reminder_count > 0)) && (
         <div>
           <h3 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4" /> Lembretes de Validação
@@ -115,7 +120,7 @@ export default function BasicInfoSection({
             Último lembrete: {assistance.validation_email_sent_at ? formatDateTime(assistance.validation_email_sent_at) : 'Nenhum'}
           </p>
           <p className="mt-1 text-sm">
-            Total de lembretes: {assistance.validation_reminder_count}
+            Total de lembretes: {assistance.validation_reminder_count || 0}
           </p>
         </div>
       )}
