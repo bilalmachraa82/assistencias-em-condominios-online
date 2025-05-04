@@ -5,6 +5,7 @@ import "./index.css";
 import Buildings from "./pages/Buildings";
 import Suppliers from "./pages/Suppliers";
 import Assistencias from "./pages/Assistencias";
+import AssistenciasDashboard from "./pages/AssistenciasDashboard";
 import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
 import NotFound from "./pages/NotFound";
 
@@ -17,7 +18,7 @@ import Confirmation from "./pages/supplier/Confirmation";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Assistencias />,
+    element: <AssistenciasDashboard />,
   },
   {
     path: "/buildings",
@@ -29,7 +30,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/assistencias",
-    element: <Assistencias />,
+    element: <AssistenciasDashboard />,
   },
   {
     path: "/configuracao-servicos",
