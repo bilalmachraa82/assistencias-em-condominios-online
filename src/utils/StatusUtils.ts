@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import React from 'react';
 
 // Type definition for valid status
 export type ValidStatus = {
@@ -40,9 +41,9 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
       throw error;
     }
     
-    cachedStatuses = data;
+    cachedStatuses = data as ValidStatus[];
     lastFetch = now;
-    return data;
+    return data as ValidStatus[];
   } catch (err) {
     console.error('Failed to fetch valid statuses:', err);
     // Fallback to empty array if fetch fails
@@ -110,7 +111,6 @@ export function getStatusBadgeClass(status: string, hexColor?: string): string {
  */
 function generateBadgeClass(hexColor: string): string {
   // Create rgba for transparent background
-  const hexWithoutHash = hexColor.replace('#', '');
   return `bg-[${hexColor}]/20 text-[${hexColor}] border-[${hexColor}]/30`;
 }
 
@@ -125,31 +125,4 @@ export function getStatusDisplayGroups() {
     { label: 'Concluídos', value: ['Concluído'] },
     { label: 'Problemáticos', value: ['Recusada Fornecedor', 'Validação Expirada', 'Reagendamento Solicitado', 'Cancelado'] }
   ];
-}
-
-// Create a hook to use these statuses in components
-export function useValidStatuses() {
-  const [statuses, setStatuses] = React.useState<ValidStatus[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [error, setError] = React.useState<Error | null>(null);
-
-  React.useEffect(() => {
-    const loadStatuses = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchValidStatuses();
-        setStatuses(data);
-        setError(null);
-      } catch (err) {
-        console.error('Error loading valid statuses:', err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStatuses();
-  }, []);
-
-  return { statuses, loading, error };
 }

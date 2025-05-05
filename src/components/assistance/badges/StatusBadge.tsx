@@ -2,36 +2,31 @@
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { fetchValidStatuses } from '@/utils/StatusUtils';
+import useValidStatuses from '@/hooks/useValidStatuses';
 
 interface StatusBadgeProps {
   status: string;
 }
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
+  const { statuses, loading } = useValidStatuses();
   const [statusInfo, setStatusInfo] = useState<{
     hexColor: string;
     label: string;
   } | null>(null);
   
   useEffect(() => {
-    const getStatusInfo = async () => {
-      try {
-        const statuses = await fetchValidStatuses();
-        const matchedStatus = statuses.find(s => s.status_value === status);
-        
-        if (matchedStatus) {
-          setStatusInfo({
-            hexColor: matchedStatus.hex_color,
-            label: matchedStatus.label_pt || status
-          });
-        }
-      } catch (error) {
-        console.error('Error loading status info:', error);
+    if (!loading && statuses.length > 0) {
+      const matchedStatus = statuses.find(s => s.status_value === status);
+      
+      if (matchedStatus) {
+        setStatusInfo({
+          hexColor: matchedStatus.hex_color,
+          label: matchedStatus.label_pt || status
+        });
       }
-    };
-    
-    getStatusInfo();
-  }, [status]);
+    }
+  }, [status, statuses, loading]);
   
   // Generate styling from hex color
   const getBadgeStyles = () => {

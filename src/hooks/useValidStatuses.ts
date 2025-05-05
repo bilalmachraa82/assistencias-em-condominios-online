@@ -13,6 +13,7 @@ export default function useValidStatuses() {
         setLoading(true);
         const data = await fetchValidStatuses();
         setStatuses(data);
+        setError(null);
       } catch (err) {
         console.error('Error loading valid statuses:', err);
         setError(err instanceof Error ? err : new Error(String(err)));

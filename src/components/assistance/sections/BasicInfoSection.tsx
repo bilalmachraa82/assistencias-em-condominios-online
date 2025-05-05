@@ -11,7 +11,7 @@ interface BasicInfoSectionProps {
   isEditing: boolean;
   status: string;
   setStatus: (value: string) => void;
-  statuses: string[];
+  statuses: any[];
   formatDate: (date: string) => string;
   formatDateTime: (date: string) => string;
   isSubmitting: boolean;
