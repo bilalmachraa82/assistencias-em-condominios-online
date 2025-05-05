@@ -1,25 +1,28 @@
 
 import React, { useState, useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge";
+import { getStatusBadgeClass } from '@/utils/StatusUtils';
 import useValidStatuses from '@/hooks/useValidStatuses';
-import { ValidStatus } from '@/types/assistance';
 
 interface StatusBadgeProps {
   status: string;
 }
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
+  const [badgeClass, setBadgeClass] = useState("");
+  const [statusInfo, setStatusInfo] = useState({ hexColor: '', label: status });
   const { statuses, loading } = useValidStatuses();
-  const [statusInfo, setStatusInfo] = useState<{
-    hexColor: string;
-    label: string;
-  } | null>(null);
   
   useEffect(() => {
+    // Initial default class
+    setBadgeClass(getStatusBadgeClass(status));
+    
+    // Once statuses are loaded, find the matching status and update the badge
     if (!loading && statuses.length > 0) {
       const matchedStatus = statuses.find(s => s.status_value === status);
       
       if (matchedStatus) {
+        setBadgeClass(getStatusBadgeClass(status, matchedStatus.hex_color));
         setStatusInfo({
           hexColor: matchedStatus.hex_color || '#888888',
           label: matchedStatus.label_pt || status
@@ -28,24 +31,12 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
     }
   }, [status, statuses, loading]);
   
-  // Generate styling from hex color
-  const getBadgeStyles = () => {
-    if (!statusInfo?.hexColor) return {};
-    
-    return {
-      backgroundColor: `${statusInfo.hexColor}20`, // 20 = 12% opacity
-      color: statusInfo.hexColor,
-      borderColor: `${statusInfo.hexColor}30` // 30 = 19% opacity
-    };
-  };
-  
   return (
     <Badge 
       variant="outline" 
-      className="whitespace-nowrap font-medium"
-      style={statusInfo ? getBadgeStyles() : undefined}
+      className={`${badgeClass} px-2 py-1 text-xs font-medium`}
     >
-      {statusInfo?.label || status}
+      {statusInfo.label}
     </Badge>
   );
 }
