@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ValidStatus } from '@/types/assistance';
 
@@ -21,16 +22,21 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
     const { data, error } = await supabase
       .from('valid_statuses')
       .select('*')
-      .order('sort_order');
+      .order('display_order');
     
     if (error) {
       console.error('Error fetching valid statuses:', error);
       throw error;
     }
     
-    cachedStatuses = data as ValidStatus[];
-    lastFetch = now;
-    return data as ValidStatus[];
+    // Ensure we have valid data before caching
+    if (data && Array.isArray(data)) {
+      cachedStatuses = data as ValidStatus[];
+      lastFetch = now;
+      return data as ValidStatus[];
+    }
+    
+    return [];
   } catch (err) {
     console.error('Failed to fetch valid statuses:', err);
     return [];
@@ -42,7 +48,7 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
  */
 export async function getValidStatusValues(): Promise<string[]> {
   const statuses = await fetchValidStatuses();
-  return statuses.map(s => s.status_value);
+  return statuses.filter(s => s && s.status_value).map(s => s.status_value);
 }
 
 /**

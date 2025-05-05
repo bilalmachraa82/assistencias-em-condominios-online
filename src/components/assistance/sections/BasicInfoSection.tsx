@@ -69,9 +69,9 @@ export default function BasicInfoSection({
               <SelectValue placeholder="Selecione um status" />
             </SelectTrigger>
             <SelectContent>
-              {statuses.map((s) => (
-                <SelectItem key={s.status_value} value={s.status_value}>
-                  {s.label_pt || s.status_value}
+              {statuses && statuses.map((s) => (
+                <SelectItem key={s.status_value} value={s.status_value || ''}>
+                  {s.label_pt || s.status_value || ''}
                 </SelectItem>
               ))}
             </SelectContent>
