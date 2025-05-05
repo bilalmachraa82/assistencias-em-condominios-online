@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -55,14 +54,11 @@ export default function AssistanceDetails({
   // ------------------------------------------------------------------
   const statusMap = React.useMemo(() => {
     const map: Record<string, ValidStatus> = {};
-    for (const s of statuses) {
-      map[s.status_value] = s;
-    }
+    statuses.forEach((s) => { map[s.status_value] = s; });
     return map;
   }, [statuses]);
 
-  const badgeColor =
-    statusMap[assistance.status]?.hex_color ?? '#6b7280';
+  const badgeColor = statusMap[assistance.status]?.hex_color ?? '#6b7280';
 
   // Update state when assistance changes - using useEffect properly
   useEffect(() => {
