@@ -4,7 +4,7 @@ import { Building, Wrench, User, AlertTriangle, Calendar, Clock } from 'lucide-r
 import StatusBadge from '../badges/StatusBadge';
 import TypeBadge from '../badges/TypeBadge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { VALID_STATUS_VALUES } from '@/utils/StatusUtils';
+import useValidStatuses from '@/hooks/useValidStatuses';
 
 interface BasicInfoSectionProps {
   assistance: any;
@@ -22,20 +22,20 @@ export default function BasicInfoSection({
   isEditing, 
   status, 
   setStatus,
-  statuses,
+  statuses: _, // Ignore passed statuses, we'll use our hook instead
   formatDate,
   formatDateTime,
   isSubmitting
 }: BasicInfoSectionProps) {
+  // Use our new hook to get statuses from the database
+  const { statuses: validStatuses, loading: loadingStatuses } = useValidStatuses();
+  
   const handleStatusChange = (value: string) => {
     console.log('Status changed to:', value);
     setStatus(value);
   };
 
-  // Use the provided statuses list, but fall back to VALID_STATUS_VALUES if statuses is empty
-  const statusOptions = statuses && statuses.length > 0 ? statuses : VALID_STATUS_VALUES;
-
-  console.log('Available status options:', statusOptions);
+  console.log('Available status options from DB:', validStatuses);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -68,17 +68,21 @@ export default function BasicInfoSection({
           <Select 
             value={status} 
             onValueChange={handleStatusChange}
-            disabled={isSubmitting}
+            disabled={isSubmitting || loadingStatuses}
           >
             <SelectTrigger className="w-full mt-1">
               <SelectValue placeholder="Selecione um status" />
             </SelectTrigger>
             <SelectContent>
-              {statusOptions.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
+              {loadingStatuses ? (
+                <SelectItem value="loading" disabled>Carregando...</SelectItem>
+              ) : (
+                validStatuses.map((s) => (
+                  <SelectItem key={s.status_value} value={s.status_value}>
+                    {s.label_pt}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         ) : (

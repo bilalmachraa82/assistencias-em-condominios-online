@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { generateToken } from '@/utils/TokenUtils';
-import { VALID_STATUSES } from '@/utils/StatusUtils';
+import { fetchValidStatuses } from '@/utils/StatusUtils';
 
 export default async function useCreateAssistance(
   formData: any, 
@@ -15,6 +15,23 @@ export default async function useCreateAssistance(
     const scheduling_token = generateToken();
     const validation_token = generateToken();
     
+    // Get valid statuses from DB to ensure we use a valid initial status
+    let initialStatus = 'Pendente Resposta Inicial';
+    try {
+      const validStatuses = await fetchValidStatuses();
+      // Verify the status exists in the database
+      if (!validStatuses.some(s => s.status_value === initialStatus)) {
+        // If not found, use the first status in the list
+        if (validStatuses.length > 0) {
+          initialStatus = validStatuses[0].status_value;
+        }
+        console.warn(`Status warning: Defaulting to ${initialStatus}`);
+      }
+    } catch (e) {
+      console.error('Error fetching valid statuses:', e);
+      // Continue with default status
+    }
+    
     console.log("Creating assistance with data:", {
       ...formData,
       interaction_token,
@@ -22,17 +39,12 @@ export default async function useCreateAssistance(
       scheduling_token,
       validation_token,
       building_id: selectedBuilding?.id,
-      status: 'Pendente Resposta Inicial'
+      status: initialStatus
     });
 
     // Make sure tokens are properly generated
     if (!interaction_token || !acceptance_token || !scheduling_token || !validation_token) {
       throw new Error('Falha ao gerar tokens de assistência');
-    }
-
-    // Ensure status is valid
-    if (!VALID_STATUSES.includes('Pendente Resposta Inicial' as any)) {
-      console.warn('Status warning: Using default status despite not being in VALID_STATUSES list');
     }
 
     const { data, error } = await supabase
@@ -45,7 +57,7 @@ export default async function useCreateAssistance(
           scheduling_token,
           validation_token,
           building_id: selectedBuilding?.id,
-          status: 'Pendente Resposta Inicial',
+          status: initialStatus,
           alert_level: 1
         }
       ])

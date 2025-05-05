@@ -1,53 +1,82 @@
 
-// All valid status values - these should match the database
-export const VALID_STATUSES = [
-  'Pendente Resposta Inicial',
-  'Pendente Aceitação',
-  'Recusada Fornecedor',
-  'Pendente Agendamento',
-  'Agendado',
-  'Em Progresso',
-  'Pendente Validação',
-  'Concluído',
-  'Reagendamento Solicitado',
-  'Validação Expirada',
-  'Cancelado'
-] as const;
+import { supabase } from '@/integrations/supabase/client';
 
-// Create a mutable version that can be used where string[] is expected
-export const VALID_STATUS_VALUES: string[] = [...VALID_STATUSES];
+// Type definition for valid status
+export type ValidStatus = {
+  status_value: string;
+  label_pt: string;
+  label_en?: string;
+  hex_color: string;
+  sort_order: number;
+};
 
-export type AssistanceStatus = typeof VALID_STATUSES[number];
+// Type for the status value alone (for type safety)
+export type AssistanceStatus = string;
 
-/**
- * Check if a status is valid
- * This function is case-sensitive and space-sensitive
- */
-export function isValidStatus(status: string): status is AssistanceStatus {
-  return VALID_STATUSES.includes(status as AssistanceStatus);
-}
+// Cache valid statuses to avoid too many DB requests
+let cachedStatuses: ValidStatus[] | null = null;
+let lastFetch: number = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 /**
- * Find a valid status that matches the given status (case-insensitive)
- * This is helpful for fixing status values from external sources
+ * Fetch valid statuses from the database
  */
-export function findMatchingStatus(status: string): AssistanceStatus | null {
-  // First check for exact match
-  if (isValidStatus(status)) {
-    return status;
+export async function fetchValidStatuses(): Promise<ValidStatus[]> {
+  const now = Date.now();
+  
+  // Use cache if available and not expired
+  if (cachedStatuses && lastFetch + CACHE_TTL > now) {
+    return cachedStatuses;
   }
   
-  // Try case-insensitive match
-  const normalizedStatus = status.toLowerCase().trim();
-  const match = VALID_STATUSES.find(
-    s => s.toLowerCase().trim() === normalizedStatus
-  );
-  
-  return match || null;
+  try {
+    const { data, error } = await supabase
+      .from('valid_statuses')
+      .select('*')
+      .order('sort_order');
+    
+    if (error) {
+      console.error('Error fetching valid statuses:', error);
+      throw error;
+    }
+    
+    cachedStatuses = data;
+    lastFetch = now;
+    return data;
+  } catch (err) {
+    console.error('Failed to fetch valid statuses:', err);
+    // Fallback to empty array if fetch fails
+    return [];
+  }
 }
 
-// Get the CSS class for a status badge
-export function getStatusBadgeClass(status: string): string {
+/**
+ * Get all valid status values (just the strings)
+ */
+export async function getValidStatusValues(): Promise<string[]> {
+  const statuses = await fetchValidStatuses();
+  return statuses.map(s => s.status_value);
+}
+
+/**
+ * Check if a status is valid by comparing with values from the database
+ */
+export async function isValidStatus(status: string): Promise<boolean> {
+  const validValues = await getValidStatusValues();
+  return validValues.includes(status);
+}
+
+/**
+ * Get the UI class for a status badge based on hex_color from the database
+ */
+export function getStatusBadgeClass(status: string, hexColor?: string): string {
+  // If we have the hex color directly, use it to generate a compatible class
+  if (hexColor) {
+    return generateBadgeClass(hexColor);
+  }
+
+  // Fallback to hardcoded classes for backwards compatibility
+  // These will be replaced when the component gets the actual data from the database
   switch(status) {
     case 'Pendente Resposta Inicial':
       return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
@@ -76,42 +105,18 @@ export function getStatusBadgeClass(status: string): string {
   }
 }
 
-// Get the next possible statuses based on current status
-export function getNextPossibleStatuses(currentStatus: string): AssistanceStatus[] {
-  const matchedStatus = findMatchingStatus(currentStatus);
-  if (!matchedStatus) {
-    return [];
-  }
-  
-  switch(matchedStatus) {
-    case 'Pendente Resposta Inicial':
-      return ['Pendente Aceitação', 'Cancelado'];
-    case 'Pendente Aceitação':
-      return ['Pendente Agendamento', 'Recusada Fornecedor', 'Cancelado'];
-    case 'Pendente Agendamento':
-      return ['Agendado', 'Cancelado'];
-    case 'Agendado':
-      return ['Em Progresso', 'Reagendamento Solicitado', 'Cancelado'];
-    case 'Em Progresso':
-      return ['Pendente Validação', 'Cancelado'];
-    case 'Pendente Validação':
-      return ['Concluído', 'Validação Expirada', 'Cancelado'];
-    case 'Validação Expirada':
-      return ['Concluído', 'Cancelado'];
-    case 'Concluído':
-      return [];
-    case 'Recusada Fornecedor':
-      return ['Pendente Aceitação', 'Cancelado'];
-    case 'Reagendamento Solicitado':
-      return ['Agendado', 'Cancelado'];
-    case 'Cancelado':
-      return ['Pendente Resposta Inicial'];
-    default:
-      return [];
-  }
+/**
+ * Convert hex color to Tailwind-like utility classes
+ */
+function generateBadgeClass(hexColor: string): string {
+  // Create rgba for transparent background
+  const hexWithoutHash = hexColor.replace('#', '');
+  return `bg-[${hexColor}]/20 text-[${hexColor}] border-[${hexColor}]/30`;
 }
 
-// Get visual status for filtering and display
+/**
+ * Get visual status groupings for filtering
+ */
 export function getStatusDisplayGroups() {
   return [
     { label: 'Todos', value: null },
@@ -120,4 +125,31 @@ export function getStatusDisplayGroups() {
     { label: 'Concluídos', value: ['Concluído'] },
     { label: 'Problemáticos', value: ['Recusada Fornecedor', 'Validação Expirada', 'Reagendamento Solicitado', 'Cancelado'] }
   ];
+}
+
+// Create a hook to use these statuses in components
+export function useValidStatuses() {
+  const [statuses, setStatuses] = React.useState<ValidStatus[]>([]);
+  const [loading, setLoading] = React.useState<boolean>(true);
+  const [error, setError] = React.useState<Error | null>(null);
+
+  React.useEffect(() => {
+    const loadStatuses = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchValidStatuses();
+        setStatuses(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading valid statuses:', err);
+        setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStatuses();
+  }, []);
+
+  return { statuses, loading, error };
 }

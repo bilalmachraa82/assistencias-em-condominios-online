@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -135,53 +134,49 @@ serve(async (req) => {
     
     console.log(`Setting status from "${assistance.status}" to "${newStatus}"`);
     
-    // Create update data
-    const updateData = {
-      ...getExtraUpdateData(action, data),
-      status: newStatus,
-      updated_at: new Date().toISOString()
-    };
-    
-    console.log('Updating assistance with data:', updateData);
-    
-    // Update the assistance without checking the constraint
-    // We're updating directly with RLS bypass using the service role key
-    const { error: updateError } = await supabase
-      .from('assistances')
-      .update(updateData)
-      .eq('id', assistance.id);
-
-    if (updateError) {
-      console.error('Erro ao atualizar assistência:', updateError);
+    // Update the assistance using RPC function
+    try {
+      const extraData = getExtraUpdateData(action, data);
+      console.log('Extra update data:', extraData);
       
-      // Special handling for constraint violation
-      if (updateError.code === '23514' && updateError.message.includes('assistances_status_check')) {
-        // Direct SQL update as a fallback
-        try {
-          console.log('Attempting direct SQL update as fallback');
-          
-          const { error: sqlError } = await supabase.rpc('update_assistance_status', { 
-            p_assistance_id: assistance.id,
-            p_new_status: newStatus,
-            p_scheduled_datetime: data?.datetime || null
-          });
-          
-          if (sqlError) {
-            console.error('SQL fallback failed:', sqlError);
-            return handleError('Erro ao atualizar status da assistência', sqlError, 500);
-          }
-          
-          console.log('SQL fallback succeeded');
-        } catch (sqlExecErr) {
-          console.error('SQL execution error:', sqlExecErr);
-          return handleError('Erro ao executar atualização de status', sqlExecErr, 500);
-        }
-      } else {
-        return handleError(`Erro ao processar ação: ${updateError.message}`, 
-          { Status: updateData.status },
-          500
-        );
+      // First, update the status using the RPC function
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('update_assistance_status', {
+        p_assistance_id: assistance.id,
+        p_new_status: newStatus,
+        p_scheduled_datetime: extraData.scheduled_datetime || null
+      });
+      
+      if (rpcError) {
+        console.error('Erro ao atualizar status via RPC:', rpcError);
+        return handleError(`Erro ao atualizar status: ${rpcError.message}`, rpcError, 500);
       }
+      
+      console.log('Status updated successfully via RPC');
+      
+      // If we have any other fields to update beyond what the RPC function covers
+      const otherFields = Object.keys(extraData).filter(k => k !== 'scheduled_datetime');
+      
+      if (otherFields.length > 0) {
+        const updateData = {};
+        otherFields.forEach(field => {
+          updateData[field] = extraData[field];
+        });
+        
+        console.log('Updating additional fields:', updateData);
+        
+        const { error: updateError } = await supabase
+          .from('assistances')
+          .update(updateData)
+          .eq('id', assistance.id);
+          
+        if (updateError) {
+          console.error('Erro ao atualizar campos adicionais:', updateError);
+          // Continue despite error, as the status was already updated
+        }
+      }
+    } catch (updateError) {
+      console.error('Exception updating assistance:', updateError);
+      return handleError('Erro ao processar ação', updateError, 500);
     }
 
     // Log the activity
@@ -189,7 +184,7 @@ serve(async (req) => {
       await supabase
         .from('activity_log')
         .insert([{
-          description: `Fornecedor: Ação ${action} realizada. Status atualizado para ${updateData.status}`,
+          description: `Fornecedor: Ação ${action} realizada. Status atualizado para ${newStatus}`,
           actor: 'supplier',
           assistance_id: assistance.id
         }]);

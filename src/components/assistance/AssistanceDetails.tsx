@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +11,6 @@ import {
 import { Pencil, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { VALID_STATUS_VALUES } from '@/utils/StatusUtils';
 
 // Import components
 import BasicInfoSection from './sections/BasicInfoSection';
@@ -43,9 +41,6 @@ export default function AssistanceDetails({
   const [adminNotes, setAdminNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get all valid statuses from the utility
-  const statuses = VALID_STATUS_VALUES;
-
   // Update state when assistance changes - using useEffect properly
   useEffect(() => {
     if (assistance) {
@@ -63,14 +58,12 @@ export default function AssistanceDetails({
       
       console.log('Saving changes with status:', status);
       
-      const { error } = await supabase
-        .from('assistances')
-        .update({
-          status,
-          admin_notes: adminNotes,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', assistance.id);
+      // Use the RPC function to update the status
+      const { data, error } = await supabase.rpc('update_assistance_status', {
+        p_assistance_id: assistance.id,
+        p_new_status: status,
+        p_scheduled_datetime: null // Use current scheduled_datetime
+      });
         
       if (error) {
         console.error('Erro ao atualizar assistência:', error);
@@ -78,18 +71,19 @@ export default function AssistanceDetails({
         return;
       }
       
-      // Log the activity with correct actor value (lowercase)
-      const { error: logError } = await supabase
-        .from('activity_log')
-        .insert([{
-          assistance_id: assistance.id,
-          description: `Status atualizado para: ${status}`,
-          actor: 'admin'
-        }]);
+      // Update admin notes separately
+      const { error: notesError } = await supabase
+        .from('assistances')
+        .update({
+          admin_notes: adminNotes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', assistance.id);
         
-      if (logError) {
-        console.error('Erro ao registrar atividade:', logError);
-        // Continue even if logging fails
+      if (notesError) {
+        console.error('Erro ao atualizar notas:', notesError);
+        toast.error(`Erro ao atualizar notas: ${notesError.message}`);
+        return;
       }
         
       toast.success('Assistência atualizada com sucesso!');
@@ -194,7 +188,7 @@ export default function AssistanceDetails({
             isEditing={isEditing}
             status={status}
             setStatus={setStatus}
-            statuses={statuses}
+            statuses={[]} // This is now ignored, component uses hook
             formatDate={formatDate}
             formatDateTime={formatDateTime}
             isSubmitting={isSubmitting}

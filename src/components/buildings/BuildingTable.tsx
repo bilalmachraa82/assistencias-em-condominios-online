@@ -4,6 +4,7 @@ import { X, Check, Edit, Trash } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import StatusBadge from "@/components/assistance/badges/StatusBadge";
 
 type Building = {
   id: number;
