@@ -99,8 +99,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </SidebarFooter>
         </Sidebar>
         
-        <main className="flex-1 p-8 overflow-auto">
-          <div className="container mx-auto max-w-6xl">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+          <div className="container mx-auto max-w-7xl">
             <div className="flex justify-between items-center mb-8">
               <SidebarTrigger className="glass text-[#f1f5f9]/80 hover:text-[#f1f5f9]" />
             </div>
