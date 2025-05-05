@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { ValidStatus, AssistanceStatus } from '@/types/assistance';
+import { ValidStatus } from '@/types/assistance';
 
 // Cache valid statuses to avoid too many DB requests
 let cachedStatuses: ValidStatus[] | null = null;
@@ -21,7 +22,7 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
     const { data, error } = await supabase
       .from('valid_statuses')
       .select('*')
-      .order('sort_order');
+      .order('display_order');
     
     if (error) {
       console.error('Error fetching valid statuses:', error);

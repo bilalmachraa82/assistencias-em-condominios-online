@@ -9,4 +9,3 @@ export type ValidStatus = Database['public']['Tables']['valid_statuses']['Row'] 
 };
 
 export type AssistanceStatus = string; // simplified to avoid never type issues
-
