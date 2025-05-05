@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { fetchValidStatuses } from '@/utils/StatusUtils';
 import useValidStatuses from '@/hooks/useValidStatuses';
 
 interface StatusBadgeProps {

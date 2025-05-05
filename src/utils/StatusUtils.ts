@@ -41,9 +41,18 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
       throw error;
     }
     
-    cachedStatuses = data as ValidStatus[];
+    // Cast the data to the correct type with required properties
+    const validStatuses: ValidStatus[] = data.map(item => ({
+      status_value: item.status_value,
+      label_pt: item.label_pt || item.status_value, // Fallback to status_value if label_pt is missing
+      label_en: item.label_en,
+      hex_color: item.hex_color || '#888888', // Default color if not specified
+      sort_order: item.sort_order || 0
+    }));
+    
+    cachedStatuses = validStatuses;
     lastFetch = now;
-    return data as ValidStatus[];
+    return validStatuses;
   } catch (err) {
     console.error('Failed to fetch valid statuses:', err);
     // Fallback to empty array if fetch fails
@@ -65,6 +74,30 @@ export async function getValidStatusValues(): Promise<string[]> {
 export async function isValidStatus(status: string): Promise<boolean> {
   const validValues = await getValidStatusValues();
   return validValues.includes(status);
+}
+
+/**
+ * Get the next possible statuses for a given current status
+ * This is used in the UI to show valid status transitions
+ */
+export function getNextPossibleStatuses(currentStatus: string): string[] {
+  // Define the status flow
+  const statusFlow: Record<string, string[]> = {
+    'Pendente Resposta Inicial': ['Pendente Aceitação', 'Cancelado'],
+    'Pendente Aceitação': ['Pendente Agendamento', 'Recusada Fornecedor', 'Cancelado'],
+    'Pendente Agendamento': ['Agendado', 'Cancelado', 'Recusada Fornecedor'],
+    'Agendado': ['Em Progresso', 'Reagendamento Solicitado', 'Cancelado'],
+    'Em Progresso': ['Pendente Validação', 'Cancelado'],
+    'Pendente Validação': ['Concluído', 'Validação Expirada', 'Cancelado'],
+    'Validação Expirada': ['Pendente Validação', 'Concluído', 'Cancelado'],
+    'Reagendamento Solicitado': ['Agendado', 'Cancelado'],
+    'Recusada Fornecedor': ['Pendente Aceitação', 'Cancelado'],
+    'Concluído': ['Cancelado'],
+    'Cancelado': ['Pendente Resposta Inicial', 'Pendente Aceitação']
+  };
+  
+  // Return the next possible statuses or all statuses if the current status is not in the flow
+  return statusFlow[currentStatus] || Object.keys(statusFlow);
 }
 
 /**
