@@ -7,4 +7,6 @@ export type ValidStatus = Database['public']['Tables']['valid_statuses']['Row'] 
   hex_color?: string;
   sort_order?: number;
 };
-export type AssistanceStatus = ValidStatus['status_value'];
+
+export type AssistanceStatus = string; // simplified to avoid never type issues
+
