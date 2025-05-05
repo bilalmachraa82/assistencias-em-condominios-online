@@ -48,13 +48,20 @@ export default function AssistanceDetails({
     return null;
   }
   
-  const statusMap = React.useMemo(() => {
-    const map: Record<string, ValidStatus> = {};
-    statuses.forEach((s) => { map[s.status_value] = s; });
-    return map;
-  }, [statuses]);
+  /* ------------------------------------------------------------------
+   Mapa de estados  (string -> ValidStatus)  — zero 'never'
+-------------------------------------------------------------------*/
+const statusMap = React.useMemo<Record<string, ValidStatus>>(
+  () =>
+    Object.fromEntries(
+      statuses.map((s) => [s.status_value, s]),
+    ),
+  [statuses],
+);
 
-  const badgeColor = statusMap[assistance.status]?.hex_color ?? '#6b7280';
+const badgeColor =
+  statusMap[assistance.status]?.hex_color ?? '#6b7280';
+
 
   useEffect(() => {
     if (assistance) {
