@@ -47,7 +47,7 @@ export default function AssistanceDetailsWrapper({
       onClose={onClose}
       assistance={assistance}
       onAssistanceUpdate={onAssistanceUpdate}
-      additionalContent={additionalContent || renderEmailButton()}
+      additionalContent={additionalContent || (assistance ? renderEmailButton() : null)}
     />
   );
 }

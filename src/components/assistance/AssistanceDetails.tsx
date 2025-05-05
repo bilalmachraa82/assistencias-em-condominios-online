@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,7 @@ import {
 import { Pencil, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { ValidStatus, AssistanceStatus } from '@/types/assistance';
+import { ValidStatus } from '@/types/assistance';
 import useValidStatuses from '@/hooks/useValidStatuses';
 
 // Import components
@@ -43,6 +44,11 @@ export default function AssistanceDetails({
   const [adminNotes, setAdminNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { statuses } = useValidStatuses();
+  
+  // Early return for null assistance
+  if (!assistance) {
+    return null;
+  }
   
   // ------------------------------------------------------------------
   //  Mapa de estados vindo da BD  (chave string -> ValidStatus)
@@ -149,9 +155,6 @@ export default function AssistanceDetails({
       setIsSubmitting(false);
     }
   };
-
-  // Only render content if assistance is available
-  if (!assistance) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
