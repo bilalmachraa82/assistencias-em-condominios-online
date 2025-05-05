@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import React from 'react';
 
 // Type definition for valid status
 export type ValidStatus = {
@@ -34,7 +33,7 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
     const { data, error } = await supabase
       .from('valid_statuses')
       .select('*')
-      .order('sort_order');
+      .order('display_order');
     
     if (error) {
       console.error('Error fetching valid statuses:', error);
@@ -43,11 +42,11 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
     
     // Cast the data to the correct type with required properties
     const validStatuses: ValidStatus[] = data.map(item => ({
-      status_value: item.status_value,
-      label_pt: item.label_pt || item.status_value, // Fallback to status_value if label_pt is missing
+      status_value: item.status_value || '',
+      label_pt: item.label_pt || item.status_value || '',
       label_en: item.label_en,
       hex_color: item.hex_color || '#888888', // Default color if not specified
-      sort_order: item.sort_order || 0
+      sort_order: item.display_order || 0
     }));
     
     cachedStatuses = validStatuses;
