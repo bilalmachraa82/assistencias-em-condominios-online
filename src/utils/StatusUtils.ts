@@ -40,7 +40,7 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
       throw error;
     }
     
-    // Cast the data to the correct type with required properties
+    // Transform data to match our expected type
     const validStatuses: ValidStatus[] = data.map(item => ({
       status_value: item.status_value || '',
       label_pt: item.label_pt || item.status_value || '',

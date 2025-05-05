@@ -38,7 +38,7 @@ export default function AssistanceDetails({
 }: AssistanceDetailsProps) {
   // Initialize all state hooks first - before any conditional code
   const [isEditing, setIsEditing] = useState(false);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState<string>('');
   const [adminNotes, setAdminNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
