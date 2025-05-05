@@ -1,29 +1,14 @@
 
-import { useState, useEffect } from 'react';
-import { fetchValidStatuses, ValidStatus } from '@/utils/StatusUtils';
+import { useQuery } from '@tanstack/react-query';
+import { fetchValidStatuses } from '@/utils/StatusUtils';
+import { ValidStatus } from '@/types/assistance';
 
 export default function useValidStatuses() {
-  const [statuses, setStatuses] = useState<ValidStatus[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const { data = [], isLoading, error } = useQuery({
+    queryKey: ['valid-statuses'],
+    queryFn: fetchValidStatuses,
+    staleTime: 60_000, // 1 minute
+  });
 
-  useEffect(() => {
-    const loadStatuses = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchValidStatuses();
-        setStatuses(data);
-        setError(null);
-      } catch (err) {
-        console.error('Error loading valid statuses:', err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStatuses();
-  }, []);
-
-  return { statuses, loading, error };
+  return { statuses: data as ValidStatus[], loading: isLoading, error };
 }

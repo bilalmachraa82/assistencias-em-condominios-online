@@ -4,14 +4,14 @@ import { Building, Wrench, User, AlertTriangle, Calendar, Clock } from 'lucide-r
 import StatusBadge from '../badges/StatusBadge';
 import TypeBadge from '../badges/TypeBadge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import useValidStatuses from '@/hooks/useValidStatuses';
+import { ValidStatus } from '@/types/assistance';
 
 interface BasicInfoSectionProps {
   assistance: any;
   isEditing: boolean;
   status: string;
   setStatus: (value: string) => void;
-  statuses: any[];
+  statuses: ValidStatus[];
   formatDate: (date: string) => string;
   formatDateTime: (date: string) => string;
   isSubmitting: boolean;
@@ -22,20 +22,15 @@ export default function BasicInfoSection({
   isEditing, 
   status, 
   setStatus,
-  statuses: _, // Ignore passed statuses, we'll use our hook instead
+  statuses,
   formatDate,
   formatDateTime,
   isSubmitting
 }: BasicInfoSectionProps) {
-  // Use our new hook to get statuses from the database
-  const { statuses: validStatuses, loading: loadingStatuses } = useValidStatuses();
-  
   const handleStatusChange = (value: string) => {
     console.log('Status changed to:', value);
     setStatus(value);
   };
-
-  console.log('Available status options from DB:', validStatuses);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -68,21 +63,17 @@ export default function BasicInfoSection({
           <Select 
             value={status} 
             onValueChange={handleStatusChange}
-            disabled={isSubmitting || loadingStatuses}
+            disabled={isSubmitting}
           >
             <SelectTrigger className="w-full mt-1">
               <SelectValue placeholder="Selecione um status" />
             </SelectTrigger>
             <SelectContent>
-              {loadingStatuses ? (
-                <SelectItem value="loading" disabled>Carregando...</SelectItem>
-              ) : (
-                validStatuses.map((s) => (
-                  <SelectItem key={s.status_value} value={s.status_value}>
-                    {s.label_pt}
-                  </SelectItem>
-                ))
-              )}
+              {statuses.map((s) => (
+                <SelectItem key={s.status_value} value={s.status_value}>
+                  {s.label_pt || s.status_value}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         ) : (

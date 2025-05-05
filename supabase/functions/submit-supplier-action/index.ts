@@ -148,6 +148,15 @@ serve(async (req) => {
       });
       
       if (rpcError) {
+        // Check for foreign key violation (invalid status)
+        if (rpcError.code === '23503') {
+          console.error('Estado inválido:', rpcError);
+          return createCorsResponse(
+            { error: 'Estado inválido. Contacte o admin.' },
+            400
+          );
+        }
+        
         console.error('Erro ao atualizar status via RPC:', rpcError);
         return handleError(`Erro ao atualizar status: ${rpcError.message}`, rpcError, 500);
       }

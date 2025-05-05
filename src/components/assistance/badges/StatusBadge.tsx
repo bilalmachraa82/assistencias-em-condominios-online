@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import useValidStatuses from '@/hooks/useValidStatuses';
+import { ValidStatus } from '@/types/assistance';
 
 interface StatusBadgeProps {
   status: string;
@@ -20,7 +21,7 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
       
       if (matchedStatus) {
         setStatusInfo({
-          hexColor: matchedStatus.hex_color,
+          hexColor: matchedStatus.hex_color || '#888888',
           label: matchedStatus.label_pt || status
         });
       }

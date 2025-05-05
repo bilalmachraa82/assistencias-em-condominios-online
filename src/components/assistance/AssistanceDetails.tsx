@@ -12,6 +12,8 @@ import {
 import { Pencil, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { ValidStatus, AssistanceStatus } from '@/types/assistance';
+import useValidStatuses from '@/hooks/useValidStatuses';
 
 // Import components
 import BasicInfoSection from './sections/BasicInfoSection';
@@ -41,6 +43,17 @@ export default function AssistanceDetails({
   const [status, setStatus] = useState<string>('');
   const [adminNotes, setAdminNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { statuses } = useValidStatuses();
+  
+  // Create a map of status values to ValidStatus objects for easy lookup
+  const statusMap = React.useMemo(
+    () =>
+      statuses.reduce<Record<AssistanceStatus, ValidStatus>>((acc, s) => {
+        acc[s.status_value] = s;
+        return acc;
+      }, {} as Record<AssistanceStatus, ValidStatus>),
+    [statuses],
+  );
 
   // Update state when assistance changes - using useEffect properly
   useEffect(() => {
@@ -189,7 +202,7 @@ export default function AssistanceDetails({
             isEditing={isEditing}
             status={status}
             setStatus={setStatus}
-            statuses={[]}
+            statuses={statuses}
             formatDate={formatDate}
             formatDateTime={formatDateTime}
             isSubmitting={isSubmitting}

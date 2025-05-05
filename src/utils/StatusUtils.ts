@@ -1,17 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-
-// Type definition for valid status
-export type ValidStatus = {
-  status_value: string;
-  label_pt: string;
-  label_en?: string;
-  hex_color: string;
-  sort_order: number;
-};
-
-// Type for the status value alone (for type safety)
-export type AssistanceStatus = string;
+import { ValidStatus, AssistanceStatus } from '@/types/assistance';
 
 // Cache valid statuses to avoid too many DB requests
 let cachedStatuses: ValidStatus[] | null = null;
@@ -40,18 +29,9 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
       throw error;
     }
     
-    // Transform database fields to match our expected type
-    const validStatuses: ValidStatus[] = data.map(item => ({
-      status_value: item.status_value || '',
-      label_pt: item.status_value || '', // Default to status_value if label_pt doesn't exist
-      label_en: item.status_value || '', // Default to status_value if label_en doesn't exist
-      hex_color: item.hex_color || '#888888', // Default color if not specified
-      sort_order: item.display_order || 0 // Use display_order from DB for sort_order
-    }));
-    
-    cachedStatuses = validStatuses;
+    cachedStatuses = data;
     lastFetch = now;
-    return validStatuses;
+    return data;
   } catch (err) {
     console.error('Failed to fetch valid statuses:', err);
     // Fallback to empty array if fetch fails
