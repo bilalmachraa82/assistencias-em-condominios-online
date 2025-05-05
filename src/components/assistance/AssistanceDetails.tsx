@@ -37,7 +37,6 @@ export default function AssistanceDetails({
   onAssistanceUpdate,
   additionalContent 
 }: AssistanceDetailsProps) {
-  // Initialize all state hooks first - before any conditional code
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState<string>('');
   const [adminNotes, setAdminNotes] = useState('');
@@ -49,9 +48,6 @@ export default function AssistanceDetails({
     return null;
   }
   
-  // ------------------------------------------------------------------
-  //  Mapa de estados vindo da BD  (chave string -> ValidStatus)
-  // ------------------------------------------------------------------
   const statusMap = React.useMemo(() => {
     const map: Record<string, ValidStatus> = {};
     statuses.forEach((s) => { map[s.status_value] = s; });
@@ -60,7 +56,6 @@ export default function AssistanceDetails({
 
   const badgeColor = statusMap[assistance.status]?.hex_color ?? '#6b7280';
 
-  // Update state when assistance changes - using useEffect properly
   useEffect(() => {
     if (assistance) {
       console.log('Setting initial status from assistance:', assistance.status);
