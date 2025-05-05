@@ -45,9 +45,11 @@ export default function AssistanceDetails({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { statuses } = useValidStatuses();
   
-  // Create a map of status values to ValidStatus objects for easy lookup
+  // ------------------------------------------------------------------
+  //  Mapa de estados vindo da BD  (chave string -> ValidStatus)
+  // ------------------------------------------------------------------
   const statusMap = React.useMemo(() => {
-    const map: Record<string, ValidStatus> = {};
+    const map: Record<string, ValidStatus> = {};   // <-- tipagem explícita
     statuses.forEach((s) => {
       map[s.status_value] = s;
     });
