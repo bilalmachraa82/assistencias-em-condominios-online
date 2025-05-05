@@ -34,7 +34,7 @@ export default function BuildingTable({
       <Table>
         <TableHeader className="bg-white hover:bg-white">
           <TableRow>
-            <TableHead>Nome</TableHead>
+            <TableHead className="bg-slate-950">Nome</TableHead>
             <TableHead>Morada</TableHead>
             <TableHead>Código Cadastral</TableHead>
             <TableHead>Notas</TableHead>
