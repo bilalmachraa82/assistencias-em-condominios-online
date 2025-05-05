@@ -189,7 +189,7 @@ export default function AssistanceDetails({
             isEditing={isEditing}
             status={status}
             setStatus={setStatus}
-            statuses={[]} // This is now ignored, component uses hook
+            statuses={[]}
             formatDate={formatDate}
             formatDateTime={formatDateTime}
             isSubmitting={isSubmitting}
