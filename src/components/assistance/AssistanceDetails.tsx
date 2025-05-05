@@ -48,10 +48,10 @@ export default function AssistanceDetails({
   // Create a map of status values to ValidStatus objects for easy lookup
   const statusMap = React.useMemo(
     () =>
-      statuses.reduce<Record<AssistanceStatus, ValidStatus>>((acc, s) => {
+      statuses.reduce<Record<string, ValidStatus>>((acc, s) => {
         acc[s.status_value] = s;
         return acc;
-      }, {} as Record<AssistanceStatus, ValidStatus>),
+      }, {} as Record<string, ValidStatus>),
     [statuses],
   );
 

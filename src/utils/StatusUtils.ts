@@ -29,9 +29,9 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
       throw error;
     }
     
-    cachedStatuses = data;
+    cachedStatuses = data as ValidStatus[];
     lastFetch = now;
-    return data;
+    return data as ValidStatus[];
   } catch (err) {
     console.error('Failed to fetch valid statuses:', err);
     // Fallback to empty array if fetch fails
