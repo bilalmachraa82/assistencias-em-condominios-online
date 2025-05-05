@@ -7,7 +7,7 @@ export default function useValidStatuses() {
   const { data = [], isLoading, error } = useQuery<ValidStatus[]>({
     queryKey: ['valid-statuses'],
     queryFn: fetchValidStatuses,
-    staleTime: 60_000, // 1 minute
+    staleTime: 300_000, // 5 min
   });
 
   return { statuses: data, loading: isLoading, error };

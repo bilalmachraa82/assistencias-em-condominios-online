@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -46,14 +45,13 @@ export default function AssistanceDetails({
   const { statuses } = useValidStatuses();
   
   // Create a map of status values to ValidStatus objects for easy lookup
-  const statusMap = React.useMemo(
-    () =>
-      statuses.reduce<Record<string, ValidStatus>>((acc, s) => {
-        acc[s.status_value] = s;
-        return acc;
-      }, {} as Record<string, ValidStatus>),
-    [statuses],
-  );
+  const statusMap = React.useMemo(() => {
+    const map: Record<string, ValidStatus> = {};
+    statuses.forEach((s) => {
+      map[s.status_value] = s;
+    });
+    return map;
+  }, [statuses]);
 
   // Update state when assistance changes - using useEffect properly
   useEffect(() => {
