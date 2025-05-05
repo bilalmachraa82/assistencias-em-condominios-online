@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -51,14 +52,14 @@ export default function AssistanceDetails({
   /* ------------------------------------------------------------------
    Mapa de estados  (string -> ValidStatus)
 -------------------------------------------------------------------*/
-const statusMap = React.useMemo(() => {
-  const map: Record<string, ValidStatus> = {};
+const statusMap: Record<string, ValidStatus | undefined> = React.useMemo(() => {
+  const map: Record<string, ValidStatus | undefined> = {};
   statuses.forEach((s) => { map[s.status_value] = s; });
   return map;
 }, [statuses]);
 
 const badgeColor =
-  statusMap[assistance.status]?.hex_color ?? '#6b7280';
+  (assistance && assistance.status && statusMap[assistance.status]?.hex_color) ?? '#6b7280';
 
 
   useEffect(() => {
