@@ -21,6 +21,15 @@ function createCorsResponse(body: any, status = 200) {
   );
 }
 
+// Helper function for consistent error handling
+function handleError(message: string, error: any = null, status = 500) {
+  console.error(`Error: ${message}`, error);
+  return createCorsResponse({ 
+    error: message,
+    details: error ? (error.message || JSON.stringify(error)) : undefined 
+  }, status);
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -35,6 +44,8 @@ serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
     const token = url.searchParams.get('token');
+
+    console.log(`Processing ${action} request with token: ${token}`);
 
     if (!token) {
       return createCorsResponse({ error: 'Token não fornecido' }, 400);
@@ -57,6 +68,8 @@ serve(async (req) => {
         return createCorsResponse({ error: 'Ação inválida' }, 400);
     }
     
+    console.log(`Using token field: ${tokenField} to query database`);
+    
     // Get assistance data with the provided token
     const { data: assistance, error: assistanceError } = await supabase
       .from('assistances')
@@ -73,9 +86,11 @@ serve(async (req) => {
       .single();
 
     if (assistanceError) {
-      console.error('Erro ao buscar assistência:', assistanceError);
-      return createCorsResponse({ error: 'Token inválido ou assistência não encontrada' }, 404);
+      console.error('Error fetching assistance:', assistanceError);
+      return handleError('Token inválido ou assistência não encontrada', assistanceError, 404);
     }
+
+    console.log(`Found assistance with ID: ${assistance.id}, status: ${assistance.status}`);
 
     // Return assistance data
     return createCorsResponse({ 
@@ -83,7 +98,6 @@ serve(async (req) => {
       data: assistance 
     });
   } catch (error) {
-    console.error('Erro:', error.message);
-    return createCorsResponse({ error: 'Erro interno do servidor' }, 500);
+    return handleError('Erro interno do servidor', error);
   }
 });

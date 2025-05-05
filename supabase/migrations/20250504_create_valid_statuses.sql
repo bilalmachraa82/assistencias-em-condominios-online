@@ -24,8 +24,7 @@ INSERT INTO public.valid_statuses (status_value, display_order) VALUES
 ('Validação Expirada', 95),
 ('Cancelado', 100);
 
--- Create a constraint to ensure assistances use valid status values
--- Note: Due to how Supabase migrations work, this might need to be applied separately
--- if there are existing records that don't match valid status values
+-- Comment out the constraint since we've already seen it causes issues
 -- ALTER TABLE public.assistances ADD CONSTRAINT assistances_status_check 
 --   CHECK (status IN (SELECT status_value FROM public.valid_statuses));
+

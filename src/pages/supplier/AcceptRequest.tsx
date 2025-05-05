@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
+import { fetchAssistanceData, submitSupplierAction, getTypeBadgeClass } from "@/utils/SupplierActionUtils";
 
 export default function AcceptRequest() {
   const [searchParams] = useSearchParams();
@@ -43,36 +43,21 @@ export default function AcceptRequest() {
       return;
     }
     
-    const fetchAssistance = async () => {
-      try {
-        console.log('Fetching assistance data with token:', token);
-        const response = await fetch(
-          `https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=accept&token=${token}`,
-          {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        const result = await response.json();
-        
-        if (!response.ok) {
-          setError(result.error || 'Erro ao carregar os detalhes da assistência');
-          setLoading(false);
-          return;
-        }
-        
+    const loadAssistance = async () => {
+      setLoading(true);
+      const result = await fetchAssistanceData('accept', token);
+      
+      if (result.success) {
         setAssistance(result.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Erro ao buscar assistência:', err);
-        setError('Erro ao carregar os detalhes da assistência. Por favor, tente novamente mais tarde.');
-        setLoading(false);
+        setError(null);
+      } else {
+        setError(result.error || 'Erro ao carregar os detalhes da assistência');
       }
+      
+      setLoading(false);
     };
     
-    fetchAssistance();
+    loadAssistance();
   }, [token]);
 
   const handleAccept = async () => {
@@ -96,39 +81,14 @@ export default function AcceptRequest() {
     
     try {
       console.log('Submitting acceptance with scheduling token:', token);
-      const response = await fetch(
-        'https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/submit-supplier-action',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            action: 'accept',
-            token,
-            data: {
-              datetime: scheduledDate.toISOString()
-            }
-          })
-        }
-      );
       
-      const responseText = await response.text();
-      console.log('Raw response:', responseText);
+      const result = await submitSupplierAction('accept', token, {
+        datetime: scheduledDate.toISOString()
+      });
       
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Error parsing JSON response:', e);
-        toast.error('Resposta inválida do servidor');
-        setSubmitting(false);
-        return;
-      }
-      
-      if (!response.ok) {
+      if (!result.success) {
+        console.error('Error accepting assistance:', result.error);
         toast.error(result.error || 'Erro ao aceitar e agendar assistência');
-        console.error('Error response:', result);
         setSubmitting(false);
         return;
       }
@@ -149,64 +109,17 @@ export default function AcceptRequest() {
     }
     
     setSubmitting(true);
-    try {
-      console.log('Submitting rejection with token:', token);
-      const response = await fetch(
-        'https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/submit-supplier-action',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            action: 'reject',
-            token,
-            data: {
-              reason: rejectionReason
-            }
-          })
-        }
-      );
-      
-      const responseText = await response.text();
-      console.log('Raw response:', responseText);
-      
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Error parsing JSON response:', e);
-        toast.error('Resposta inválida do servidor');
-        setSubmitting(false);
-        return;
-      }
-      
-      if (!response.ok) {
-        toast.error(result.error || 'Erro ao recusar assistência');
-        console.error('Error response:', result);
-        setSubmitting(false);
-        return;
-      }
-      
+    
+    const result = await submitSupplierAction('reject', token, {
+      reason: rejectionReason
+    });
+    
+    if (result.success) {
       toast.success('Assistência recusada com sucesso!');
       navigate('/supplier/confirmation?action=rejected');
-    } catch (err) {
-      console.error('Erro ao recusar assistência:', err);
-      toast.error('Erro ao processar sua solicitação. Por favor, tente novamente.');
+    } else {
+      toast.error(result.error || 'Erro ao recusar assistência');
       setSubmitting(false);
-    }
-  };
-
-  const getTypeBadgeClass = (type: string) => {
-    switch (type) {
-      case 'Normal':
-        return 'bg-green-500/20 text-green-300';
-      case 'Urgente':
-        return 'bg-orange-500/20 text-orange-300';
-      case 'Emergência':
-        return 'bg-red-500/20 text-red-300';
-      default:
-        return 'bg-gray-500/20 text-gray-300';
     }
   };
 

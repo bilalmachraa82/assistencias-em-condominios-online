@@ -16,6 +16,8 @@ export async function submitSupplierAction(
   data?: ActionData
 ) {
   try {
+    console.log(`Submitting ${action} action with data:`, data);
+    
     const response = await fetch(
       'https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/submit-supplier-action',
       {
@@ -27,10 +29,20 @@ export async function submitSupplierAction(
       }
     );
     
-    const result = await response.json();
+    // Log full response for debugging
+    const responseText = await response.text();
+    console.log(`Raw response for ${action} action:`, responseText);
+    
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Error parsing JSON response:', e);
+      return { success: false, error: 'Resposta inválida do servidor' };
+    }
     
     if (!response.ok) {
-      console.error('Error in supplier action:', result);
+      console.error(`Error in ${action} action:`, result);
       toast.error(result.error || `Erro ao processar ${getActionName(action)}`);
       return { success: false, error: result.error, details: result.details };
     }
@@ -51,6 +63,8 @@ export async function fetchAssistanceData(
   token: string
 ) {
   try {
+    console.log(`Fetching assistance data for ${action} action with token: ${token}`);
+    
     const response = await fetch(
       `https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=${action}&token=${token}`,
       {
@@ -60,17 +74,27 @@ export async function fetchAssistanceData(
       }
     );
     
-    const result = await response.json();
+    // Log full response for debugging
+    const responseText = await response.text();
+    console.log(`Raw response for ${action} data fetch:`, responseText);
+    
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Error parsing JSON response:', e);
+      return { success: false, error: 'Resposta inválida do servidor' };
+    }
     
     if (!response.ok) {
-      console.error('Error fetching assistance:', result);
+      console.error(`Error fetching data for ${action}:`, result);
       toast.error(result.error || 'Erro ao carregar os detalhes da assistência');
       return { success: false, error: result.error };
     }
     
     return { success: true, data: result.data };
   } catch (err) {
-    console.error('Erro ao buscar assistência:', err);
+    console.error(`Erro ao buscar dados para ${action}:`, err);
     toast.error('Erro ao carregar os detalhes da assistência. Por favor, tente novamente mais tarde.');
     return { success: false, error: err.message };
   }
