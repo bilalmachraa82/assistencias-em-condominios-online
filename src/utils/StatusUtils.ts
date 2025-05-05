@@ -33,20 +33,20 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
     const { data, error } = await supabase
       .from('valid_statuses')
       .select('*')
-      .order('sort_order');
+      .order('display_order');
     
     if (error) {
       console.error('Error fetching valid statuses:', error);
       throw error;
     }
     
-    // Transform data to match our expected type
+    // Transform database fields to match our expected type
     const validStatuses: ValidStatus[] = data.map(item => ({
       status_value: item.status_value || '',
-      label_pt: item.label_pt || item.status_value || '',
-      label_en: item.label_en,
+      label_pt: item.status_value || '', // Default to status_value if label_pt doesn't exist
+      label_en: item.status_value || '', // Default to status_value if label_en doesn't exist
       hex_color: item.hex_color || '#888888', // Default color if not specified
-      sort_order: item.sort_order || 0
+      sort_order: item.display_order || 0 // Use display_order from DB for sort_order
     }));
     
     cachedStatuses = validStatuses;
