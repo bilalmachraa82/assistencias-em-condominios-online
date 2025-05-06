@@ -10,7 +10,10 @@ interface StatusBadgeProps {
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
   const [badgeClass, setBadgeClass] = useState("");
-  const [statusInfo, setStatusInfo] = useState({ hexColor: '', label: status || '' });
+  const [statusInfo, setStatusInfo] = useState<{ hexColor: string, label: string }>({ 
+    hexColor: '', 
+    label: status || '' 
+  });
   const { statuses, loading } = useValidStatuses();
   
   useEffect(() => {

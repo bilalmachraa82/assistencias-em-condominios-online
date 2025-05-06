@@ -51,7 +51,7 @@ export default function AssistanceDetails({
   const { statuses } = useValidStatuses(); // ValidStatus[]
 
   /* mapa string -> ValidStatus */
-  const statusMap = React.useMemo(() => {
+  const statusMap: Record<string, ValidStatus> = React.useMemo(() => {
     // Use a proper Record type with string keys
     const map: Record<string, ValidStatus> = {};
     if (statuses && Array.isArray(statuses)) {
