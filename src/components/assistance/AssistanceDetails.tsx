@@ -53,7 +53,7 @@ export default function AssistanceDetails({
    Mapa de estados  (string -> ValidStatus)
 -------------------------------------------------------------------*/
 const statusMap = React.useMemo(() => {
-  const map: Record<string, ValidStatus | undefined> = {};
+  const map: Record<string, ValidStatus> = {};
   if (statuses && Array.isArray(statuses)) {
     statuses.forEach((s) => { 
       if (s && typeof s.status_value === 'string') {
@@ -66,11 +66,9 @@ const statusMap = React.useMemo(() => {
 
 // Safe access to badge color with fallback
 const badgeColor = React.useMemo(() => {
-  if (assistance && 
-      typeof assistance.status === 'string' && 
-      statusMap && 
-      statusMap[assistance.status]) {
-    return statusMap[assistance.status]?.hex_color || '#6b7280';
+  const status = assistance?.status;
+  if (status && typeof status === 'string' && statusMap && statusMap[status]) {
+    return statusMap[status]?.hex_color || '#6b7280';
   }
   return '#6b7280';
 }, [assistance, statusMap]);
