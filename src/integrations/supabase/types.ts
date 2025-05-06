@@ -273,19 +273,31 @@ export type Database = {
         Row: {
           created_at: string | null
           display_order: number
+          hex_color: string | null
           id: number
+          label_en: string | null
+          label_pt: string | null
+          sort_order: number
           status_value: string
         }
         Insert: {
           created_at?: string | null
           display_order: number
+          hex_color?: string | null
           id?: number
+          label_en?: string | null
+          label_pt?: string | null
+          sort_order: number
           status_value: string
         }
         Update: {
           created_at?: string | null
           display_order?: number
+          hex_color?: string | null
           id?: number
+          label_en?: string | null
+          label_pt?: string | null
+          sort_order?: number
           status_value?: string
         }
         Relationships: []

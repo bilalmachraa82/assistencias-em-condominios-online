@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ValidStatus } from '@/types/assistance';
 
@@ -19,10 +18,11 @@ export async function fetchValidStatuses(): Promise<ValidStatus[]> {
   }
   
   try {
+    // Use sort_order instead of display_order for ordering
     const { data, error } = await supabase
       .from('valid_statuses')
       .select('*')
-      .order('display_order');
+      .order('sort_order');
     
     if (error) {
       console.error('Error fetching valid statuses:', error);

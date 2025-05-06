@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -49,17 +50,26 @@ export default function AssistanceDetails({
   /* ─────────────────────── estados válidos da BD ───────────────────── */
   const { statuses } = useValidStatuses(); // ValidStatus[]
 
-  /* mapa string -> ValidStatus (nada de never) */
-  const statusMap = React.useMemo<Record<string, ValidStatus>>(() => {
+  /* mapa string -> ValidStatus */
+  const statusMap = React.useMemo(() => {
+    // Use a proper Record type with string keys
     const map: Record<string, ValidStatus> = {};
-    statuses.forEach((s) => {
-      map[s.status_value] = s;
-    });
+    if (statuses && Array.isArray(statuses)) {
+      statuses.forEach((s) => {
+        if (s && s.status_value) {
+          map[s.status_value] = s;
+        }
+      });
+    }
     return map;
   }, [statuses]);
 
-  const badgeColor =
-    statusMap[assistance.status]?.hex_color ?? "#6b7280";
+  // Get badge color safely with null checking
+  const badgeColor = assistance.status && 
+    statusMap[assistance.status] && 
+    statusMap[assistance.status].hex_color ? 
+    statusMap[assistance.status].hex_color : 
+    "#6b7280";
 
   /* ─────────────────────────── handlers UI ─────────────────────────── */
   useEffect(() => {
