@@ -66,6 +66,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    background: linear-gradient(135deg, #1A1F2C 0%, #2D3250 100%);
+    color: #fff;
+    min-height: 100vh;
   }
 }
 
@@ -76,6 +79,10 @@
   
   .glass {
     @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+  
+  .glass-card {
+    @apply bg-[#192133] border border-[#2A3349] backdrop-blur-md shadow-lg rounded-xl overflow-hidden;
   }
   
   .menu-item {
@@ -89,4 +96,68 @@
   .menu-item-danger {
     @apply text-[#ef4444]/80 hover:text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors;
   }
+  
+  .chart-card {
+    @apply p-4 glass-card relative overflow-hidden;
+  }
+  
+  .chart-title {
+    @apply text-lg font-medium mb-1 text-white/90;
+  }
+  
+  .chart-value {
+    @apply text-3xl font-bold;
+  }
+  
+  .chart-metric {
+    @apply flex items-center text-sm;
+  }
+  
+  .chart-metric-up {
+    @apply text-green-400;
+  }
+  
+  .chart-metric-down {
+    @apply text-red-400;
+  }
+  
+  .gradient-purple {
+    background: linear-gradient(120deg, #9b87f5 0%, #7E69AB 100%);
+  }
+  
+  .gradient-blue {
+    background: linear-gradient(120deg, #1EAEDB 0%, #33C3F0 100%);
+  }
+  
+  .gradient-btn {
+    @apply bg-gradient-to-r from-[#7E69AB] to-[#9b87f5] text-white hover:opacity-90;
+  }
+  
+  /* Improved dropdown styling */
+  .select-content {
+    @apply bg-[#192133] border border-[#2A3349] text-white;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeIn 0.5s ease-out forwards;
 }

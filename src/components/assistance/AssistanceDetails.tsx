@@ -68,7 +68,7 @@ export default function AssistanceDetails({
   }, [statuses]);
 
   // Get badge color safely with proper null checking and fallback
-  const badgeColor = React.useMemo(() => {
+  const badgeColor = React.useMemo((): string => {
     // Multiple safety checks to avoid runtime errors
     if (!assistance || !assistance.status) {
       return "#6b7280"; // Default gray fallback
@@ -149,7 +149,7 @@ export default function AssistanceDetails({
   /* ──────────────────────────── render UI ──────────────────────────── */
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[700px] bg-[#192133] border-[#2A3349] text-white">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             <span>Assistência #{assistance.id}</span>
@@ -157,7 +157,7 @@ export default function AssistanceDetails({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex gap-1 items-center"
+                className="flex gap-1 items-center bg-white/10 border-white/20 text-white hover:bg-white/20"
                 onClick={() => setIsEditing(true)}
               >
                 <Pencil className="h-4 w-4" /> Editar
@@ -167,7 +167,7 @@ export default function AssistanceDetails({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex gap-1 items-center text-red-500"
+                  className="flex gap-1 items-center text-red-400 bg-red-500/10 border-red-500/20 hover:bg-red-500/20"
                   onClick={() => {
                     setIsEditing(false);
                     setStatus(assistance.status);
@@ -179,7 +179,7 @@ export default function AssistanceDetails({
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex gap-1 items-center"
+                  className="flex gap-1 items-center gradient-btn"
                   onClick={handleSaveChanges}
                   disabled={isSubmitting}
                 >
@@ -188,7 +188,7 @@ export default function AssistanceDetails({
               </div>
             )}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-300">
             Informações detalhadas da solicitação de assistência.
           </DialogDescription>
         </DialogHeader>
@@ -228,7 +228,7 @@ export default function AssistanceDetails({
 
           {assistance.rejection_reason && (
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground">
+              <h3 className="text-sm font-medium text-gray-300">
                 Motivo da Recusa
               </h3>
               <p className="mt-1 text-sm whitespace-pre-wrap">
@@ -239,7 +239,7 @@ export default function AssistanceDetails({
 
           {assistance.reschedule_reason && (
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground">
+              <h3 className="text-sm font-medium text-gray-300">
                 Motivo do Reagendamento
               </h3>
               <p className="mt-1 text-sm whitespace-pre-wrap">
@@ -252,7 +252,7 @@ export default function AssistanceDetails({
         {additionalContent}
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
             Fechar
           </Button>
         </DialogFooter>
