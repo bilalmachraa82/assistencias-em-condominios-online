@@ -51,21 +51,23 @@ export default function AssistanceDetails({
   const { statuses } = useValidStatuses(); // ValidStatus[]
 
   /* mapa string -> ValidStatus */
-  const statusMap: Record<string, ValidStatus> = React.useMemo(() => {
-    // Use a proper Record type with string keys
-    const map: Record<string, ValidStatus> = {};
-    if (statuses && Array.isArray(statuses)) {
-      statuses.forEach((s) => {
-        if (s && s.status_value) {
-          map[s.status_value] = s;
-        }
-      });
+  const statusMap = React.useMemo(() => {
+    if (!statuses || !Array.isArray(statuses) || statuses.length === 0) {
+      return {} as Record<string, ValidStatus>;
     }
-    return map;
+
+    // Create a properly typed map from status values to ValidStatus objects
+    return statuses.reduce((acc, status) => {
+      if (status && status.status_value) {
+        acc[status.status_value] = status;
+      }
+      return acc;
+    }, {} as Record<string, ValidStatus>);
   }, [statuses]);
 
   // Get badge color safely with null checking
-  const badgeColor = assistance.status && 
+  const badgeColor = 
+    assistance.status && 
     statusMap[assistance.status] && 
     statusMap[assistance.status].hex_color ? 
     statusMap[assistance.status].hex_color : 
