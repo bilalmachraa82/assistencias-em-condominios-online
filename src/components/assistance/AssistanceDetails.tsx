@@ -75,13 +75,21 @@ export default function AssistanceDetails({
     }
     
     const statusValue = assistance.status;
-    const currentStatus = statusMap && statusMap[statusValue];
     
-    // Safe property access with fallback - Fix for TS2345 error
-    // Explicitly returning the string value to avoid type inference issues
-    return (currentStatus && currentStatus.hex_color) ? 
-      currentStatus.hex_color as string : 
-      "#6b7280";
+    // Check if statusMap exists and has the requested status
+    if (!statusMap || !statusMap[statusValue]) {
+      return "#6b7280"; // Default gray fallback
+    }
+    
+    const currentStatus = statusMap[statusValue];
+    
+    // Check if hex_color exists and is a string
+    if (!currentStatus || typeof currentStatus.hex_color !== 'string') {
+      return "#6b7280"; // Default gray fallback
+    }
+    
+    // Now TypeScript knows hex_color is definitely a string
+    return currentStatus.hex_color;
   }, [assistance?.status, statusMap]);
 
   /* ─────────────────────────── handlers UI ─────────────────────────── */
