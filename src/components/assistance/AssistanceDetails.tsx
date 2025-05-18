@@ -68,6 +68,7 @@ export default function AssistanceDetails({
   // Get badge color safely with null checking
   const badgeColor = 
     assistance.status && 
+    statusMap && 
     statusMap[assistance.status] && 
     statusMap[assistance.status].hex_color ? 
     statusMap[assistance.status].hex_color : 
