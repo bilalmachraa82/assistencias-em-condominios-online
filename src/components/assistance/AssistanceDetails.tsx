@@ -78,7 +78,7 @@ export default function AssistanceDetails({
     const currentStatus = statusMap && statusMap[statusValue];
     
     // Safe property access with fallback
-    return currentStatus?.hex_color ?? "#6b7280";
+    return (currentStatus && currentStatus.hex_color) ? currentStatus.hex_color : "#6b7280";
   }, [assistance?.status, statusMap]);
 
   /* ─────────────────────────── handlers UI ─────────────────────────── */
