@@ -50,29 +50,36 @@ export default function AssistanceDetails({
   /* ─────────────────────── estados válidos da BD ───────────────────── */
   const { statuses } = useValidStatuses(); // ValidStatus[]
 
-  /* mapa string -> ValidStatus */
+  /* mapa string -> ValidStatus com tipagem explícita e segura */
   const statusMap = React.useMemo(() => {
     if (!statuses || !Array.isArray(statuses) || statuses.length === 0) {
       return {} as Record<string, ValidStatus>;
     }
 
-    // Create a properly typed map from status values to ValidStatus objects
-    return statuses.reduce((acc, status) => {
+    // Create a properly typed map using explicit type assertion
+    const map = statuses.reduce((acc, status) => {
       if (status && status.status_value) {
         acc[status.status_value] = status;
       }
       return acc;
     }, {} as Record<string, ValidStatus>);
+    
+    return map;
   }, [statuses]);
 
-  // Get badge color safely with null checking
-  const badgeColor = 
-    assistance.status && 
-    statusMap && 
-    statusMap[assistance.status] && 
-    statusMap[assistance.status].hex_color ? 
-    statusMap[assistance.status].hex_color : 
-    "#6b7280";
+  // Get badge color safely with proper null checking and fallback
+  const badgeColor = React.useMemo(() => {
+    // Multiple safety checks to avoid runtime errors
+    if (!assistance || !assistance.status) {
+      return "#6b7280"; // Default gray fallback
+    }
+    
+    const statusValue = assistance.status;
+    const currentStatus = statusMap && statusMap[statusValue];
+    
+    // Safe property access with fallback
+    return currentStatus?.hex_color ?? "#6b7280";
+  }, [assistance?.status, statusMap]);
 
   /* ─────────────────────────── handlers UI ─────────────────────────── */
   useEffect(() => {
