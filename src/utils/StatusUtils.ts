@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ValidStatus } from '@/types/assistance';
 
@@ -124,6 +125,7 @@ export function getStatusBadgeClass(status: string, hexColor?: string): string {
 
 /**
  * Convert hex color to Tailwind-like utility classes
+ * Now properly typed to fix the TypeScript error
  */
 function generateBadgeClass(hexColor: string): string {
   // Create rgba for transparent background
