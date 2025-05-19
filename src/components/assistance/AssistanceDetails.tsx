@@ -31,6 +31,11 @@ interface AssistanceDetailsProps {
   additionalContent?: React.ReactNode;
 }
 
+// Type guard to check if a status has a valid hex_color
+function hasValidHexColor(status: ValidStatus | undefined): status is ValidStatus & { hex_color: string } {
+  return !!status && typeof status.hex_color === 'string' && status.hex_color.length > 0;
+}
+
 export default function AssistanceDetails({
   isOpen,
   onClose,
@@ -69,27 +74,29 @@ export default function AssistanceDetails({
 
   // Get badge color safely with proper null checking and fallback
   const badgeColor = React.useMemo((): string => {
+    // Default gray fallback
+    const defaultColor = "#6b7280"; 
+    
     // Multiple safety checks to avoid runtime errors
     if (!assistance || !assistance.status) {
-      return "#6b7280"; // Default gray fallback
+      return defaultColor;
     }
     
     const statusValue = assistance.status;
     
     // Check if statusMap exists and has the requested status
     if (!statusMap || !statusMap[statusValue]) {
-      return "#6b7280"; // Default gray fallback
+      return defaultColor;
     }
     
     const currentStatus = statusMap[statusValue];
     
-    // Check if hex_color exists and is a string
-    if (!currentStatus || typeof currentStatus.hex_color !== 'string') {
-      return "#6b7280"; // Default gray fallback
+    // Use our type guard to ensure hex_color is a valid string
+    if (hasValidHexColor(currentStatus)) {
+      return currentStatus.hex_color;
     }
     
-    // Now TypeScript knows hex_color is definitely a string
-    return currentStatus.hex_color as string;
+    return defaultColor;
   }, [assistance?.status, statusMap]);
 
   /* ─────────────────────────── handlers UI ─────────────────────────── */

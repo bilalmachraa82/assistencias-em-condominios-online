@@ -3,9 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { getStatusBadgeClass } from '@/utils/StatusUtils';
 import useValidStatuses from '@/hooks/useValidStatuses';
+import { ValidStatus } from '@/types/assistance';
 
 interface StatusBadgeProps {
   status: string;
+}
+
+// Type guard to check if a status has a valid hex_color
+function hasValidHexColor(status: ValidStatus | undefined): status is ValidStatus & { hex_color: string } {
+  return !!status && typeof status.hex_color === 'string' && status.hex_color.length > 0;
 }
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
@@ -30,9 +36,10 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
       const matchedStatus = statuses.find(s => s && s.status_value === status);
       
       if (matchedStatus) {
-        setBadgeClass(getStatusBadgeClass(status, matchedStatus.hex_color));
+        const hexColor = hasValidHexColor(matchedStatus) ? matchedStatus.hex_color : undefined;
+        setBadgeClass(getStatusBadgeClass(status, hexColor));
         setStatusInfo({
-          hexColor: matchedStatus.hex_color || '#888888',
+          hexColor: hexColor || '#888888',
           label: matchedStatus.label_pt || status
         });
       }

@@ -3,8 +3,8 @@ import { Card } from "@/components/ui/card"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import { 
   ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
+  ChartTooltip,
+  ChartTooltipContent
 } from "@/components/ui/chart";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
