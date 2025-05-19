@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -88,7 +89,7 @@ export default function AssistanceDetails({
     }
     
     // Now TypeScript knows hex_color is definitely a string
-    return currentStatus.hex_color;
+    return currentStatus.hex_color as string;
   }, [assistance?.status, statusMap]);
 
   /* ─────────────────────────── handlers UI ─────────────────────────── */
