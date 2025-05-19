@@ -85,7 +85,7 @@ export default function AssistanceDetails({
     const statusValue = assistance.status;
     
     // Check if statusMap exists and has the requested status
-    if (!statusMap || !statusMap[statusValue]) {
+    if (!statusMap || !statusValue || !statusMap[statusValue]) {
       return defaultColor;
     }
     
