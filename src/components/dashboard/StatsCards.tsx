@@ -97,9 +97,7 @@ export function StatsCards() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <ChartTooltip>
-                  <ChartTooltipContent />
-                </ChartTooltip>
+                <ChartTooltip></ChartTooltip>
               </PieChart>
             </ChartContainer>
           </div>

@@ -15,7 +15,7 @@ interface BasicInfoSectionProps {
   formatDate: (date: string) => string;
   formatDateTime: (date: string) => string;
   isSubmitting: boolean;
-  badgeColor?: string;
+  badgeColor: string; // Change from optional to required
 }
 
 export default function BasicInfoSection({ 
