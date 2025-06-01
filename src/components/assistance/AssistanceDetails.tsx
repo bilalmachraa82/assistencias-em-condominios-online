@@ -26,14 +26,9 @@ import { formatDate, formatDateTime } from "@/utils/DateTimeUtils";
 interface AssistanceDetailsProps {
   isOpen: boolean;
   onClose: () => void;
-  assistance: any; // mantém any até ter modelo forte
+  assistance: any;
   onAssistanceUpdate: () => Promise<void>;
   additionalContent?: React.ReactNode;
-}
-
-// Type guard to check if a status has a valid hex_color
-function hasValidHexColor(status: ValidStatus | undefined): status is ValidStatus & { hex_color: string } {
-  return !!status && typeof status.hex_color === 'string' && status.hex_color.length > 0;
 }
 
 export default function AssistanceDetails({
@@ -43,63 +38,34 @@ export default function AssistanceDetails({
   onAssistanceUpdate,
   additionalContent,
 }: AssistanceDetailsProps) {
-  /* ────────────────────────────── guards ───────────────────────────── */
-  if (!assistance) return null; // evita crash se modal abrir sem item
+  if (!assistance) return null;
 
-  /* ─────────────────────────── estado local ────────────────────────── */
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState<string>(assistance.status);
   const [adminNotes, setAdminNotes] = useState(assistance.admin_notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /* ─────────────────────── estados válidos da BD ───────────────────── */
-  const { statuses } = useValidStatuses(); // ValidStatus[]
+  const { statuses } = useValidStatuses();
 
-  /* mapa string -> ValidStatus com tipagem explícita e segura */
-  const statusMap = React.useMemo(() => {
-    if (!statuses || !Array.isArray(statuses) || statuses.length === 0) {
-      return {} as Record<string, ValidStatus>;
-    }
-
-    // Create a properly typed map using explicit type assertion
-    const map = statuses.reduce((acc, status) => {
-      if (status && status.status_value) {
-        acc[status.status_value] = status;
-      }
-      return acc;
-    }, {} as Record<string, ValidStatus>);
+  // Simplify badge color logic to avoid TypeScript inference issues
+  const getBadgeColor = (): string => {
+    const defaultColor = "#6b7280";
     
-    return map;
-  }, [statuses]);
-
-  // Get badge color safely with proper null checking and fallback
-  const badgeColor = React.useMemo((): string => {
-    // Default gray fallback
-    const defaultColor = "#6b7280"; 
-    
-    // Multiple safety checks to avoid runtime errors
-    if (!assistance || !assistance.status) {
+    if (!assistance?.status || !statuses || !Array.isArray(statuses)) {
       return defaultColor;
     }
     
-    const statusValue = assistance.status;
+    const currentStatus = statuses.find(s => s?.status_value === assistance.status);
     
-    // Check if statusMap exists and has the requested status
-    if (!statusMap || !statusValue || !statusMap[statusValue]) {
-      return defaultColor;
-    }
-    
-    const currentStatus = statusMap[statusValue];
-    
-    // Use our type guard to ensure hex_color is a valid string
-    if (hasValidHexColor(currentStatus)) {
+    if (currentStatus && typeof currentStatus.hex_color === 'string' && currentStatus.hex_color.length > 0) {
       return currentStatus.hex_color;
     }
     
     return defaultColor;
-  }, [assistance?.status, statusMap]);
+  };
 
-  /* ─────────────────────────── handlers UI ─────────────────────────── */
+  const badgeColor: string = getBadgeColor();
+
   useEffect(() => {
     setStatus(assistance.status);
     setAdminNotes(assistance.admin_notes || "");
@@ -153,7 +119,6 @@ export default function AssistanceDetails({
     }
   };
 
-  /* ──────────────────────────── render UI ──────────────────────────── */
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[700px] bg-[#192133] border-[#2A3349] text-white">
