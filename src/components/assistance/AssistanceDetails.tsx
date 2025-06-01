@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 import useValidStatuses from "@/hooks/useValidStatuses";
-import { ValidStatus } from "@/types/assistance";
 
 import BasicInfoSection from "./sections/BasicInfoSection";
 import DescriptionSection from "./sections/DescriptionSection";
@@ -46,25 +45,6 @@ export default function AssistanceDetails({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { statuses } = useValidStatuses();
-
-  // Simplify badge color logic to avoid TypeScript inference issues
-  const getBadgeColor = (): string => {
-    const defaultColor = "#6b7280";
-    
-    if (!assistance?.status || !statuses || !Array.isArray(statuses)) {
-      return defaultColor;
-    }
-    
-    const currentStatus = statuses.find(s => s?.status_value === assistance.status);
-    
-    if (currentStatus && typeof currentStatus.hex_color === 'string' && currentStatus.hex_color.length > 0) {
-      return currentStatus.hex_color;
-    }
-    
-    return defaultColor;
-  };
-
-  const badgeColor: string = getBadgeColor();
 
   useEffect(() => {
     setStatus(assistance.status);
@@ -175,7 +155,6 @@ export default function AssistanceDetails({
             formatDate={formatDate}
             formatDateTime={formatDateTime}
             isSubmitting={isSubmitting}
-            badgeColor={badgeColor}
           />
 
           <DescriptionSection description={assistance.description} />

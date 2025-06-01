@@ -15,7 +15,6 @@ interface BasicInfoSectionProps {
   formatDate: (date: string) => string;
   formatDateTime: (date: string) => string;
   isSubmitting: boolean;
-  badgeColor: string;  // Now properly typed as string
 }
 
 export default function BasicInfoSection({ 
@@ -26,8 +25,7 @@ export default function BasicInfoSection({
   statuses,
   formatDate,
   formatDateTime,
-  isSubmitting,
-  badgeColor
+  isSubmitting
 }: BasicInfoSectionProps) {
   const handleStatusChange = (value: string) => {
     console.log('Status changed to:', value);
