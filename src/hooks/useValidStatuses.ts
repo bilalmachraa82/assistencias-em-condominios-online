@@ -4,11 +4,17 @@ import { fetchValidStatuses } from '@/utils/StatusUtils';
 import { ValidStatus } from '@/types/assistance';
 
 export default function useValidStatuses() {
-  const { data = [] as ValidStatus[], isLoading, error } = useQuery<ValidStatus[]>({
+  // versão única e tipada ✔️
+  const { data, isLoading, error } = useQuery<ValidStatus[]>({
     queryKey: ['valid-statuses'],
     queryFn: fetchValidStatuses,
     staleTime: 300_000, // 5 min
   });
 
-  return { statuses: data, loading: isLoading, error };
+  // devolve SEMPRE um array do tipo correcto; nunca never[]
+  return {
+    statuses: (data ?? []) as ValidStatus[],
+    loading: isLoading,
+    error,
+  };
 }
