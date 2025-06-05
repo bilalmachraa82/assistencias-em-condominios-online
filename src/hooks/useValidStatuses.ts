@@ -4,16 +4,15 @@ import { fetchValidStatuses } from '@/utils/StatusUtils';
 import { ValidStatus } from '@/types/assistance';
 
 export default function useValidStatuses() {
-  // versão única e tipada ✔️
+  // **ÚNICA** chamada ao React-Query, sem fallback que gere never[]
   const { data, isLoading, error } = useQuery<ValidStatus[]>({
     queryKey: ['valid-statuses'],
     queryFn: fetchValidStatuses,
     staleTime: 300_000, // 5 min
   });
 
-  // devolve SEMPRE um array do tipo correcto; nunca never[]
   return {
-    statuses: (data ?? []) as ValidStatus[],
+    statuses: (data ?? []) as ValidStatus[], // devolve sempre ValidStatus[]
     loading: isLoading,
     error,
   };

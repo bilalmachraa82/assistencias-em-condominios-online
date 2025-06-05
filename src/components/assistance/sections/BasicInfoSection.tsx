@@ -3,13 +3,13 @@ import { Building, Wrench, User, AlertTriangle, Calendar, Clock } from 'lucide-r
 import StatusBadge from '../badges/StatusBadge';
 import TypeBadge from '../badges/TypeBadge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ValidStatus } from '@/types/assistance';
+import { ValidStatus, AssistanceStatus } from '@/types/assistance';
 
 interface BasicInfoSectionProps {
   assistance: any;
   isEditing: boolean;
-  status: string;
-  setStatus: (value: string) => void;
+  status: AssistanceStatus;
+  setStatus: (value: AssistanceStatus) => void;
   statuses: ValidStatus[];
   formatDate: (date: string) => string;
   formatDateTime: (date: string) => string;
@@ -28,7 +28,7 @@ export default function BasicInfoSection({
 }: BasicInfoSectionProps) {
   const handleStatusChange = (value: string) => {
     console.log('Status changed to:', value);
-    setStatus(value);
+    setStatus(value as AssistanceStatus);
   };
 
   return (
@@ -68,7 +68,7 @@ export default function BasicInfoSection({
               <SelectValue placeholder="Selecione um status" />
             </SelectTrigger>
             <SelectContent className="select-content">
-              {statuses && statuses.map((s) => (
+              {statuses.map((s) => (
                 <SelectItem key={s.status_value} value={s.status_value || ''} className="text-white hover:bg-white/10">
                   {s.label_pt || s.status_value || ''}
                 </SelectItem>
