@@ -151,7 +151,7 @@ export default function AssistanceDetails({
             isEditing={isEditing}
             status={status}
             setStatus={setStatus}
-            statuses={statuses || []}
+            statuses={statuses}
             formatDate={formatDate}
             formatDateTime={formatDateTime}
             isSubmitting={isSubmitting}
