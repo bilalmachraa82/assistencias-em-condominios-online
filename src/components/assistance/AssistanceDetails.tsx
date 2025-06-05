@@ -40,14 +40,14 @@ export default function AssistanceDetails({
   if (!assistance) return null;
 
   const [isEditing, setIsEditing] = useState(false);
-  const [status, setStatus] = useState<AssistanceStatus>(assistance.status || "");
+  const [status, setStatus] = useState<string>(assistance.status || "");
   const [adminNotes, setAdminNotes] = useState(assistance.admin_notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { statuses } = useValidStatuses();
 
   useEffect(() => {
-    setStatus((assistance.status || "") as AssistanceStatus);
+    setStatus(assistance.status || "");
     setAdminNotes(assistance.admin_notes || "");
   }, [assistance]);
 
@@ -122,7 +122,7 @@ export default function AssistanceDetails({
                   className="flex gap-1 items-center text-red-400 bg-red-500/10 border-red-500/20 hover:bg-red-500/20"
                   onClick={() => {
                     setIsEditing(false);
-                    setStatus((assistance.status || "") as AssistanceStatus);
+                    setStatus(assistance.status || "");
                     setAdminNotes(assistance.admin_notes || "");
                   }}
                 >
