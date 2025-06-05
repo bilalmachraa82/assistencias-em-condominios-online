@@ -60,7 +60,7 @@ export default function AssistanceDetails({
 
       const { error } = await supabase.rpc("update_assistance_status", {
         p_assistance_id: assistance.id,
-        p_new_status: status,
+        p_new_status: status as string,
         p_scheduled_datetime: null,
       });
       if (error) throw error;
