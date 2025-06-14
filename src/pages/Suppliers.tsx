@@ -7,6 +7,8 @@ import SupplierActions from '@/components/suppliers/SupplierActions';
 import SupplierForm from '@/components/suppliers/SupplierForm';
 import DeleteSupplierDialog from '@/components/suppliers/DeleteSupplierDialog';
 import DeleteAllSuppliersDialog from '@/components/suppliers/DeleteAllSuppliersDialog';
+import TestingTab from '@/components/suppliers/TestingTab';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Suppliers() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,25 +58,39 @@ export default function Suppliers() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Gestão de Fornecedores</h1>
             <p className="text-muted-foreground">
-              Gerencie a lista de fornecedores e suas configurações
+              Gerencie a lista de fornecedores e teste o sistema
             </p>
           </div>
-          <SupplierActions 
-            onAddSupplier={handleOpenForm}
-            onDeleteAll={confirmDeleteAll}
-            onImportPredefined={handleImportPredefined}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
         </div>
 
-        <SupplierTable
-          suppliers={filteredSuppliers}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={confirmDelete}
-          onToggleStatus={handleToggleStatus}
-        />
+        <Tabs defaultValue="suppliers" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
+            <TabsTrigger value="testing">Testes do Sistema</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="suppliers" className="space-y-6">
+            <SupplierActions 
+              onAddSupplier={handleOpenForm}
+              onDeleteAll={confirmDeleteAll}
+              onImportPredefined={handleImportPredefined}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+
+            <SupplierTable
+              suppliers={filteredSuppliers}
+              isLoading={isLoading}
+              onEdit={handleEdit}
+              onDelete={confirmDelete}
+              onToggleStatus={handleToggleStatus}
+            />
+          </TabsContent>
+          
+          <TabsContent value="testing">
+            <TestingTab />
+          </TabsContent>
+        </Tabs>
       </div>
 
       <SupplierForm
