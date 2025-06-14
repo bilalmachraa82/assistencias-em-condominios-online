@@ -27,11 +27,19 @@ export function useBuildings() {
   const { data: buildings, isLoading } = useQuery({
     queryKey: ['buildings'],
     queryFn: async () => {
+      console.log('🏗️ Fetching buildings from database...');
       const { data, error } = await supabase
         .from('buildings')
         .select('*')
         .order('name');
-      if (error) throw error;
+      
+      if (error) {
+        console.error('❌ Error fetching buildings:', error);
+        throw error;
+      }
+      
+      console.log('✅ Buildings fetched successfully:', data?.length || 0, 'buildings found');
+      console.log('📋 Buildings data:', data);
       return data;
     },
   });

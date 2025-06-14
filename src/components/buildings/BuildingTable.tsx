@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Check, Edit, Trash } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,6 +36,13 @@ export default function BuildingTable({
   onDelete,
   onToggleStatus
 }: BuildingTableProps) {
+  // Debug logging
+  useEffect(() => {
+    console.log('🏗️ BuildingTable - Received buildings:', buildings);
+    console.log('⏳ BuildingTable - Is loading:', isLoading);
+    console.log('📊 BuildingTable - Buildings count:', buildings?.length || 0);
+  }, [buildings, isLoading]);
+
   return (
     <div className="border rounded-md overflow-hidden">
       <ScrollArea className="w-full">

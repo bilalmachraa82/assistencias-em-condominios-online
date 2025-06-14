@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useBuildings } from '@/hooks/useBuildings';
 import BuildingTable from '@/components/buildings/BuildingTable';
@@ -33,6 +33,13 @@ export default function Buildings() {
     closeDeleteAllDialog,
   } = useBuildings();
 
+  // Debug logging
+  useEffect(() => {
+    console.log('🏢 Buildings page - Raw buildings data:', buildings);
+    console.log('🔍 Search query:', searchQuery);
+    console.log('⏳ Is loading:', isLoading);
+  }, [buildings, searchQuery, isLoading]);
+
   // Filter buildings based on search query
   const filteredBuildings = buildings?.filter((building) => {
     if (!searchQuery.trim()) return true;
@@ -45,6 +52,12 @@ export default function Buildings() {
       (building.admin_notes && building.admin_notes.toLowerCase().includes(query))
     );
   });
+
+  // Debug filtered results
+  useEffect(() => {
+    console.log('📊 Filtered buildings:', filteredBuildings?.length || 0, 'buildings');
+    console.log('📋 Filtered buildings data:', filteredBuildings);
+  }, [filteredBuildings]);
 
   return (
     <DashboardLayout>
