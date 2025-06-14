@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
@@ -103,64 +104,48 @@ export default function AssistenciasDashboard() {
     }
   }, [refetchAssistances, selectedAssistance, isViewDialogOpen]);
 
-  // Handle assistance deletion with enhanced error handling
+  // Handle assistance deletion with robust error handling and verification
   const handleDeleteAssistance = async (assistance: any): Promise<void> => {
     try {
-      console.log(`🗑️ Starting deletion process for assistance #${assistance.id}`);
+      console.log(`🗑️ Starting robust deletion process for assistance #${assistance.id}`);
       setIsDeleting(true);
       
-      // Check if assistance exists and get current state
-      const { data: currentAssistance, error: fetchError } = await supabase
-        .from('assistances')
-        .select('id, status')
-        .eq('id', assistance.id)
-        .single();
-
-      if (fetchError) {
-        console.error('❌ Error fetching assistance before delete:', fetchError);
-        throw new Error('Assistência não encontrada ou não acessível');
-      }
-
-      if (!currentAssistance) {
-        console.warn('⚠️ Assistance not found, may have been already deleted');
-        toast.warning('Assistência já foi excluída');
-        await handleRefetchAssistances();
-        return;
-      }
-
-      console.log(`📋 Current assistance state:`, currentAssistance);
-
-      // Delete the assistance from the database
-      const { error: deleteError } = await supabase
-        .from('assistances')
-        .delete()
-        .eq('id', assistance.id);
+      // Use the new robust deletion function from Supabase
+      const { data: deleteResult, error: deleteError } = await supabase
+        .rpc('delete_assistance_safely', { p_assistance_id: assistance.id });
 
       if (deleteError) {
-        console.error('❌ Database delete error:', deleteError);
-        toast.error(getUserFriendlyError(deleteError, 'Erro ao excluir assistência da base de dados'));
+        console.error('❌ Database RPC delete error:', deleteError);
+        toast.error(getUserFriendlyError(deleteError, 'Erro ao executar função de eliminação segura'));
         return;
       }
 
-      console.log(`✅ Successfully deleted assistance #${assistance.id} from database`);
+      console.log('📋 Deletion result:', deleteResult);
 
-      // Log the activity (continue even if this fails)
-      try {
-        const { error: logError } = await supabase
-          .from('activity_log')
-          .insert([{
-            assistance_id: assistance.id,
-            description: `Assistência #${assistance.id} excluída permanentemente`,
-            actor: 'admin'
-          }]);
-          
-        if (logError) {
-          console.warn('⚠️ Error logging delete activity (non-critical):', logError);
-        } else {
-          console.log('📝 Delete activity logged successfully');
-        }
-      } catch (logError) {
-        console.warn('⚠️ Failed to log delete activity:', logError);
+      // Check if the function returned success
+      if (!deleteResult?.success) {
+        console.error('❌ Deletion function returned failure:', deleteResult?.error);
+        toast.error(deleteResult?.error || 'Erro desconhecido na eliminação');
+        return;
+      }
+
+      console.log(`✅ Assistance #${assistance.id} successfully deleted via safe function`);
+      
+      // Verify the assistance was actually deleted by trying to fetch it
+      const { data: verifyAssistance, error: verifyError } = await supabase
+        .from('assistances')
+        .select('id')
+        .eq('id', assistance.id)
+        .maybeSingle();
+
+      if (verifyError) {
+        console.warn('⚠️ Could not verify deletion (non-critical):', verifyError);
+      } else if (verifyAssistance) {
+        console.error('💥 CRITICAL: Assistance still exists after deletion!');
+        toast.error('Erro crítico: assistência ainda existe após eliminação');
+        return;
+      } else {
+        console.log('✅ Verified: assistance no longer exists in database');
       }
       
       // Close the dialog if it was the selected assistance
@@ -170,19 +155,20 @@ export default function AssistenciasDashboard() {
         setSelectedAssistance(null);
       }
       
-      // Refetch the data after successful deletion
+      // Force complete cache invalidation and refetch
+      console.log('🔄 Forcing complete cache invalidation and refetch...');
       await handleRefetchAssistances();
       
-      toast.success(`Assistência #${assistance.id} excluída com sucesso!`);
-      console.log(`🎉 Deletion process completed for assistance #${assistance.id}`);
+      toast.success(`Assistência #${assistance.id} eliminada definitivamente!`);
+      console.log(`🎉 Complete deletion process finished for assistance #${assistance.id}`);
       
     } catch (error: any) {
-      console.error(`💥 Critical error during deletion of assistance #${assistance.id}:`, error);
+      console.error(`💥 Critical error during robust deletion of assistance #${assistance.id}:`, error);
       logError('deleteAssistance', error);
-      toast.error(getUserFriendlyError(error, 'Erro crítico ao excluir assistência'));
+      toast.error(getUserFriendlyError(error, 'Erro crítico na eliminação robusta'));
     } finally {
       setIsDeleting(false);
-      console.log('🏁 Deletion process finished (cleanup completed)');
+      console.log('🏁 Deletion process cleanup completed');
     }
   };
 

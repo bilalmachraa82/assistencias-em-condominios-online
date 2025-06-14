@@ -307,6 +307,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_assistance_safely: {
+        Args: { p_assistance_id: number }
+        Returns: Json
+      }
       update_assistance_status: {
         Args: {
           p_assistance_id: number
