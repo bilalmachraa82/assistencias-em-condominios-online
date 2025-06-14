@@ -13,6 +13,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import StatusBadge from './badges/StatusBadge';
 import {
@@ -45,10 +46,6 @@ export default function AssistanceList({
   formatDate,
   isLateHighlighted = false
 }: AssistanceListProps) {
-  // State for delete dialog
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [assistanceToDelete, setAssistanceToDelete] = React.useState<any>(null);
-
   // Get appropriate link for current status
   const getSupplierLink = (assistance: any) => {
     const baseUrl = window.location.origin;
@@ -77,28 +74,15 @@ export default function AssistanceList({
   };
 
   // Handle delete confirmation with enhanced error handling
-  const handleDeleteConfirm = async () => {
-    if (assistanceToDelete && onDeleteAssistance) {
-      try {
-        console.log(`🗑️ Attempting to delete assistance #${assistanceToDelete.id}`);
-        await onDeleteAssistance(assistanceToDelete);
-        setDeleteDialogOpen(false);
-        setAssistanceToDelete(null);
-        console.log(`✅ Successfully deleted assistance #${assistanceToDelete.id}`);
-      } catch (error) {
-        console.error(`❌ Failed to delete assistance #${assistanceToDelete.id}:`, error);
-        toast.error('Erro ao excluir assistência. Tente novamente.');
-      }
+  const handleDeleteConfirm = async (assistance: any) => {
+    try {
+      console.log(`🗑️ Attempting to delete assistance #${assistance.id}`);
+      await onDeleteAssistance(assistance);
+      console.log(`✅ Successfully deleted assistance #${assistance.id}`);
+    } catch (error) {
+      console.error(`❌ Failed to delete assistance #${assistance.id}:`, error);
+      toast.error('Erro ao excluir assistência. Tente novamente.');
     }
-  };
-
-  // Open delete dialog - separate from row click
-  const handleDeleteButtonClick = (assistance: any, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent row click event
-    console.log(`🗑️ Opening delete dialog for assistance #${assistance.id}`);
-    setAssistanceToDelete(assistance);
-    setDeleteDialogOpen(true);
   };
 
   // Handle row click for viewing assistance
@@ -257,23 +241,48 @@ export default function AssistanceList({
                           </TooltipProvider>
                           
                           {onDeleteAssistance && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={(e) => handleDeleteButtonClick(assistance, e)}
-                                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8"
+                            <AlertDialog>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <AlertDialogTrigger asChild>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8"
+                                      >
+                                        <Trash className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Excluir assistência</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              
+                              <AlertDialogContent className="bg-gray-800 text-white border border-gray-700">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-gray-300">
+                                    Tem certeza que deseja excluir a assistência #{assistance.id}?
+                                    <br />
+                                    <strong>Esta ação não pode ser desfeita.</strong>
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-gray-700 text-white hover:bg-gray-600">
+                                    Cancelar
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleDeleteConfirm(assistance)}
+                                    className="bg-red-500 hover:bg-red-600 text-white"
                                   >
-                                    <Trash className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Excluir assistência</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                                    Excluir Definitivamente
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           )}
                         </div>
                       </TableCell>
@@ -282,7 +291,7 @@ export default function AssistanceList({
                       {isLateItem && (
                         <TableCell className="px-3 py-4 whitespace-nowrap text-sm text-red-300">
                           <AlertTriangle className="h-4 w-4" />
-                        </TableCell>
+                        </AlertCell>
                       )}
                     </tr>
                   );
@@ -292,31 +301,6 @@ export default function AssistanceList({
           </div>
         </div>
       )}
-      
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-gray-800 text-white border border-gray-700">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-300">
-              Tem certeza que deseja excluir a assistência #{assistanceToDelete?.id}?
-              <br />
-              <strong>Esta ação não pode ser desfeita.</strong>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-700 text-white hover:bg-gray-600">
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteConfirm}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              Excluir Definitivamente
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
