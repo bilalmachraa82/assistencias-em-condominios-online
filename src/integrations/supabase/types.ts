@@ -41,6 +41,76 @@ export type Database = {
           },
         ]
       }
+      assistance_messages: {
+        Row: {
+          assistance_id: number
+          created_at: string
+          id: number
+          message: string
+          sender_name: string
+          sender_role: string
+        }
+        Insert: {
+          assistance_id: number
+          created_at?: string
+          id?: number
+          message: string
+          sender_name: string
+          sender_role: string
+        }
+        Update: {
+          assistance_id?: number
+          created_at?: string
+          id?: number
+          message?: string
+          sender_name?: string
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistance_messages_assistance_id_fkey"
+            columns: ["assistance_id"]
+            isOneToOne: false
+            referencedRelation: "assistances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistance_photos: {
+        Row: {
+          assistance_id: number
+          category: string
+          id: number
+          photo_url: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          assistance_id: number
+          category: string
+          id?: number
+          photo_url: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          assistance_id?: number
+          category?: string
+          id?: number
+          photo_url?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistance_photos_assistance_id_fkey"
+            columns: ["assistance_id"]
+            isOneToOne: false
+            referencedRelation: "assistances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assistances: {
         Row: {
           acceptance_token: string | null
