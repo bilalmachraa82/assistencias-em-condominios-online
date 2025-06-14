@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import AssistanceFilter from '@/components/assistance/AssistanceFilter';
 import AssistanceDetailsWrapper from '@/components/assistance/AssistanceDetailsWrapper';
 import AssistanceList from '@/components/assistance/AssistanceList';
-import AssistanceCalendarView from '@/components/assistance/AssistanceCalendarView';
+import { AssistanceCalendarView } from '@/components/assistance/AssistanceCalendarView';
 import NewAssistanceButton from '@/components/assistance/NewAssistanceButton';
 import RunRemindersButton from '@/components/assistance/RunRemindersButton';
 import useAssistanceData from '@/components/assistance/useAssistanceData';
