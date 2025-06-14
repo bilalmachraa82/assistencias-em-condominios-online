@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { generateToken } from '@/utils/TokenUtils';
 import { fetchValidStatuses } from '@/utils/StatusUtils';
+import { AssistanceStatusValue } from '@/types/assistance';
 
 export default async function useCreateAssistance(
   formData: any, 
@@ -16,14 +17,14 @@ export default async function useCreateAssistance(
     const validation_token = generateToken();
     
     // Get valid statuses from DB to ensure we use a valid initial status
-    let initialStatus = 'Pendente Resposta Inicial';
+    let initialStatus: AssistanceStatusValue = 'Pendente Resposta Inicial';
     try {
       const validStatuses = await fetchValidStatuses();
       // Verify the status exists in the database
       if (!validStatuses.some(s => s.status_value === initialStatus)) {
         // If not found, use the first status in the list
         if (validStatuses.length > 0) {
-          initialStatus = validStatuses[0].status_value;
+          initialStatus = validStatuses[0].status_value as AssistanceStatusValue;
         }
         console.warn(`Status warning: Defaulting to ${initialStatus}`);
       }

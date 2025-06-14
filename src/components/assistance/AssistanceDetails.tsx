@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -13,7 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 import useValidStatuses from "@/hooks/useValidStatuses";
-import { AssistanceStatus } from "@/types/assistance";
+import { AssistanceStatusValue } from "@/types/assistance";
 
 import BasicInfoSection from "./sections/BasicInfoSection";
 import DescriptionSection from "./sections/DescriptionSection";
@@ -40,9 +41,8 @@ export default function AssistanceDetails({
   if (!assistance) return null;
 
   const [isEditing, setIsEditing] = useState(false);
-  // `status` passa a ser do tipo correcto ➜ elimina "string → never"
-  const [status, setStatus] = useState<AssistanceStatus>(
-    (assistance.status as AssistanceStatus) ?? "Pendente Resposta Inicial"
+  const [status, setStatus] = useState<AssistanceStatusValue>(
+    (assistance.status as AssistanceStatusValue) ?? "Pendente Resposta Inicial"
   );
   const [adminNotes, setAdminNotes] = useState(assistance.admin_notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +50,7 @@ export default function AssistanceDetails({
   const { statuses } = useValidStatuses();
 
   useEffect(() => {
-    setStatus((assistance.status as AssistanceStatus) ?? "Pendente Resposta Inicial");
+    setStatus((assistance.status as AssistanceStatusValue) ?? "Pendente Resposta Inicial");
     setAdminNotes(assistance.admin_notes || "");
   }, [assistance]);
 
@@ -60,7 +60,7 @@ export default function AssistanceDetails({
 
       const { error } = await supabase.rpc("update_assistance_status", {
         p_assistance_id: assistance.id,
-        p_new_status: status as string,
+        p_new_status: status,
         p_scheduled_datetime: null,
       });
       if (error) throw error;
@@ -125,7 +125,7 @@ export default function AssistanceDetails({
                   className="flex gap-1 items-center text-red-400 bg-red-500/10 border-red-500/20 hover:bg-red-500/20"
                   onClick={() => {
                     setIsEditing(false);
-                    setStatus((assistance.status as AssistanceStatus) ?? "Pendente Resposta Inicial");
+                    setStatus((assistance.status as AssistanceStatusValue) ?? "Pendente Resposta Inicial");
                     setAdminNotes(assistance.admin_notes || "");
                   }}
                 >

@@ -1,15 +1,16 @@
+
 import React from 'react';
 import { Building, Wrench, User, AlertTriangle, Calendar, Clock } from 'lucide-react';
 import StatusBadge from '../badges/StatusBadge';
 import TypeBadge from '../badges/TypeBadge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ValidStatus, AssistanceStatus } from '@/types/assistance';
+import { ValidStatus, AssistanceStatusValue } from '@/types/assistance';
 
 interface BasicInfoSectionProps {
   assistance: any;
   isEditing: boolean;
-  status: AssistanceStatus;
-  setStatus: (value: AssistanceStatus) => void;
+  status: AssistanceStatusValue;
+  setStatus: (value: AssistanceStatusValue) => void;
   statuses: ValidStatus[];
   formatDate: (date: string) => string;
   formatDateTime: (date: string) => string;
@@ -28,7 +29,7 @@ export default function BasicInfoSection({
 }: BasicInfoSectionProps) {
   const handleStatusChange = (value: string) => {
     console.log('Status changed to:', value);
-    setStatus(value as AssistanceStatus);
+    setStatus(value as AssistanceStatusValue);
   };
 
   return (
