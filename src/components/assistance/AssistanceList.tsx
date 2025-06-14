@@ -183,7 +183,21 @@ export default function AssistanceList({
                         {assistance.suppliers?.name || '-'}
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={assistance.status} />
+                        <div className="flex items-center gap-2">
+                          <StatusBadge status={assistance.status} />
+                          {isLateItem && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertTriangle className="h-4 w-4 text-red-400" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Assistência em atraso</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         <span className={`px-2 py-1 rounded-full text-xs ${
@@ -286,13 +300,6 @@ export default function AssistanceList({
                           )}
                         </div>
                       </TableCell>
-                      
-                      {/* Add visual indicator for late items */}
-                      {isLateItem && (
-                        <TableCell className="px-3 py-4 whitespace-nowrap text-sm text-red-300">
-                          <AlertTriangle className="h-4 w-4" />
-                        </AlertCell>
-                      )}
                     </tr>
                   );
                 })}
