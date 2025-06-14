@@ -6,17 +6,13 @@ import { StatsCards } from '@/components/dashboard/StatsCards';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import AssistanceAnalytics from '@/components/analytics/AssistanceAnalytics';
 import PerformanceOptimizer from '@/components/performance/PerformanceOptimizer';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 
 export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Visão geral do sistema de gestão de assistências
-          </p>
-        </div>
+        <DashboardHeader />
 
         <StatsCards />
 

@@ -2,6 +2,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "./index.css";
+import Dashboard from "./pages/Dashboard";
 import Buildings from "./pages/Buildings";
 import Suppliers from "./pages/Suppliers";
 import AssistenciasDashboard from "./pages/AssistenciasDashboard";
@@ -17,6 +18,10 @@ import Confirmation from "./pages/supplier/Confirmation";
 const router = createBrowserRouter([
   {
     path: "/",
+    element: <Dashboard />,
+  },
+  {
+    path: "/assistencias",
     element: <AssistenciasDashboard />,
   },
   {
@@ -26,10 +31,6 @@ const router = createBrowserRouter([
   {
     path: "/suppliers",
     element: <Suppliers />,
-  },
-  {
-    path: "/assistencias",
-    element: <AssistenciasDashboard />,
   },
   {
     path: "/configuracao-servicos",

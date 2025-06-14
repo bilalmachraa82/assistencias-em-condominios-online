@@ -43,27 +43,29 @@ export function DashboardHeader() {
   };
 
   return (
-    <div className="flex justify-between items-center mb-10 animate-fade-in-up">
+    <div className="flex justify-between items-center mb-8 animate-fade-in">
       <div>
-        <h1 className="text-5xl font-extrabold leading-tight text-white bg-clip-text">Olá, Andre!</h1>
-        <p className="text-[#cbd5e1] mt-2 text-lg">
-          Pronto para transformar assistências em soluções?
+        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-blue-400 to-purple-400 bg-clip-text text-transparent">
+          Visão Geral do Sistema
+        </h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          Acompanhe o desempenho e métricas das assistências
         </p>
       </div>
       <div className="flex items-center gap-4">
-        <div className="glass px-4 py-2 rounded-full flex items-center gap-2 text-[#f1f5f9]">
+        <div className="glass-card px-4 py-2 rounded-full flex items-center gap-2 text-foreground">
           <MapPin className="h-4 w-4" />
           <span>Lisboa</span>
-          <Sun className="h-4 w-4 text-[#fb923c]" />
+          <Sun className="h-4 w-4 text-amber-500" />
           <span>21°C</span>
         </div>
         <Button 
           onClick={() => setIsNewAssistanceDialogOpen(true)}
-          className="gradient-btn"
+          className="apple-button"
         >
           <Plus className="mr-2 h-4 w-4" /> Nova Assistência
         </Button>
-        <Button variant="ghost" className="glass">
+        <Button variant="ghost" className="glass-card hover:bg-accent">
           <Camera className="mr-2 h-4 w-4" /> Nova Foto
         </Button>
       </div>
