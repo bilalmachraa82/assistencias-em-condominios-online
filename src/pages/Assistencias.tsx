@@ -201,7 +201,7 @@ export default function Assistencias() {
           </div>
           <div className="flex flex-wrap gap-2">
             <NewAssistanceButton 
-              buildings={buildings}
+              buildings={buildings || []}
               isBuildingsLoading={isBuildingsLoading}
               onAssistanceCreated={handleRefetchAssistances}
             />
@@ -224,7 +224,7 @@ export default function Assistencias() {
           onStatusFilterChange={filters.setStatusFilter}
           typeFilter={filters.typeFilter}
           onTypeFilterChange={filters.setTypeFilter}
-          buildings={buildings}
+          buildings={buildings || []}
           isBuildingsLoading={isBuildingsLoading}
         />
 
