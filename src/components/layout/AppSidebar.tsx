@@ -69,20 +69,20 @@ export function AppSidebar() {
   const location = useLocation();
 
   return (
-    <Sidebar className="bg-white border-r border-gray-200">
-      <SidebarHeader className="border-b border-gray-200 px-6 py-4 bg-white">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 text-white">
+    <Sidebar className="bg-sidebar border-r border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border px-6 py-4 bg-sidebar">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <BarChart3 className="h-4 w-4" />
           </div>
-          <span className="text-lg font-semibold text-gray-900">Assistências</span>
+          <span className="text-lg font-semibold text-sidebar-foreground">Assistências</span>
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="bg-white">
+      <SidebarContent className="bg-sidebar">
         {navigation.map((group) => (
           <SidebarGroup key={group.title}>
-            <SidebarGroupLabel className="text-gray-500 text-xs font-medium uppercase tracking-wider px-3 py-2">
+            <SidebarGroupLabel className="text-muted-foreground text-xs font-medium uppercase tracking-wider px-3 py-3">
               {group.title}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -93,10 +93,10 @@ export function AppSidebar() {
                       asChild
                       isActive={location.pathname === item.url}
                       className={`
-                        w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors
+                        w-full text-left px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 mx-2
                         ${location.pathname === item.url 
-                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' 
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                          ? 'bg-primary text-primary-foreground shadow-lg' 
+                          : 'text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent'
                         }
                       `}
                     >
@@ -113,8 +113,8 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       
-      <SidebarFooter className="border-t border-gray-200 p-4 bg-white">
-        <div className="text-xs text-gray-500">
+      <SidebarFooter className="border-t border-sidebar-border p-4 bg-sidebar">
+        <div className="text-xs text-muted-foreground">
           Sistema de Gestão v1.0
         </div>
       </SidebarFooter>
