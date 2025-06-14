@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -21,6 +20,7 @@ import DescriptionSection from "./sections/DescriptionSection";
 import PhotosSection from "./sections/PhotosSection";
 import TokensSection from "./sections/TokensSection";
 import AdminNotesSection from "./sections/AdminNotesSection";
+import AssistanceMessagesSection from "./sections/AssistanceMessagesSection";
 import { formatDate, formatDateTime } from "@/utils/DateTimeUtils";
 
 interface AssistanceDetailsProps {
@@ -189,6 +189,12 @@ export default function AssistanceDetails({
           <PhotosSection
             photoPath={assistance.photo_path}
             completionPhotoUrl={assistance.completion_photo_url}
+          />
+
+          {/* NOVA SECÇÃO DE MENSAGENS */}
+          <AssistanceMessagesSection 
+            assistanceId={assistance.id}
+            currentUser={{ role: "admin", name: "Administrador" }}
           />
 
           <TokensSection
