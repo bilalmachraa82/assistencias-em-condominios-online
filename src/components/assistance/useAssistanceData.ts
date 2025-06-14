@@ -10,55 +10,91 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add a refresh trigger
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Fetch assistances
+  // Fetch assistances with enhanced error handling
   const { 
     data: assistances, 
     isLoading: isAssistancesLoading, 
-    refetch: refetchAssistances 
+    refetch: refetchAssistances,
+    error: assistancesError 
   } = useQuery({
-    queryKey: ['assistances', sortOrder, refreshTrigger], // Add refreshTrigger to queryKey
+    queryKey: ['assistances', sortOrder, refreshTrigger],
     queryFn: async () => {
-      console.log('Fetching assistances with sort order:', sortOrder);
+      console.log('📋 Fetching assistances with sort order:', sortOrder);
       
-      const { data, error } = await supabase
-        .from('assistances')
-        .select(`
-          *,
-          buildings(name),
-          suppliers(name),
-          intervention_types(name)
-        `)
-        .order('created_at', { ascending: sortOrder === 'asc' });
-      
-      if (error) {
-        console.error('Error fetching assistances:', error);
+      try {
+        const { data, error } = await supabase
+          .from('assistances')
+          .select(`
+            *,
+            buildings(name),
+            suppliers(name),
+            intervention_types(name)
+          `)
+          .order('created_at', { ascending: sortOrder === 'asc' });
+        
+        if (error) {
+          console.error('❌ Error fetching assistances:', error);
+          throw error;
+        }
+        
+        console.log(`✅ Fetched ${data?.length || 0} assistances successfully`);
+        if (data?.length > 0) {
+          console.log('📊 Sample assistance data:', data[0]);
+        }
+        return data;
+      } catch (error) {
+        console.error('💥 Critical error in assistances query:', error);
         throw error;
       }
-      
-      console.log(`Fetched ${data?.length || 0} assistances`);
-      return data;
     },
-    staleTime: 0, // Always consider data stale to ensure fresh data
-    refetchOnWindowFocus: true, // Refresh when window regains focus
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    retry: (failureCount, error) => {
+      console.log(`🔄 Retry attempt ${failureCount} for assistances query`);
+      return failureCount < 3;
+    },
+    onError: (error) => {
+      console.error('📋 Assistances query failed:', error);
+    }
   });
 
-  // Fetch buildings
-  const { data: buildings, isLoading: isBuildingsLoading } = useQuery({
+  // Fetch buildings with enhanced error handling
+  const { 
+    data: buildings, 
+    isLoading: isBuildingsLoading,
+    error: buildingsError 
+  } = useQuery({
     queryKey: ['buildings'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('buildings')
-        .select('*')
-        .order('name');
+      console.log('🏗️ Fetching buildings...');
       
-      if (error) {
-        console.error('Error fetching buildings:', error);
+      try {
+        const { data, error } = await supabase
+          .from('buildings')
+          .select('*')
+          .order('name');
+        
+        if (error) {
+          console.error('❌ Error fetching buildings:', error);
+          throw error;
+        }
+        
+        console.log(`✅ Fetched ${data?.length || 0} buildings successfully`);
+        return data;
+      } catch (error) {
+        console.error('💥 Critical error in buildings query:', error);
         throw error;
       }
-      return data;
     },
+    retry: (failureCount, error) => {
+      console.log(`🔄 Retry attempt ${failureCount} for buildings query`);
+      return failureCount < 3;
+    },
+    onError: (error) => {
+      console.error('🏗️ Buildings query failed:', error);
+    }
   });
 
   // Apply filters to assistances
@@ -110,11 +146,21 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   };
 
   // Force a refresh of the data
-  const forceRefresh = () => {
-    console.log('Force refreshing assistance data...');
-    setRefreshTrigger(prev => prev + 1); // Increment to trigger refetch
-    return refetchAssistances();
+  const forceRefresh = async () => {
+    console.log('🔄 Force refreshing assistance data...');
+    setRefreshTrigger(prev => prev + 1);
+    const result = await refetchAssistances();
+    console.log('✅ Force refresh completed');
+    return result;
   };
+
+  // Log any errors
+  if (assistancesError) {
+    console.error('📋 Assistances error state:', assistancesError);
+  }
+  if (buildingsError) {
+    console.error('🏗️ Buildings error state:', buildingsError);
+  }
 
   return {
     assistances,
@@ -123,7 +169,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     paginatedAssistances,
     isAssistancesLoading,
     isBuildingsLoading,
-    refetchAssistances: forceRefresh, // Use the enhanced refresh function
+    refetchAssistances: forceRefresh,
     pagination: {
       currentPage: page,
       pageSize,

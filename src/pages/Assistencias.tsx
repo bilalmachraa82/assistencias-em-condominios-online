@@ -8,8 +8,6 @@ import AssistanceFilter from '@/components/assistance/AssistanceFilter';
 import AssistanceDetailsWrapper from '@/components/assistance/AssistanceDetailsWrapper';
 import AssistanceList from '@/components/assistance/AssistanceList';
 import NewAssistanceButton from '@/components/assistance/NewAssistanceButton';
-import RunRemindersButton from '@/components/assistance/RunRemindersButton';
-import ProcessRemindersButton from '@/components/assistance/ProcessRemindersButton';
 import useAssistanceData from '@/components/assistance/useAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
@@ -35,9 +33,8 @@ export default function Assistencias() {
 
   // Handle assistance view
   const handleViewAssistance = async (assistance: any) => {
-    // Get fresh data when viewing an assistance to ensure we have the latest state
     try {
-      console.log(`Fetching fresh data for assistance #${assistance.id}`);
+      console.log(`👁️ Fetching fresh data for assistance #${assistance.id}`);
       const { data: freshAssistance, error } = await supabase
         .from('assistances')
         .select(`
@@ -50,17 +47,17 @@ export default function Assistencias() {
         .single();
         
       if (error) {
-        console.error('Error fetching fresh assistance data:', error);
+        console.error('❌ Error fetching fresh assistance data:', error);
         toast.error('Erro ao buscar dados atualizados da assistência');
         setSelectedAssistance(assistance); // Fallback to the provided assistance
       } else {
-        console.log('Fresh assistance data fetched successfully');
+        console.log('✅ Fresh assistance data fetched successfully');
         setSelectedAssistance(freshAssistance);
       }
       
       setIsViewDialogOpen(true);
     } catch (error) {
-      console.error('Error in handleViewAssistance:', error);
+      console.error('❌ Error in handleViewAssistance:', error);
       setSelectedAssistance(assistance);
       setIsViewDialogOpen(true);
     }
@@ -73,12 +70,12 @@ export default function Assistencias() {
   // Create a wrapper function to handle the Promise<void> return type
   const handleRefetchAssistances = useCallback(async (): Promise<void> => {
     try {
-      console.log('Refetching assistances data...');
+      console.log('🔄 Refetching assistances data...');
       await refetchAssistances();
       
       // If an assistance is currently selected, refresh its data too
       if (selectedAssistance && isViewDialogOpen) {
-        console.log(`Refreshing selected assistance #${selectedAssistance.id}`);
+        console.log(`🔄 Refreshing selected assistance #${selectedAssistance.id}`);
         const { data: freshAssistance, error } = await supabase
           .from('assistances')
           .select(`
@@ -91,52 +88,81 @@ export default function Assistencias() {
           .single();
           
         if (!error && freshAssistance) {
-          console.log('Updated selected assistance with fresh data');
+          console.log('✅ Updated selected assistance with fresh data');
           setSelectedAssistance(freshAssistance);
         }
       }
       
       toast.success('Dados atualizados com sucesso');
     } catch (error) {
-      console.error('Error refetching assistances:', error);
+      console.error('❌ Error refetching assistances:', error);
       toast.error('Erro ao atualizar a lista de assistências');
     }
   }, [refetchAssistances, selectedAssistance, isViewDialogOpen]);
 
-  // Handle assistance deletion
-  const handleDeleteAssistance = async (assistance: any) => {
+  // Handle assistance deletion with enhanced error handling
+  const handleDeleteAssistance = async (assistance: any): Promise<void> => {
     try {
-      console.log("Attempting to delete assistance:", assistance.id);
+      console.log(`🗑️ Starting deletion process for assistance #${assistance.id}`);
       setIsDeleting(true);
       
+      // Check if assistance exists and get current state
+      const { data: currentAssistance, error: fetchError } = await supabase
+        .from('assistances')
+        .select('id, status')
+        .eq('id', assistance.id)
+        .single();
+
+      if (fetchError) {
+        console.error('❌ Error fetching assistance before delete:', fetchError);
+        throw new Error('Assistência não encontrada ou não acessível');
+      }
+
+      if (!currentAssistance) {
+        console.warn('⚠️ Assistance not found, may have been already deleted');
+        toast.warning('Assistência já foi excluída');
+        await handleRefetchAssistances();
+        return;
+      }
+
+      console.log(`📋 Current assistance state:`, currentAssistance);
+
       // Delete the assistance from the database
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('assistances')
         .delete()
         .eq('id', assistance.id);
 
-      if (error) {
-        console.error('Erro ao excluir assistência:', error);
-        toast.error(getUserFriendlyError(error, 'Erro ao excluir assistência'));
+      if (deleteError) {
+        console.error('❌ Database delete error:', deleteError);
+        toast.error(getUserFriendlyError(deleteError, 'Erro ao excluir assistência da base de dados'));
         return;
       }
 
-      // Log the activity
-      const { error: logError } = await supabase
-        .from('activity_log')
-        .insert([{
-          assistance_id: assistance.id,
-          description: `Assistência #${assistance.id} excluída`,
-          actor: 'admin'
-        }]);
-        
-      if (logError) {
-        console.error('Erro ao registrar atividade:', logError);
-        // Continue even if logging fails
+      console.log(`✅ Successfully deleted assistance #${assistance.id} from database`);
+
+      // Log the activity (continue even if this fails)
+      try {
+        const { error: logError } = await supabase
+          .from('activity_log')
+          .insert([{
+            assistance_id: assistance.id,
+            description: `Assistência #${assistance.id} excluída permanentemente`,
+            actor: 'admin'
+          }]);
+          
+        if (logError) {
+          console.warn('⚠️ Error logging delete activity (non-critical):', logError);
+        } else {
+          console.log('📝 Delete activity logged successfully');
+        }
+      } catch (logError) {
+        console.warn('⚠️ Failed to log delete activity:', logError);
       }
       
       // Close the dialog if it was the selected assistance
       if (selectedAssistance?.id === assistance.id) {
+        console.log('🚪 Closing dialog for deleted assistance');
         setIsViewDialogOpen(false);
         setSelectedAssistance(null);
       }
@@ -145,16 +171,21 @@ export default function Assistencias() {
       await handleRefetchAssistances();
       
       toast.success(`Assistência #${assistance.id} excluída com sucesso!`);
+      console.log(`🎉 Deletion process completed for assistance #${assistance.id}`);
+      
     } catch (error: any) {
+      console.error(`💥 Critical error during deletion of assistance #${assistance.id}:`, error);
       logError('deleteAssistance', error);
-      toast.error(getUserFriendlyError(error, 'Erro ao excluir assistência'));
+      toast.error(getUserFriendlyError(error, 'Erro crítico ao excluir assistência'));
     } finally {
       setIsDeleting(false);
+      console.log('🏁 Deletion process finished (cleanup completed)');
     }
   };
 
   // Handle dialog close with refresh
   const handleDialogClose = useCallback(async () => {
+    console.log('🚪 Closing assistance dialog and refreshing data');
     setIsViewDialogOpen(false);
     // Refresh data when dialog is closed to ensure list is updated
     await handleRefetchAssistances();
@@ -179,7 +210,7 @@ export default function Assistencias() {
 
         <AssistanceDetailsWrapper 
           isOpen={isViewDialogOpen}
-          onClose={handleDialogClose} // Use the enhanced close handler
+          onClose={handleDialogClose}
           assistance={selectedAssistance}
           onAssistanceUpdate={handleRefetchAssistances}
         />

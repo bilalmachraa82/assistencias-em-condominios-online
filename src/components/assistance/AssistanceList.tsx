@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText, Eye, SortAsc, SortDesc, Trash, Copy, AlertTriangle } from 'lucide-react';
@@ -75,12 +76,19 @@ export default function AssistanceList({
     toast.success('Link copiado para a área de transferência');
   };
 
-  // Handle delete confirmation
-  const handleDeleteConfirm = () => {
+  // Handle delete confirmation with enhanced error handling
+  const handleDeleteConfirm = async () => {
     if (assistanceToDelete && onDeleteAssistance) {
-      onDeleteAssistance(assistanceToDelete);
-      setDeleteDialogOpen(false);
-      setAssistanceToDelete(null);
+      try {
+        console.log(`🗑️ Attempting to delete assistance #${assistanceToDelete.id}`);
+        await onDeleteAssistance(assistanceToDelete);
+        setDeleteDialogOpen(false);
+        setAssistanceToDelete(null);
+        console.log(`✅ Successfully deleted assistance #${assistanceToDelete.id}`);
+      } catch (error) {
+        console.error(`❌ Failed to delete assistance #${assistanceToDelete.id}:`, error);
+        toast.error('Erro ao excluir assistência. Tente novamente.');
+      }
     }
   };
 
@@ -88,12 +96,14 @@ export default function AssistanceList({
   const handleDeleteButtonClick = (assistance: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent row click event
+    console.log(`🗑️ Opening delete dialog for assistance #${assistance.id}`);
     setAssistanceToDelete(assistance);
     setDeleteDialogOpen(true);
   };
 
   // Handle row click for viewing assistance
   const handleRowClick = (assistance: any) => {
+    console.log(`👁️ Viewing assistance #${assistance.id}`);
     onViewAssistance(assistance);
   };
 
@@ -119,6 +129,15 @@ export default function AssistanceList({
     return false;
   };
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('📋 AssistanceList - Received assistances:', assistances?.length || 0);
+    console.log('⏳ AssistanceList - Is loading:', isLoading);
+    if (assistances?.length > 0) {
+      console.log('📊 First assistance sample:', assistances[0]);
+    }
+  }, [assistances, isLoading]);
+
   return (
     <div className="mt-6">
       {isLoading ? (
@@ -135,7 +154,21 @@ export default function AssistanceList({
             <table className="min-w-full divide-y divide-gray-700/30">
               <thead>
                 <TableRow>
-                  <TableHead className="text-left font-medium">ID</TableHead>
+                  <TableHead className="text-left font-medium">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={onSortOrderChange}
+                      className="flex items-center gap-2"
+                    >
+                      ID
+                      {sortOrder === 'desc' ? (
+                        <SortDesc className="h-4 w-4" />
+                      ) : (
+                        <SortAsc className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TableHead>
                   <TableHead className="text-left font-medium">Edifício</TableHead>
                   <TableHead className="text-left font-medium hidden md:table-cell">Fornecedor</TableHead>
                   <TableHead className="text-left font-medium">Status</TableHead>
@@ -156,9 +189,9 @@ export default function AssistanceList({
                       className={`${
                         isLateHighlighted || isLateItem ? 'bg-red-900/10 hover:bg-red-900/20' : 'hover:bg-white/5'
                       } cursor-pointer transition-colors`}
-                      onClick={() => onViewAssistance(assistance)}
+                      onClick={() => handleRowClick(assistance)}
                     >
-                      <TableCell className="text-[#cbd5e1]">{assistance.id}</TableCell>
+                      <TableCell className="text-[#cbd5e1] font-medium">#{assistance.id}</TableCell>
                       <TableCell className="text-[#cbd5e1]">
                         {assistance.buildings?.name || '-'}
                       </TableCell>
@@ -205,35 +238,51 @@ export default function AssistanceList({
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => handleViewButtonClick(assistance, e)}
-                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                            title="Ver detalhes"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={(e) => handleViewButtonClick(assistance, e)}
+                                  className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 h-8 w-8"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Ver detalhes</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                           
                           {onDeleteAssistance && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={(e) => handleDeleteButtonClick(assistance, e)}
-                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                              title="Excluir assistência"
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => handleDeleteButtonClick(assistance, e)}
+                                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8"
+                                  >
+                                    <Trash className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Excluir assistência</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           )}
                         </div>
                       </TableCell>
                       
                       {/* Add visual indicator for late items */}
                       {isLateItem && (
-                        <td className="px-3 py-4 whitespace-nowrap text-sm text-red-300">
+                        <TableCell className="px-3 py-4 whitespace-nowrap text-sm text-red-300">
                           <AlertTriangle className="h-4 w-4" />
-                        </td>
+                        </TableCell>
                       )}
                     </tr>
                   );
@@ -251,16 +300,19 @@ export default function AssistanceList({
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-300">
               Tem certeza que deseja excluir a assistência #{assistanceToDelete?.id}?
-              Esta ação não pode ser desfeita.
+              <br />
+              <strong>Esta ação não pode ser desfeita.</strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-700 text-white hover:bg-gray-600">Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="bg-gray-700 text-white hover:bg-gray-600">
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteConfirm}
               className="bg-red-500 hover:bg-red-600 text-white"
             >
-              Excluir
+              Excluir Definitivamente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
