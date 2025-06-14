@@ -11,10 +11,10 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
         <main className="flex-1 flex flex-col">
-          <header className="flex items-center justify-between p-4 border-b bg-white">
+          <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
             <SidebarTrigger />
             <div className="flex items-center gap-4">
               <RealtimeNotifications />

@@ -25,38 +25,16 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
-    --sidebar-background: 222.2 47.4% 11.2%;
-    --sidebar-foreground: 210 40% 98%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222.2 84% 4.9%;
     --sidebar-primary: 217.2 91.2% 59.8%;
-    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-    --sidebar-accent: 0 0% 100% / 0.1;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 0 0% 100% / 0.1;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+    --sidebar-border: 214.3 31.8% 91.4%;
     --sidebar-ring: 224.3 76.3% 48%;
     --success: 142.1 70.6% 45.3%;
     --success-foreground: 210 40% 98%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
   }
 }
 
@@ -66,47 +44,25 @@
   }
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(135deg, #1A1F2C 0%, #2D3250 100%);
-    color: #fff;
-    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 }
 
 @layer components {
-  .glass-sidebar {
-    @apply bg-[#0f172a66] backdrop-blur-xl border-r border-white/10 shadow-2xl;
-  }
-  
-  .glass {
-    @apply bg-white/5 backdrop-blur-md border border-white/10;
-  }
-  
   .glass-card {
-    @apply bg-[#192133] border border-[#2A3349] backdrop-blur-md shadow-lg rounded-xl overflow-hidden;
-  }
-  
-  .menu-item {
-    @apply text-[#f1f5f9]/80 hover:text-[#f1f5f9] hover:bg-white/10 transition-colors;
-  }
-  
-  .menu-item-active {
-    @apply text-[#f1f5f9] bg-white/10 font-medium;
-  }
-  
-  .menu-item-danger {
-    @apply text-[#ef4444]/80 hover:text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors;
+    @apply bg-white border border-gray-200 backdrop-blur-md shadow-lg rounded-xl overflow-hidden;
   }
   
   .chart-card {
-    @apply p-4 glass-card relative overflow-hidden;
+    @apply p-4 bg-white border border-gray-200 rounded-xl shadow-sm;
   }
   
   .chart-title {
-    @apply text-lg font-medium mb-1 text-white/90;
+    @apply text-lg font-medium mb-1 text-gray-900;
   }
   
   .chart-value {
-    @apply text-3xl font-bold;
+    @apply text-3xl font-bold text-gray-900;
   }
   
   .chart-metric {
@@ -114,50 +70,10 @@
   }
   
   .chart-metric-up {
-    @apply text-green-400;
+    @apply text-green-600;
   }
   
   .chart-metric-down {
-    @apply text-red-400;
+    @apply text-red-600;
   }
-  
-  .gradient-purple {
-    background: linear-gradient(120deg, #9b87f5 0%, #7E69AB 100%);
-  }
-  
-  .gradient-blue {
-    background: linear-gradient(120deg, #1EAEDB 0%, #33C3F0 100%);
-  }
-  
-  .gradient-btn {
-    @apply bg-gradient-to-r from-[#7E69AB] to-[#9b87f5] text-white hover:opacity-90;
-  }
-  
-  /* Improved dropdown styling */
-  .select-content {
-    @apply bg-[#192133] border border-[#2A3349] text-white;
-  }
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeIn 0.5s ease-out forwards;
 }
