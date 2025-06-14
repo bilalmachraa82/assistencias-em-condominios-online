@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
@@ -16,6 +15,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserFriendlyError, logError } from '@/utils/ErrorUtils';
+import { DeleteAssistanceResult, validateDeleteAssistanceResult } from '@/types/assistance';
 
 export default function AssistenciasDashboard() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
@@ -109,9 +109,8 @@ export default function AssistenciasDashboard() {
     try {
       console.log(`🗑️ Starting robust deletion process for assistance #${assistance.id}`);
       setIsDeleting(true);
-      
-      // Use the new robust deletion function from Supabase
-      const { data: deleteResult, error: deleteError } = await supabase
+
+      const { data: resultRaw, error: deleteError } = await supabase
         .rpc('delete_assistance_safely', { p_assistance_id: assistance.id });
 
       if (deleteError) {
@@ -120,18 +119,25 @@ export default function AssistenciasDashboard() {
         return;
       }
 
+      let deleteResult: DeleteAssistanceResult;
+      try {
+        deleteResult = validateDeleteAssistanceResult(resultRaw);
+      } catch (parseErr) {
+        toast.error('Erro inesperado ao interpretar resposta de eliminação');
+        console.error(parseErr);
+        return;
+      }
+
       console.log('📋 Deletion result:', deleteResult);
 
-      // Check if the function returned success
-      if (!deleteResult?.success) {
-        console.error('❌ Deletion function returned failure:', deleteResult?.error);
-        toast.error(deleteResult?.error || 'Erro desconhecido na eliminação');
+      if (!deleteResult.success) {
+        console.error('❌ Deletion function returned failure:', deleteResult.error);
+        toast.error(deleteResult.error || 'Erro desconhecido na eliminação');
         return;
       }
 
       console.log(`✅ Assistance #${assistance.id} successfully deleted via safe function`);
       
-      // Verify the assistance was actually deleted by trying to fetch it
       const { data: verifyAssistance, error: verifyError } = await supabase
         .from('assistances')
         .select('id')
@@ -148,14 +154,12 @@ export default function AssistenciasDashboard() {
         console.log('✅ Verified: assistance no longer exists in database');
       }
       
-      // Close the dialog if it was the selected assistance
       if (selectedAssistance?.id === assistance.id) {
         console.log('🚪 Closing dialog for deleted assistance');
         setIsViewDialogOpen(false);
         setSelectedAssistance(null);
       }
       
-      // Force complete cache invalidation and refetch
       console.log('🔄 Forcing complete cache invalidation and refetch...');
       await handleRefetchAssistances();
       

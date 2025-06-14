@@ -28,6 +28,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getUserFriendlyError, logError } from '@/utils/ErrorUtils';
 import { getNextPossibleStatuses } from '@/utils/StatusUtils';
 import { AssistanceCalendarView } from '@/components/assistance/AssistanceCalendarView';
+import { DeleteAssistanceResult, validateDeleteAssistanceResult } from '@/types/assistance';
 
 // Export the comprehensive management dashboard
 export default function AssistanceManagement() {
@@ -228,7 +229,7 @@ export default function AssistanceManagement() {
       console.log(`🗑️ Starting robust deletion process for assistance #${assistance.id}`);
       
       // Use the new robust deletion function from Supabase
-      const { data: deleteResult, error: deleteError } = await supabase
+      const { data: resultRaw, error: deleteError } = await supabase
         .rpc('delete_assistance_safely', { p_assistance_id: assistance.id });
 
       if (deleteError) {
@@ -237,12 +238,20 @@ export default function AssistanceManagement() {
         return;
       }
 
+      let deleteResult: DeleteAssistanceResult;
+      try {
+        deleteResult = validateDeleteAssistanceResult(resultRaw);
+      } catch (parseErr) {
+        toast.error('Erro inesperado ao interpretar resposta de eliminação');
+        console.error(parseErr);
+        return;
+      }
+
       console.log('📋 Deletion result:', deleteResult);
 
-      // Check if the function returned success
-      if (!deleteResult?.success) {
-        console.error('❌ Deletion function returned failure:', deleteResult?.error);
-        toast.error(deleteResult?.error || 'Erro desconhecido na eliminação');
+      if (!deleteResult.success) {
+        console.error('❌ Deletion function returned failure:', deleteResult.error);
+        toast.error(deleteResult.error || 'Erro desconhecido na eliminação');
         return;
       }
 

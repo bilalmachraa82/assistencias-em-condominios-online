@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
@@ -13,6 +12,7 @@ import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserFriendlyError, logError } from '@/utils/ErrorUtils';
+import { DeleteAssistanceResult, validateDeleteAssistanceResult } from '@/types/assistance';
 
 export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
@@ -107,7 +107,7 @@ export default function Assistencias() {
       setIsDeleting(true);
       
       // Use the new robust deletion function from Supabase
-      const { data: deleteResult, error: deleteError } = await supabase
+      const { data: resultRaw, error: deleteError } = await supabase
         .rpc('delete_assistance_safely', { p_assistance_id: assistance.id });
 
       if (deleteError) {
@@ -116,12 +116,20 @@ export default function Assistencias() {
         return;
       }
 
+      let deleteResult: DeleteAssistanceResult;
+      try {
+        deleteResult = validateDeleteAssistanceResult(resultRaw);
+      } catch (parseErr) {
+        toast.error('Erro inesperado ao interpretar resposta de eliminação');
+        console.error(parseErr);
+        return;
+      }
+
       console.log('📋 Deletion result:', deleteResult);
 
-      // Check if the function returned success
-      if (!deleteResult?.success) {
-        console.error('❌ Deletion function returned failure:', deleteResult?.error);
-        toast.error(deleteResult?.error || 'Erro desconhecido na eliminação');
+      if (!deleteResult.success) {
+        console.error('❌ Deletion function returned failure:', deleteResult.error);
+        toast.error(deleteResult.error || 'Erro desconhecido na eliminação');
         return;
       }
 
