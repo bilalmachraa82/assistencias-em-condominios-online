@@ -186,10 +186,7 @@ export default function AssistanceDetails({
 
           <DescriptionSection description={assistance.description} />
 
-          <PhotosSection
-            photoPath={assistance.photo_path}
-            completionPhotoUrl={assistance.completion_photo_url}
-          />
+          <PhotosSection assistanceId={assistance.id} />
 
           {/* NOVA SECÇÃO DE MENSAGENS */}
           <AssistanceMessagesSection 
