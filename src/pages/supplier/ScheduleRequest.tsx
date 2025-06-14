@@ -2,15 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Building, CalendarIcon, Wrench } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Calendar as CalendarIcon, Building, Wrench, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from "@/lib/utils";
 import SupplierActionLayout from '@/components/supplier/SupplierActionLayout';
+import SupplierMessages from '@/components/supplier/SupplierMessages';
 import { submitSupplierAction, fetchAssistanceData, getTypeBadgeClass } from '@/utils/SupplierActionUtils';
 
 export default function ScheduleRequest() {
@@ -23,15 +21,9 @@ export default function ScheduleRequest() {
   const [error, setError] = useState<string | null>(null);
   const [assistance, setAssistance] = useState<any>(null);
   
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedTime, setSelectedTime] = useState<string>('10:00');
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState('');
   const [rescheduleReason, setRescheduleReason] = useState('');
-  const [isReschedule, setIsReschedule] = useState(false);
-
-  const timeOptions = Array.from({ length: 13 }, (_, i) => {
-    const hour = i + 8; // Start at 8 AM
-    return `${hour}:00`;
-  });
 
   useEffect(() => {
     if (!token) {
@@ -47,14 +39,6 @@ export default function ScheduleRequest() {
         setError(result.error || 'Erro ao carregar os detalhes da assistência');
       } else {
         setAssistance(result.data);
-        
-        // If there's already a scheduled date, select it
-        if (result.data.scheduled_datetime) {
-          const date = new Date(result.data.scheduled_datetime);
-          setSelectedDate(date);
-          setSelectedTime(format(date, 'HH:mm'));
-          setIsReschedule(true);
-        }
       }
       
       setLoading(false);
@@ -64,30 +48,25 @@ export default function ScheduleRequest() {
   }, [token]);
 
   const handleSchedule = async () => {
-    if (!selectedDate) {
-      toast.error('Por favor, selecione uma data para o agendamento');
+    if (!selectedDate || !selectedTime) {
+      toast.error('Por favor, selecione data e hora');
       return;
     }
     
     setSubmitting(true);
     
-    // Combine date and time
-    const [hours, minutes] = selectedTime.split(':').map(Number);
-    const scheduledDate = new Date(selectedDate);
-    scheduledDate.setHours(hours, minutes);
+    const datetime = new Date(selectedDate);
+    const [hours, minutes] = selectedTime.split(':');
+    datetime.setHours(parseInt(hours), parseInt(minutes));
     
-    const result = await submitSupplierAction(
-      isReschedule ? 'reschedule' : 'schedule',
-      token!, 
-      {
-        datetime: scheduledDate.toISOString(),
-        reason: rescheduleReason
-      }
-    );
+    const result = await submitSupplierAction('schedule', token!, {
+      datetime: datetime.toISOString(),
+      reason: rescheduleReason
+    });
     
     if (result.success) {
-      toast.success(`Assistência ${isReschedule ? 'reagendada' : 'agendada'} com sucesso!`);
-      navigate(`/supplier/confirmation?action=${isReschedule ? 'rescheduled' : 'scheduled'}`);
+      toast.success('Assistência agendada com sucesso!');
+      navigate('/supplier/confirmation?action=scheduled');
     } else {
       setSubmitting(false);
     }
@@ -101,8 +80,8 @@ export default function ScheduleRequest() {
 
   return (
     <SupplierActionLayout 
-      title={isReschedule ? "Reagendamento de Serviço" : "Agendamento de Serviço"} 
-      description="Por favor, selecione a data e hora para a visita"
+      title="Agendamento de Assistência" 
+      description="Defina a data e hora para a intervenção"
       loading={loading}
       error={error || undefined}
       statusBadge={statusBadge}
@@ -129,84 +108,72 @@ export default function ScheduleRequest() {
           </div>
 
           <div className="border-t pt-4">
-            <div className="text-sm font-medium mb-2">Descrição do Serviço</div>
+            <div className="text-sm font-medium mb-2">Descrição</div>
             <div className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded">
               {assistance.description}
             </div>
           </div>
 
           <div className="border-t pt-4">
-            <div className="text-sm font-medium mb-4">Selecione a Data e Hora</div>
+            <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Comunicação
+            </h3>
+            <SupplierMessages 
+              assistanceId={assistance.id}
+              supplierName={assistance.suppliers.name}
+            />
+          </div>
+
+          <div className="border-t pt-4">
+            <div className="text-sm font-medium mb-4 flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4" />
+              Definir Agendamento
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <div className="text-sm mb-2">Data</div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !selectedDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? (
-                        format(selectedDate, "PPP", { locale: ptBR })
-                      ) : (
-                        <span>Selecione uma data</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 pointer-events-auto">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      initialFocus
-                      disabled={(date) => date < new Date()}
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
+                <label className="text-sm font-medium mb-2 block">Data</label>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => date < new Date()}
+                  className="rounded-md border bg-white"
+                />
               </div>
-              
-              <div>
-                <div className="text-sm mb-2">Hora</div>
-                <select 
-                  className="w-full border rounded-md h-10 px-3"
-                  value={selectedTime}
-                  onChange={(e) => setSelectedTime(e.target.value)}
-                >
-                  {timeOptions.map(time => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Hora</label>
+                  <Input
+                    type="time"
+                    value={selectedTime}
+                    onChange={(e) => setSelectedTime(e.target.value)}
+                    className="bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Observações (opcional)</label>
+                  <Textarea
+                    value={rescheduleReason}
+                    onChange={(e) => setRescheduleReason(e.target.value)}
+                    placeholder="Observações sobre o agendamento..."
+                    className="bg-white"
+                    rows={3}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          {isReschedule && (
-            <div className="border-t pt-4">
-              <div className="text-sm font-medium mb-2">Motivo do Reagendamento</div>
-              <Textarea 
-                placeholder="Por favor, explique o motivo do reagendamento..."
-                value={rescheduleReason}
-                onChange={(e) => setRescheduleReason(e.target.value)}
-                className="resize-none"
-                rows={3}
-              />
-            </div>
-          )}
-
           <div className="flex justify-end border-t pt-4">
-            <Button 
+            <Button
               onClick={handleSchedule}
-              disabled={submitting || !selectedDate}
+              disabled={submitting || !selectedDate || !selectedTime}
+              className="flex items-center gap-2"
             >
-              {isReschedule ? 'Confirmar Reagendamento' : 'Confirmar Agendamento'}
+              <CalendarIcon className="h-4 w-4" />
+              Confirmar Agendamento
             </Button>
           </div>
         </div>

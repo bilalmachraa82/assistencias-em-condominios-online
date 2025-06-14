@@ -1,12 +1,18 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Camera, Check, Wrench } from 'lucide-react';
+import { Check, Wrench, Building, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import SupplierActionLayout from '@/components/supplier/SupplierActionLayout';
+import SupplierPhotoUpload from '@/components/supplier/SupplierPhotoUpload';
+import SupplierMessages from '@/components/supplier/SupplierMessages';
 import { submitSupplierAction, fetchAssistanceData, getTypeBadgeClass } from '@/utils/SupplierActionUtils';
-import { Building } from 'lucide-react';
+
+const PHOTO_CATEGORIES = [
+  { id: "progresso", label: "Durante a Intervenção" },
+  { id: "resultado", label: "Resultado Final" },
+];
 
 export default function CompleteRequest() {
   const [searchParams] = useSearchParams();
@@ -17,9 +23,7 @@ export default function CompleteRequest() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [assistance, setAssistance] = useState<any>(null);
-  
-  const [photo, setPhoto] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   useEffect(() => {
     if (!token) {
@@ -43,40 +47,10 @@ export default function CompleteRequest() {
     loadAssistance();
   }, [token]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-    
-    const file = e.target.files[0];
-    if (!file.type.startsWith('image/')) {
-      toast.error('Por favor, selecione uma imagem válida');
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setPhoto(base64String);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleCaptureClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
   const handleSubmit = async () => {
-    if (!photo) {
-      toast.error('Por favor, adicione uma foto do serviço concluído');
-      return;
-    }
-    
     setSubmitting(true);
     
-    const result = await submitSupplierAction('complete', token!, {
-      photoBase64: photo
-    });
+    const result = await submitSupplierAction('complete', token!);
     
     if (result.success) {
       toast.success('Assistência marcada como concluída com sucesso!');
@@ -84,6 +58,11 @@ export default function CompleteRequest() {
     } else {
       setSubmitting(false);
     }
+  };
+
+  const handlePhotoUpload = () => {
+    setRefreshTrigger(prev => prev + 1);
+    toast.success('Fotos adicionadas com sucesso!');
   };
 
   const statusBadge = assistance?.type ? (
@@ -95,7 +74,7 @@ export default function CompleteRequest() {
   return (
     <SupplierActionLayout 
       title="Conclusão de Serviço" 
-      description="Por favor, confirme a conclusão do serviço com uma foto"
+      description="Adicione fotos e mensagens sobre a conclusão do serviço"
       loading={loading}
       error={error || undefined}
       statusBadge={statusBadge}
@@ -129,52 +108,35 @@ export default function CompleteRequest() {
           </div>
 
           <div className="border-t pt-4">
-            <div className="text-sm font-medium mb-4">Adicionar Foto de Conclusão</div>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-              capture="environment"
+            <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Comunicação
+            </h3>
+            <SupplierMessages 
+              assistanceId={assistance.id}
+              supplierName={assistance.suppliers.name}
             />
+          </div>
 
-            {photo ? (
-              <div className="space-y-4">
-                <div className="rounded-lg overflow-hidden border">
-                  <img 
-                    src={photo} 
-                    alt="Foto de conclusão" 
-                    className="w-full h-auto object-contain max-h-64" 
-                  />
-                </div>
-                <div className="flex justify-center">
-                  <Button 
-                    variant="outline" 
-                    onClick={handleCaptureClick}
-                    className="flex items-center gap-2"
-                  >
-                    <Camera className="h-4 w-4" />
-                    Trocar Foto
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div 
-                className="border-2 border-dashed rounded-lg p-10 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={handleCaptureClick}
-              >
-                <Camera className="h-10 w-10 text-gray-400 mb-2" />
-                <p className="text-sm text-gray-500">Clique para adicionar uma foto da conclusão do serviço</p>
-              </div>
-            )}
+          <div className="border-t pt-4">
+            <div className="text-sm font-medium mb-4">Fotos da Intervenção</div>
+            <div className="grid gap-4">
+              {PHOTO_CATEGORIES.map(category => (
+                <SupplierPhotoUpload
+                  key={`${category.id}-${refreshTrigger}`}
+                  assistanceId={assistance.id}
+                  category={category.id}
+                  categoryLabel={category.label}
+                  onUploadCompleted={handlePhotoUpload}
+                />
+              ))}
+            </div>
           </div>
 
           <div className="flex justify-end border-t pt-4">
             <Button 
               onClick={handleSubmit}
-              disabled={submitting || !photo}
+              disabled={submitting}
               className="flex items-center gap-2"
             >
               <Check className="h-4 w-4" />

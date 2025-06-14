@@ -1,17 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Building, Calendar, CalendarIcon, Clock, User, Wrench } from 'lucide-react';
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Check, X, Clock, Building, Wrench, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import SupplierActionLayout from '@/components/supplier/SupplierActionLayout';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format, addDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { cn } from "@/lib/utils";
-import { fetchAssistanceData, submitSupplierAction, getTypeBadgeClass } from "@/utils/SupplierActionUtils";
+import SupplierMessages from '@/components/supplier/SupplierMessages';
+import { submitSupplierAction, fetchAssistanceData, getTypeBadgeClass } from '@/utils/SupplierActionUtils';
 
 export default function AcceptRequest() {
   const [searchParams] = useSearchParams();
@@ -22,19 +20,11 @@ export default function AcceptRequest() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [assistance, setAssistance] = useState<any>(null);
+  
+  const [acceptWithSchedule, setAcceptWithSchedule] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
-  const [showRejectForm, setShowRejectForm] = useState(false);
-
-  // Estado para o agendamento
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedTime, setSelectedTime] = useState<string>('10:00');
-  const [showScheduleForm, setShowScheduleForm] = useState(false);
-  const [scheduleStep, setScheduleStep] = useState(1);
-
-  const timeOptions = Array.from({ length: 13 }, (_, i) => {
-    const hour = i + 8; // Start at 8 AM
-    return `${hour}:00`;
-  });
 
   useEffect(() => {
     if (!token) {
@@ -44,14 +34,12 @@ export default function AcceptRequest() {
     }
     
     const loadAssistance = async () => {
-      setLoading(true);
       const result = await fetchAssistanceData('accept', token);
       
-      if (result.success) {
-        setAssistance(result.data);
-        setError(null);
-      } else {
+      if (!result.success) {
         setError(result.error || 'Erro ao carregar os detalhes da assistência');
+      } else {
+        setAssistance(result.data);
       }
       
       setLoading(false);
@@ -62,63 +50,44 @@ export default function AcceptRequest() {
 
   const handleAccept = async () => {
     setSubmitting(true);
-    setShowScheduleForm(true);
-    setSubmitting(false);
-  };
-
-  const handleScheduleSubmit = async () => {
-    if (!selectedDate) {
-      toast.error('Por favor, selecione uma data para o agendamento');
-      return;
+    
+    let data = undefined;
+    if (acceptWithSchedule && selectedDate && selectedTime) {
+      const datetime = new Date(selectedDate);
+      const [hours, minutes] = selectedTime.split(':');
+      datetime.setHours(parseInt(hours), parseInt(minutes));
+      data = { datetime: datetime.toISOString() };
     }
     
-    setSubmitting(true);
+    const result = await submitSupplierAction('accept', token!, data);
     
-    // Combine date and time
-    const [hours, minutes] = selectedTime.split(':').map(Number);
-    const scheduledDate = new Date(selectedDate);
-    scheduledDate.setHours(hours, minutes);
-    
-    try {
-      console.log('Submitting acceptance with scheduling token:', token);
-      
-      const result = await submitSupplierAction('accept', token, {
-        datetime: scheduledDate.toISOString()
-      });
-      
-      if (!result.success) {
-        console.error('Error accepting assistance:', result.error);
-        toast.error(result.error || 'Erro ao aceitar e agendar assistência');
-        setSubmitting(false);
-        return;
-      }
-      
-      toast.success('Assistência aceita e agendada com sucesso!');
-      navigate('/supplier/confirmation?action=scheduled');
-    } catch (err) {
-      console.error('Erro ao aceitar assistência:', err);
-      toast.error('Erro ao processar sua solicitação. Por favor, tente novamente.');
+    if (result.success) {
+      const message = acceptWithSchedule 
+        ? 'Assistência aceite e agendada com sucesso!'
+        : 'Assistência aceite com sucesso!';
+      toast.success(message);
+      navigate('/supplier/confirmation?action=accepted');
+    } else {
       setSubmitting(false);
     }
   };
 
   const handleReject = async () => {
     if (!rejectionReason.trim()) {
-      toast.error('Por favor, forneça um motivo para a recusa');
+      toast.error('Por favor, indique o motivo da recusa');
       return;
     }
     
     setSubmitting(true);
     
-    const result = await submitSupplierAction('reject', token, {
+    const result = await submitSupplierAction('reject', token!, {
       reason: rejectionReason
     });
     
     if (result.success) {
-      toast.success('Assistência recusada com sucesso!');
+      toast.success('Assistência recusada');
       navigate('/supplier/confirmation?action=rejected');
     } else {
-      toast.error(result.error || 'Erro ao recusar assistência');
       setSubmitting(false);
     }
   };
@@ -131,8 +100,8 @@ export default function AcceptRequest() {
 
   return (
     <SupplierActionLayout 
-      title={showScheduleForm ? "Agendamento de Serviço" : "Solicitação de Assistência Técnica"} 
-      description={showScheduleForm ? "Por favor, selecione a data e hora para a visita" : "Por favor, avalie e responda à solicitação abaixo"}
+      title="Solicitação de Assistência" 
+      description="Revise os detalhes e decida sobre a solicitação"
       loading={loading}
       error={error || undefined}
       statusBadge={statusBadge}
@@ -159,127 +128,94 @@ export default function AcceptRequest() {
           </div>
 
           <div className="border-t pt-4">
-            <div className="text-sm font-medium mb-2">Descrição do Serviço</div>
+            <div className="text-sm font-medium mb-2">Descrição</div>
             <div className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded">
               {assistance.description}
             </div>
           </div>
 
-          {showRejectForm ? (
-            <div className="border-t pt-4">
-              <div className="text-sm font-medium mb-2">Motivo da Recusa</div>
-              <Textarea 
-                placeholder="Por favor, explique por que não pode realizar este serviço..."
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                rows={4}
-                className="resize-none mb-4"
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Comunicação
+            </h3>
+            <SupplierMessages 
+              assistanceId={assistance.id}
+              supplierName={assistance.suppliers.name}
+            />
+          </div>
+
+          <div className="border-t pt-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="schedule"
+                checked={acceptWithSchedule}
+                onChange={(e) => setAcceptWithSchedule(e.target.checked)}
+                className="rounded"
               />
-              
-              <div className="flex justify-end gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowRejectForm(false)}
-                  disabled={submitting}
-                >
-                  Voltar
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleReject}
-                  disabled={submitting}
-                >
-                  {submitting ? 'Enviando...' : 'Confirmar Recusa'}
-                </Button>
-              </div>
+              <label htmlFor="schedule" className="text-sm font-medium flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                Aceitar e agendar imediatamente
+              </label>
             </div>
-          ) : showScheduleForm ? (
-            <div className="border-t pt-4">
-              <div className="text-sm font-medium mb-4">Selecione a Data e Hora</div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {acceptWithSchedule && (
+              <div className="grid gap-4 md:grid-cols-2 p-4 bg-gray-50 rounded">
                 <div>
-                  <div className="text-sm mb-2">Data</div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !selectedDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? (
-                          format(selectedDate, "PPP", { locale: ptBR })
-                        ) : (
-                          <span>Selecione uma data</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 pointer-events-auto">
-                      <CalendarComponent
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        initialFocus
-                        disabled={(date) => date < new Date()}
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <label className="text-sm font-medium mb-2 block">Data</label>
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={(date) => date < new Date()}
+                    className="rounded-md border bg-white"
+                  />
                 </div>
-                
                 <div>
-                  <div className="text-sm mb-2">Hora</div>
-                  <select 
-                    className="w-full border rounded-md h-10 px-3"
+                  <label className="text-sm font-medium mb-2 block">Hora</label>
+                  <Input
+                    type="time"
                     value={selectedTime}
                     onChange={(e) => setSelectedTime(e.target.value)}
-                  >
-                    {timeOptions.map(time => (
-                      <option key={time} value={time}>
-                        {time}
-                      </option>
-                    ))}
-                  </select>
+                    className="bg-white"
+                  />
                 </div>
               </div>
+            )}
+          </div>
 
-              <div className="flex justify-end mt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowScheduleForm(false)}
-                  disabled={submitting}
-                  className="mr-2"
-                >
-                  Voltar
-                </Button>
-                <Button 
-                  onClick={handleScheduleSubmit}
-                  disabled={submitting || !selectedDate}
-                >
-                  {submitting ? 'Enviando...' : 'Confirmar Aceitação e Agendamento'}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex justify-end gap-4 border-t pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowRejectForm(true)}
-                disabled={submitting}
-              >
-                Recusar Serviço
-              </Button>
-              <Button 
-                onClick={handleAccept}
-                disabled={submitting}
-              >
-                {submitting ? 'Enviando...' : 'Aceitar e Agendar Serviço'}
-              </Button>
-            </div>
-          )}
+          <div className="border-t pt-4">
+            <label className="text-sm font-medium mb-2 block">Motivo da Recusa (opcional)</label>
+            <Textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Se pretende recusar, indique o motivo..."
+              className="bg-white"
+              rows={3}
+            />
+          </div>
+
+          <div className="flex gap-3 border-t pt-4">
+            <Button
+              variant="destructive"
+              onClick={handleReject}
+              disabled={submitting}
+              className="flex items-center gap-2"
+            >
+              <X className="h-4 w-4" />
+              Recusar
+            </Button>
+            
+            <Button
+              onClick={handleAccept}
+              disabled={submitting || (acceptWithSchedule && (!selectedDate || !selectedTime))}
+              className="flex items-center gap-2 flex-1"
+            >
+              <Check className="h-4 w-4" />
+              {acceptWithSchedule ? 'Aceitar e Agendar' : 'Aceitar'}
+            </Button>
+          </div>
         </div>
       )}
     </SupplierActionLayout>
