@@ -19,7 +19,6 @@ export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
-  const [isDeleting, setIsDeleting] = useState(false);
   
   // Use custom hook to fetch and filter data
   const {
@@ -161,7 +160,7 @@ export default function Assistencias() {
         />
 
         <AssistanceList 
-          isLoading={isAssistancesLoading || isDeleting}
+          isLoading={isAssistancesLoading}
           assistances={paginatedAssistances || []}
           onSortOrderChange={toggleSortOrder}
           sortOrder={sortOrder}
