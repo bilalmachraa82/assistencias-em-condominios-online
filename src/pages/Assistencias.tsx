@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
@@ -160,7 +161,7 @@ export default function Assistencias() {
         />
 
         <AssistanceList 
-          isLoading={isAssistancesLoading}
+          isLoading={isAssistancesLoading || isDeleting}
           assistances={paginatedAssistances || []}
           onSortOrderChange={toggleSortOrder}
           sortOrder={sortOrder}
