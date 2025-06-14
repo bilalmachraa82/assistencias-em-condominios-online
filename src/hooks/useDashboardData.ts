@@ -8,7 +8,7 @@ export function useDashboardData() {
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
       const [assistancesResult, buildingsResult, suppliersResult] = await Promise.all([
-        supabase.from('assistances').select('id, status, created_at, urgency_level'),
+        supabase.from('assistances').select('id, status, created_at, type'),
         supabase.from('buildings').select('id'),
         supabase.from('suppliers').select('id')
       ]);
@@ -23,7 +23,7 @@ export function useDashboardData() {
 
       // Calculate active assistances (not completed)
       const activeAssistances = assistances.filter(a => 
-        a.status !== 'completed' && a.status !== 'cancelled'
+        a.status !== 'Concluído' && a.status !== 'Cancelado'
       ).length;
 
       // Calculate today's assistances
@@ -31,12 +31,19 @@ export function useDashboardData() {
         new Date(a.created_at) >= startOfDay
       ).length;
 
-      // Calculate urgency distribution
-      const urgencyDistribution = assistances.reduce((acc, assistance) => {
-        const level = assistance.urgency_level || 'normal';
-        acc[level] = (acc[level] || 0) + 1;
+      // Calculate type distribution (using existing 'type' field)
+      const typeDistribution = assistances.reduce((acc, assistance) => {
+        const type = assistance.type || 'normal';
+        acc[type] = (acc[type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
+
+      // Map to urgency-like categories for display
+      const urgencyDistribution = {
+        normal: typeDistribution['Manutenção'] || 0,
+        urgent: typeDistribution['Reparação'] || 0,
+        emergency: typeDistribution['Emergência'] || 0
+      };
 
       return {
         totalAssistances: assistances.length,
