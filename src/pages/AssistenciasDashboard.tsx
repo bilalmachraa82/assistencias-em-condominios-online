@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tab } from '@headlessui/react';
@@ -330,13 +331,13 @@ export default function AssistenciasDashboard() {
                     onStatusFilterChange={filters.setStatusFilter}
                     typeFilter={filters.typeFilter}
                     onTypeFilterChange={filters.setTypeFilter}
-                    buildings={buildings || []}
+                    buildings={buildings}
                     isBuildingsLoading={isBuildingsLoading}
                   />
 
                   <AssistanceList 
                     isLoading={isAssistancesLoading || isDeleting}
-                    assistances={tabIndex === 0 ? paginatedAssistances : 
+                    assistances={tabIndex === 0 ? paginatedAssistances || [] : 
                                 tabIndex === 1 ? pendingAssistances : 
                                 tabIndex === 2 ? scheduledAssistances :
                                 tabIndex === 3 ? lateAssistances :

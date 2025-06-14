@@ -224,13 +224,13 @@ export default function Assistencias() {
           onStatusFilterChange={filters.setStatusFilter}
           typeFilter={filters.typeFilter}
           onTypeFilterChange={filters.setTypeFilter}
-          buildings={buildings || []}
+          buildings={buildings}
           isBuildingsLoading={isBuildingsLoading}
         />
 
         <AssistanceList 
           isLoading={isAssistancesLoading || isDeleting}
-          assistances={paginatedAssistances}
+          assistances={paginatedAssistances || []}
           onSortOrderChange={toggleSortOrder}
           sortOrder={sortOrder}
           onViewAssistance={handleViewAssistance}

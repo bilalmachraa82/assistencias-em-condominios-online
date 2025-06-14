@@ -43,7 +43,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
         if (data?.length > 0) {
           console.log('📊 Sample assistance data:', data[0]);
         }
-        return data;
+        return data || [];
       } catch (error) {
         console.error('💥 Critical error in assistances query:', error);
         throw error;
@@ -54,9 +54,6 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     retry: (failureCount, error) => {
       console.log(`🔄 Retry attempt ${failureCount} for assistances query`);
       return failureCount < 3;
-    },
-    onError: (error) => {
-      console.error('📋 Assistances query failed:', error);
     }
   });
 
@@ -82,7 +79,7 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
         }
         
         console.log(`✅ Fetched ${data?.length || 0} buildings successfully`);
-        return data;
+        return data || [];
       } catch (error) {
         console.error('💥 Critical error in buildings query:', error);
         throw error;
@@ -91,14 +88,11 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
     retry: (failureCount, error) => {
       console.log(`🔄 Retry attempt ${failureCount} for buildings query`);
       return failureCount < 3;
-    },
-    onError: (error) => {
-      console.error('🏗️ Buildings query failed:', error);
     }
   });
 
-  // Apply filters to assistances
-  const filteredAssistances = assistances?.filter((assistance) => {
+  // Apply filters to assistances with proper fallback
+  const filteredAssistances = (assistances || []).filter((assistance) => {
     // Search query filter
     if (searchQuery && !assistance.description?.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !assistance.buildings?.name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -163,8 +157,8 @@ export default function useAssistanceData(sortOrder: 'desc' | 'asc') {
   }
 
   return {
-    assistances,
-    buildings,
+    assistances: assistances || [],
+    buildings: buildings || [],
     filteredAssistances,
     paginatedAssistances,
     isAssistancesLoading,
