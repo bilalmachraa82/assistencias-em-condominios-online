@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Play, CheckCircle, AlertCircle, Clock, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
+import { generateToken } from "@/utils/TokenUtils";
 
 interface TestStep {
   id: string;
@@ -111,16 +112,26 @@ export default function EndToEndTester() {
         return;
       }
 
+      // Generate required tokens
+      const interactionToken = generateToken('int');
+      const acceptanceToken = generateToken('acc');
+      const schedulingToken = generateToken('sch');
+      const validationToken = generateToken('val');
+
       const { data: assistance, error: createError } = await supabase
         .from('assistances')
-        .insert([{
+        .insert({
           building_id: buildings[0].id,
           supplier_id: suppliers[0].id,
           intervention_type_id: interventionTypes[0].id,
           type: 'Normal',
           description: 'Teste automático do sistema - ' + new Date().toLocaleString(),
-          status: 'Pendente Resposta Inicial'
-        }])
+          status: 'Pendente Resposta Inicial',
+          interaction_token: interactionToken,
+          acceptance_token: acceptanceToken,
+          scheduling_token: schedulingToken,
+          validation_token: validationToken
+        })
         .select('id')
         .single();
 
@@ -189,12 +200,12 @@ export default function EndToEndTester() {
       
       const { error: messageError } = await supabase
         .from('assistance_messages')
-        .insert([{
+        .insert({
           assistance_id: assistance.id,
           sender_role: 'admin',
           sender_name: 'Sistema de Teste',
           message: 'Mensagem de teste automático'
-        }]);
+        });
 
       if (messageError) {
         updateStepStatus('messages', 'error', messageError.message);
@@ -208,12 +219,12 @@ export default function EndToEndTester() {
       // Just test the table structure
       const { error: photoError } = await supabase
         .from('assistance_photos')
-        .insert([{
+        .insert({
           assistance_id: assistance.id,
           category: 'teste',
           photo_url: 'https://example.com/test.jpg',
           uploaded_by: 'teste'
-        }]);
+        });
 
       if (photoError) {
         updateStepStatus('photos', 'error', photoError.message);

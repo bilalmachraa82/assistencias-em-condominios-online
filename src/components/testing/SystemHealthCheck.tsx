@@ -47,12 +47,12 @@ export default function SystemHealthCheck() {
 
     // Check Database
     try {
-      const { data, error } = await supabase.from('assistances').select('count', { count: 'exact', head: true });
+      const { count, error } = await supabase.from('assistances').select('*', { count: 'exact', head: true });
       if (error) throw error;
       
       setChecks(prev => prev.map(check => 
         check.name === 'Base de Dados' 
-          ? { ...check, status: 'healthy' as const, message: `Conexão OK - ${data || 0} assistências`, count: data || 0 }
+          ? { ...check, status: 'healthy' as const, message: `Conexão OK - ${count || 0} assistências`, count: count || 0 }
           : check
       ));
     } catch (error) {
@@ -113,16 +113,16 @@ export default function SystemHealthCheck() {
     // Check System Data Integrity
     try {
       const [buildings, suppliers, interventionTypes, validStatuses] = await Promise.all([
-        supabase.from('buildings').select('count', { count: 'exact', head: true }),
-        supabase.from('suppliers').select('count', { count: 'exact', head: true }),
-        supabase.from('intervention_types').select('count', { count: 'exact', head: true }),
-        supabase.from('valid_statuses').select('count', { count: 'exact', head: true })
+        supabase.from('buildings').select('*', { count: 'exact', head: true }),
+        supabase.from('suppliers').select('*', { count: 'exact', head: true }),
+        supabase.from('intervention_types').select('*', { count: 'exact', head: true }),
+        supabase.from('valid_statuses').select('*', { count: 'exact', head: true })
       ]);
 
-      const buildingCount = buildings.data || 0;
-      const supplierCount = suppliers.data || 0;
-      const interventionCount = interventionTypes.data || 0;
-      const statusCount = validStatuses.data || 0;
+      const buildingCount = buildings.count || 0;
+      const supplierCount = suppliers.count || 0;
+      const interventionCount = interventionTypes.count || 0;
+      const statusCount = validStatuses.count || 0;
 
       const hasMinimumData = buildingCount > 0 && supplierCount > 0 && interventionCount > 0 && statusCount > 0;
 
