@@ -13,6 +13,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserFriendlyError, logError } from '@/utils/ErrorUtils';
 import { DeleteAssistanceResult, validateDeleteAssistanceResult } from '@/types/assistance';
+import { useDeleteAssistance } from "@/components/assistance/useDeleteAssistance";
 
 export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
@@ -30,6 +31,15 @@ export default function Assistencias() {
     pagination,
     filters
   } = useAssistanceData(sortOrder);
+
+  // Hook robusto para eliminação
+  const { deleteAssistance, isDeleting } = useDeleteAssistance(async () => {
+    // Após exclusão, refetcha a lista
+    await refetchAssistances();
+    // Fecha dialogs, limpa seleção, etc
+    setIsViewDialogOpen(false);
+    setSelectedAssistance(null);
+  });
 
   // Handle assistance view
   const handleViewAssistance = async (assistance: any) => {
@@ -101,79 +111,8 @@ export default function Assistencias() {
   }, [refetchAssistances, selectedAssistance, isViewDialogOpen]);
 
   // Handle assistance deletion with robust error handling and verification
-  const handleDeleteAssistance = async (assistance: any): Promise<void> => {
-    try {
-      console.log(`🗑️ Starting robust deletion process for assistance #${assistance.id}`);
-      setIsDeleting(true);
-      
-      // Use the new robust deletion function from Supabase
-      const { data: resultRaw, error: deleteError } = await supabase
-        .rpc('delete_assistance_safely', { p_assistance_id: assistance.id });
-
-      if (deleteError) {
-        console.error('❌ Database RPC delete error:', deleteError);
-        toast.error(getUserFriendlyError(deleteError, 'Erro ao executar função de eliminação segura'));
-        return;
-      }
-
-      let deleteResult: DeleteAssistanceResult;
-      try {
-        deleteResult = validateDeleteAssistanceResult(resultRaw);
-      } catch (parseErr) {
-        toast.error('Erro inesperado ao interpretar resposta de eliminação');
-        console.error(parseErr);
-        return;
-      }
-
-      console.log('📋 Deletion result:', deleteResult);
-
-      if (!deleteResult.success) {
-        console.error('❌ Deletion function returned failure:', deleteResult.error);
-        toast.error(deleteResult.error || 'Erro desconhecido na eliminação');
-        return;
-      }
-
-      console.log(`✅ Assistance #${assistance.id} successfully deleted via safe function`);
-      
-      // Verify the assistance was actually deleted by trying to fetch it
-      const { data: verifyAssistance, error: verifyError } = await supabase
-        .from('assistances')
-        .select('id')
-        .eq('id', assistance.id)
-        .maybeSingle();
-
-      if (verifyError) {
-        console.warn('⚠️ Could not verify deletion (non-critical):', verifyError);
-      } else if (verifyAssistance) {
-        console.error('💥 CRITICAL: Assistance still exists after deletion!');
-        toast.error('Erro crítico: assistência ainda existe após eliminação');
-        return;
-      } else {
-        console.log('✅ Verified: assistance no longer exists in database');
-      }
-      
-      // Close the dialog if it was the selected assistance
-      if (selectedAssistance?.id === assistance.id) {
-        console.log('🚪 Closing dialog for deleted assistance');
-        setIsViewDialogOpen(false);
-        setSelectedAssistance(null);
-      }
-      
-      // Force complete cache invalidation and refetch
-      console.log('🔄 Forcing complete cache invalidation and refetch...');
-      await handleRefetchAssistances();
-      
-      toast.success(`Assistência #${assistance.id} eliminada definitivamente!`);
-      console.log(`🎉 Complete deletion process finished for assistance #${assistance.id}`);
-      
-    } catch (error: any) {
-      console.error(`💥 Critical error during robust deletion of assistance #${assistance.id}:`, error);
-      logError('deleteAssistance', error);
-      toast.error(getUserFriendlyError(error, 'Erro crítico na eliminação robusta'));
-    } finally {
-      setIsDeleting(false);
-      console.log('🏁 Deletion process cleanup completed');
-    }
+  const handleDeleteAssistance = async (assistance: any) => {
+    await deleteAssistance(assistance);
   };
 
   // Handle dialog close with refresh
