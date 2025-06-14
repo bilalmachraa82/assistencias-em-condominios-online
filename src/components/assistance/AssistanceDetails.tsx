@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -186,9 +187,8 @@ export default function AssistanceDetails({
 
           <DescriptionSection description={assistance.description} />
 
-          <PhotosSection assistanceId={assistance.id} />
+          <PhotosSection assistanceId={assistance.id} isAdmin={true} />
 
-          {/* NOVA SECÇÃO DE MENSAGENS */}
           <AssistanceMessagesSection 
             assistanceId={assistance.id}
             currentUser={{ role: "admin", name: "Administrador" }}
