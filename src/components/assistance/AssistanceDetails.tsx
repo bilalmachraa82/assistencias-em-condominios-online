@@ -58,25 +58,43 @@ export default function AssistanceDetails({
     try {
       setIsSubmitting(true);
 
-      // Use explicit typing for the RPC call parameters
+      // Validate status before sending to database
+      if (!status) {
+        toast.error("Status é obrigatório");
+        return;
+      }
+
+      // Now the function exists, no need for explicit typing
       const { error } = await supabase.rpc("update_assistance_status", {
-        p_assistance_id: assistance.id as number,
-        p_new_status: status as string,
-        p_scheduled_datetime: null as string | null,
+        p_assistance_id: assistance.id,
+        p_new_status: status,
+        p_scheduled_datetime: null,
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Error updating assistance status:", error);
+        throw error;
+      }
 
       const { error: notesError } = await supabase
         .from("assistances")
-        .update({ admin_notes: adminNotes, updated_at: new Date().toISOString() })
+        .update({ 
+          admin_notes: adminNotes, 
+          updated_at: new Date().toISOString() 
+        })
         .eq("id", assistance.id);
-      if (notesError) throw notesError;
+        
+      if (notesError) {
+        console.error("Error updating admin notes:", notesError);
+        throw notesError;
+      }
 
       toast.success("Assistência atualizada com sucesso!");
       setIsEditing(false);
       await onAssistanceUpdate();
     } catch (err: any) {
-      toast.error(`Erro ao atualizar: ${err.message}`);
+      console.error("Error in handleSaveChanges:", err);
+      toast.error(`Erro ao atualizar: ${err.message || "Erro desconhecido"}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -92,12 +110,17 @@ export default function AssistanceDetails({
         .from("assistances")
         .update({ [tokenType]: newToken })
         .eq("id", assistance.id);
-      if (error) throw error;
+        
+      if (error) {
+        console.error("Error resetting token:", error);
+        throw error;
+      }
 
       toast.success(`Token ${tokenType} atualizado!`);
       await onAssistanceUpdate();
     } catch (err: any) {
-      toast.error(`Erro ao atualizar token: ${err.message}`);
+      console.error("Error in handleResetTokens:", err);
+      toast.error(`Erro ao atualizar token: ${err.message || "Erro desconhecido"}`);
     } finally {
       setIsSubmitting(false);
     }

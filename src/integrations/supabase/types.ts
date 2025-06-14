@@ -307,7 +307,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_assistance_status: {
+        Args: {
+          p_assistance_id: number
+          p_new_status: string
+          p_scheduled_datetime?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
