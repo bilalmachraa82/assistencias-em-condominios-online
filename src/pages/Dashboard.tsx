@@ -2,8 +2,8 @@
 import React from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import StatsCards from '@/components/dashboard/StatsCards';
-import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import { StatsCards } from '@/components/dashboard/StatsCards';
+import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import AssistanceAnalytics from '@/components/analytics/AssistanceAnalytics';
 import PerformanceOptimizer from '@/components/performance/PerformanceOptimizer';
 
