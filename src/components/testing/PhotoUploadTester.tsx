@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -85,7 +86,7 @@ export default function PhotoUploadTester() {
         .insert([{
           building_id: prerequisites.firstBuilding.id,
           supplier_id: prerequisites.firstSupplier.id,
-          type: 'Teste Autónomo',
+          type: 'Normal', // Corrigido de 'Teste Autónomo' para um tipo válido
           description: 'Assistência temporária criada automaticamente para teste de upload de fotos.',
           status: 'Pendente Resposta Inicial',
           alert_level: 1,
