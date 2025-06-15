@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import SupplierActionLayout from '@/components/supplier/SupplierActionLayout';
 import SupplierPhotoUpload from '@/components/supplier/SupplierPhotoUpload';
 import SupplierMessages from '@/components/supplier/SupplierMessages';
 import { submitSupplierAction, fetchAssistanceData, getTypeBadgeClass } from '@/utils/SupplierActionUtils';
+import { SUPPLIER_PHOTO_CATEGORIES } from '@/config/photoCategories';
 
 const PHOTO_CATEGORIES = [
   { id: "progresso", label: "Durante a Intervenção" },
@@ -121,12 +121,11 @@ export default function CompleteRequest() {
           <div className="border-t pt-4">
             <div className="text-sm font-medium mb-4">Fotos da Intervenção</div>
             <div className="grid gap-4">
-              {PHOTO_CATEGORIES.map(category => (
+              {SUPPLIER_PHOTO_CATEGORIES.map(category => (
                 <SupplierPhotoUpload
-                  key={`${category.id}-${refreshTrigger}`}
+                  key={`${category}-${refreshTrigger}`}
                   assistanceId={assistance.id}
-                  category={category.id}
-                  categoryLabel={category.label}
+                  category={category}
                   onUploadCompleted={handlePhotoUpload}
                 />
               ))}

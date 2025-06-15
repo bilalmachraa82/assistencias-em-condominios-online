@@ -1,21 +1,22 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Camera, Image, Settings } from 'lucide-react';
 import { useAssistancePhotos } from "@/hooks/useAssistancePhotos";
 import AssistancePhotoUploader from "./AssistancePhotoUploader";
 import PhotoGallery from "../PhotoGallery";
 import PhotoManagement from "../PhotoManagement";
+import { PHOTO_CATEGORIES, type PhotoCategory } from "@/config/photoCategories";
 
 interface PhotosSectionProps {
   assistanceId: number;
   isAdmin?: boolean;
 }
 
-const PHOTO_CATEGORIES = [
-  { id: "diagnostico", label: "Diagnóstico", icon: Camera },
-  { id: "progresso", label: "Durante a Intervenção", icon: Image },
-  { id: "resultado", label: "Resultado Final", icon: Image },
+const PHOTO_CATEGORY_CONFIG: { id: PhotoCategory; label: string; icon: React.ElementType }[] = [
+  { id: "diagnostico", label: PHOTO_CATEGORIES.diagnostico, icon: Camera },
+  { id: "progresso", label: PHOTO_CATEGORIES.progresso, icon: Image },
+  { id: "resultado", label: PHOTO_CATEGORIES.resultado, icon: Image },
 ];
 
 export default function PhotosSection({ assistanceId, isAdmin = false }: PhotosSectionProps) {
@@ -35,7 +36,7 @@ export default function PhotosSection({ assistanceId, isAdmin = false }: PhotosS
       
       <TabsContent value="upload" className="mt-4">
         <div className="space-y-6">
-          {PHOTO_CATEGORIES.map(cat => {
+          {PHOTO_CATEGORY_CONFIG.map(cat => {
             const Icon = cat.icon;
             const categoryPhotos = photos.filter(p => p.category === cat.id);
             

@@ -1,8 +1,8 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { generateToken } from "@/utils/TokenUtils";
+import { VALID_PHOTO_CATEGORIES } from '@/config/photoCategories';
 
 export interface TestStep {
   id: string;
@@ -217,7 +217,7 @@ export function useEndToEndTester() {
         .from('assistance_photos')
         .insert({
           assistance_id: assistance.id,
-          category: 'diagnostico',
+          category: VALID_PHOTO_CATEGORIES[0], // Use a valid category from config
           photo_url: 'https://example.com/test.jpg',
           uploaded_by: 'teste'
         });
@@ -231,7 +231,7 @@ export function useEndToEndTester() {
           .from('assistance_photos')
           .delete()
           .eq('assistance_id', assistance.id)
-          .eq('category', 'diagnostico');
+          .eq('category', VALID_PHOTO_CATEGORIES[0]);
       }
 
       // Step 8: Test edge functions

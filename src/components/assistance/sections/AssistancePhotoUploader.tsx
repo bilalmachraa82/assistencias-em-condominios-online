@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Upload, Loader2, Image } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { type PhotoCategory, VALID_PHOTO_CATEGORIES } from "@/config/photoCategories";
 
 type AssistancePhoto = Tables<"assistance_photos">;
 
 interface AssistancePhotoUploaderProps {
   assistanceId: number;
-  category: string;
+  category: PhotoCategory;
   onUploadCompleted?: () => void;
 }
 
@@ -27,6 +28,11 @@ export default function AssistancePhotoUploader({
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!VALID_PHOTO_CATEGORIES.includes(category)) {
+      toast.error(`Categoria de foto inválida: ${category}`);
+      return;
+    }
+
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -58,7 +64,7 @@ export default function AssistancePhotoUploader({
           .insert([
             {
               assistance_id: assistanceId,
-              category: category.toLowerCase(), // Garantir que a categoria está em minúsculas
+              category: category,
               photo_url: pubUrl?.publicUrl || "",
               uploaded_by: "admin", // Adaptar se for fornecedor
             } as Omit<AssistancePhoto, "id" | "uploaded_at">,

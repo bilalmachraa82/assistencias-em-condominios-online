@@ -1,21 +1,19 @@
-
 import React, { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, Camera, X } from "lucide-react";
 import { toast } from "sonner";
+import { type PhotoCategory, PHOTO_CATEGORIES, VALID_PHOTO_CATEGORIES } from "@/config/photoCategories";
 
 interface SupplierPhotoUploadProps {
   assistanceId: number;
-  category: string;
-  categoryLabel: string;
+  category: PhotoCategory;
   onUploadCompleted?: () => void;
 }
 
 export default function SupplierPhotoUpload({
   assistanceId,
   category,
-  categoryLabel,
   onUploadCompleted,
 }: SupplierPhotoUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -38,6 +36,11 @@ export default function SupplierPhotoUpload({
   };
 
   const handleUpload = async () => {
+    if (!VALID_PHOTO_CATEGORIES.includes(category)) {
+      toast.error(`Categoria de foto inválida: ${category}`);
+      return;
+    }
+
     const files = inputRef.current?.files;
     if (!files || files.length === 0) {
       toast.error('Por favor, selecione pelo menos uma foto');
@@ -109,7 +112,7 @@ export default function SupplierPhotoUpload({
     <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
       <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
         <Camera className="h-4 w-4" />
-        {categoryLabel}
+        {PHOTO_CATEGORIES[category]}
       </h3>
       
       <input

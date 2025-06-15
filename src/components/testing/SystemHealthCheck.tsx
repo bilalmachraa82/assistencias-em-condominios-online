@@ -64,24 +64,31 @@ export default function SystemHealthCheck() {
 
     // Check Storage
     try {
-      const { data, error } = await supabase.storage.listBuckets();
-      if (error) throw error;
+      const { data: bucket, error } = await supabase.storage.getBucket('assistance-photos');
       
-      const hasAssistancePhotos = data?.some(bucket => bucket.name === 'assistance-photos');
-      const totalBuckets = data?.length || 0;
-      
-      setChecks(prev => prev.map(check => 
-        check.name === 'Storage' 
-          ? { 
-              ...check, 
-              status: hasAssistancePhotos ? 'healthy' as const : 'warning' as const, 
-              message: hasAssistancePhotos 
-                ? `Bucket "assistance-photos" OK. Total: ${totalBuckets} bucket(s).` 
-                : 'Bucket "assistance-photos" não encontrado',
-              count: totalBuckets
-            }
-          : check
-      ));
+      if (error) {
+        if (error.message.includes('not found')) {
+            setChecks(prev => prev.map(check => 
+                check.name === 'Storage' 
+                ? { ...check, status: 'error' as const, message: 'Bucket "assistance-photos" não encontrado' }
+                : check
+            ));
+        } else {
+            throw error;
+        }
+      } else if (bucket) {
+        setChecks(prev => prev.map(check => 
+          check.name === 'Storage' 
+            ? { 
+                ...check, 
+                status: 'healthy' as const, 
+                message: `Bucket "${bucket.name}" OK. Acesso ${bucket.public ? 'Público' : 'Privado'}.`
+              }
+            : check
+        ));
+      } else {
+        throw new Error('Não foi possível verificar o estado do bucket de storage.');
+      }
     } catch (error: any) {
       setChecks(prev => prev.map(check => 
         check.name === 'Storage' 

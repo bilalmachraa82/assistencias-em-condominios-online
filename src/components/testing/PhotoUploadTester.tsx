@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDeleteAssistance } from '@/components/assistance/useDeleteAssistance';
 import { generateToken } from '@/utils/TokenUtils';
 import { toast } from 'sonner';
+import { VALID_PHOTO_CATEGORIES } from '@/config/photoCategories';
 
 type TestState = 'checking' | 'prereqs_missing' | 'ready' | 'creating_assistance' | 'uploading' | 'success' | 'cleaning' | 'error';
 
@@ -239,7 +240,7 @@ export default function PhotoUploadTester() {
               </p>
               <AssistancePhotoUploader
                 assistanceId={testAssistanceId}
-                category="diagnostico"
+                category={VALID_PHOTO_CATEGORIES[0]}
                 onUploadCompleted={handleUploadCompleted}
               />
             </div>

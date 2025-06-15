@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,24 +7,17 @@ import { Camera, Download, Trash2, Eye, ExternalLink } from 'lucide-react';
 import { useAssistancePhotos } from "@/hooks/useAssistancePhotos";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PHOTO_CATEGORIES } from '@/config/photoCategories';
 
 interface PhotoGalleryProps {
   assistanceId: number;
   isAdmin?: boolean;
 }
 
-const CATEGORY_LABELS = {
-  diagnostico: "Diagnóstico",
-  progresso: "Durante a Intervenção", 
-  resultado: "Resultado Final",
-  teste: "Teste"
-};
-
 const CATEGORY_COLORS = {
   diagnostico: "bg-blue-100 text-blue-800",
   progresso: "bg-yellow-100 text-yellow-800",
   resultado: "bg-green-100 text-green-800",
-  teste: "bg-gray-100 text-gray-800"
 };
 
 export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGalleryProps) {
@@ -135,7 +127,7 @@ export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGal
             Object.entries(photosByCategory).map(([category, categoryPhotos]) => (
               <div key={category} className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-medium">{CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] || category}</h3>
+                  <h3 className="font-medium">{PHOTO_CATEGORIES[category as keyof typeof PHOTO_CATEGORIES] || category}</h3>
                   <Badge className={CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS] || "bg-gray-100 text-gray-800"}>
                     {categoryPhotos.length} foto{categoryPhotos.length !== 1 ? 's' : ''}
                   </Badge>
