@@ -58,7 +58,7 @@ export default function AssistancePhotoUploader({
           .insert([
             {
               assistance_id: assistanceId,
-              category,
+              category: category.toLowerCase(), // Garantir que a categoria está em minúsculas
               photo_url: pubUrl?.publicUrl || "",
               uploaded_by: "admin", // Adaptar se for fornecedor
             } as Omit<AssistancePhoto, "id" | "uploaded_at">,
