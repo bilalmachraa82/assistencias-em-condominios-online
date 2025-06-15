@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -65,25 +64,43 @@ export default function SystemHealthCheck() {
 
     // Check Storage
     try {
-      const { data, error } = await supabase.storage.listBuckets();
-      if (error) throw error;
-      
-      const hasAssistancePhotos = data?.some(bucket => bucket.name === 'assistance-photos');
-      
+      const { error } = await supabase.storage.getBucket('assistance-photos');
+
+      if (error) {
+        if (error.message.toLowerCase().includes('not found')) {
+            // Bucket does not exist
+            setChecks(prev => prev.map(check => 
+                check.name === 'Storage' 
+                ? { 
+                    ...check, 
+                    status: 'warning' as const, 
+                    message: 'Bucket "assistance-photos" não encontrado',
+                    count: 0
+                    }
+                : check
+            ));
+        } else {
+            // Another error
+            throw error;
+        }
+      } else {
+        // Bucket exists, let's get total count to be informative
+        const { data: bucketList } = await supabase.storage.listBuckets();
+        setChecks(prev => prev.map(check => 
+          check.name === 'Storage' 
+            ? { 
+                ...check, 
+                status: 'healthy' as const, 
+                message: `Bucket "assistance-photos" OK. Total: ${bucketList?.length || 1} bucket(s).`,
+                count: bucketList?.length || 0
+              }
+            : check
+        ));
+      }
+    } catch (error: any) {
       setChecks(prev => prev.map(check => 
         check.name === 'Storage' 
-          ? { 
-              ...check, 
-              status: hasAssistancePhotos ? 'healthy' as const : 'warning' as const, 
-              message: hasAssistancePhotos ? `${data?.length || 0} buckets encontrados` : 'Bucket assistance-photos não encontrado',
-              count: data?.length || 0
-            }
-          : check
-      ));
-    } catch (error) {
-      setChecks(prev => prev.map(check => 
-        check.name === 'Storage' 
-          ? { ...check, status: 'error' as const, message: 'Erro ao verificar storage' }
+          ? { ...check, status: 'error' as const, message: `Erro ao verificar storage: ${error.message}` }
           : check
       ));
     }
