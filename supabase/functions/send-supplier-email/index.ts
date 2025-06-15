@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -23,7 +22,6 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const resendApiKey = Deno.env.get('RESEND_API_KEY') || '';
     
-    // Get request origin to use as base URL
     const origin = req.headers.get('origin') || Deno.env.get('APP_BASE_URL') || '';
     
     console.log('Request origin:', origin);
@@ -45,7 +43,6 @@ serve(async (req) => {
       );
     }
 
-    // Get assistance data with related tables
     console.log(`Fetching assistance data for ID: ${assistanceId}`);
     const { data: assistance, error: assistanceError } = await supabase
       .from('assistances')
@@ -73,48 +70,59 @@ serve(async (req) => {
     }
     console.log('Assistance data fetched successfully:', assistance);
 
+    // Helper function to generate a simple token
+    const generateToken = () => Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 
-    // Determine which email to send based on emailType
+    const tokenFields = {
+      acceptance: 'acceptance_token',
+      scheduling: 'scheduling_token',
+      validation: 'validation_token'
+    };
+    
+    const tokenField = tokenFields[emailType];
+    let token = assistance[tokenField];
+
+    if (!token) {
+      console.log(`Token for ${emailType} not found for assistance ${assistanceId}. Generating a new one.`);
+      token = generateToken();
+      const { error: updateError } = await supabase
+        .from('assistances')
+        .update({ [tokenField]: token })
+        .eq('id', assistanceId);
+      
+      if (updateError) {
+        console.error(`Failed to save new ${emailType} token for assistance ${assistanceId}:`, updateError);
+        return new Response(
+          JSON.stringify({ error: `Falha ao gerar e salvar novo token de ${emailType}.` }),
+          { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+      console.log(`New ${emailType} token generated and saved successfully.`);
+      // Update assistance object with new token
+      assistance[tokenField] = token;
+    }
+
     let emailSubject = '';
     let emailContent = '';
     let supplierActionUrl = '';
     
-    // Use the origin from the request as the base URL
     const baseUrl = origin;
     console.log('Using base URL:', baseUrl);
     
     switch(emailType) {
       case 'acceptance':
-        if (!assistance.acceptance_token) {
-          return new Response(
-            JSON.stringify({ error: 'Token de aceitação não encontrado' }),
-            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-          );
-        }
         emailSubject = `Nova Solicitação de Assistência - ${assistance.buildings.name}`;
         supplierActionUrl = `${baseUrl}/supplier/accept?token=${assistance.acceptance_token}`;
         emailContent = generateAcceptanceEmail(assistance, supplierActionUrl);
         break;
         
       case 'scheduling':
-        if (!assistance.scheduling_token) {
-          return new Response(
-            JSON.stringify({ error: 'Token de agendamento não encontrado' }),
-            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-          );
-        }
         emailSubject = `Agende a Assistência - ${assistance.buildings.name}`;
         supplierActionUrl = `${baseUrl}/supplier/schedule?token=${assistance.scheduling_token}`;
         emailContent = generateSchedulingEmail(assistance, supplierActionUrl);
         break;
         
       case 'validation':
-        if (!assistance.validation_token) {
-          return new Response(
-            JSON.stringify({ error: 'Token de validação não encontrado' }),
-            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-          );
-        }
         emailSubject = `Confirme a Conclusão da Assistência - ${assistance.buildings.name}`;
         supplierActionUrl = `${baseUrl}/supplier/complete?token=${assistance.validation_token}`;
         emailContent = generateValidationEmail(assistance, supplierActionUrl);

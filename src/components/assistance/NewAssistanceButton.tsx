@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Building, Plus } from 'lucide-react';
@@ -6,6 +5,7 @@ import BuildingSelectorDialog from './BuildingSelectorDialog';
 import AssistanceFormDialog from './AssistanceFormDialog';
 import useCreateAssistance from '@/hooks/useCreateAssistance';
 import { toast } from 'sonner';
+import { sendAssistanceEmail } from '@/utils/EmailUtils';
 
 interface NewAssistanceButtonProps {
   buildings: any[] | undefined;
@@ -67,15 +67,22 @@ export default function NewAssistanceButton({
           setIsSubmitting(true);
           try {
             const createdAssistance = await useCreateAssistance(formData, selectedBuilding);
+            
+            if (createdAssistance) {
+              console.log(`Automatically sending acceptance email for assistance #${createdAssistance.id}`);
+              const { success, error } = await sendAssistanceEmail(createdAssistance.id, 'acceptance');
+
+              if (success) {
+                toast.success("Email de aceitação enviado automaticamente para o fornecedor.");
+              } else {
+                toast.warning(`A assistência foi criada, mas falhou o envio do email: ${error}. Pode enviá-lo manualmente nos detalhes.`);
+              }
+            }
+
             setIsAssistanceFormOpen(false);
             setSelectedBuilding(null);
             await onAssistanceCreated();
             
-            // Show specific message about next steps
-            toast.info(
-              'Para enviar um email ao fornecedor, abra os detalhes da assistência e clique em "Enviar Email".',
-              { duration: 6000 }
-            );
           } catch (error) {
             console.error('Error creating assistance:', error);
           } finally {

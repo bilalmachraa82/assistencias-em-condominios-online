@@ -89,7 +89,8 @@ export default async function useCreateAssistance(
     }
 
     toast.success('Assistência criada com sucesso!');
-    toast.info('Agora você pode enviar um email para o fornecedor com o link de aceitação.');
+    // The following toast is removed as the email is now sent automatically.
+    // toast.info('Agora você pode enviar um email para o fornecedor com o link de aceitação.');
     
     return data[0];
   } catch (error: any) {

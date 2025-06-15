@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Mail } from 'lucide-react';
@@ -17,6 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { generateToken } from '@/utils/TokenUtils';
+import { sendAssistanceEmail } from '@/utils/EmailUtils';
 
 interface EmailSenderProps {
   assistanceId: number;
@@ -65,64 +65,18 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
     setErrorMessage(null);
     console.log(`Attempting to send ${emailType} email for assistance ID: ${assistanceId}`);
     
-    try {
-      // First verify the token exists for the selected email type
-      const tokenField = emailType === 'acceptance' 
-        ? 'acceptance_token' 
-        : emailType === 'scheduling' 
-          ? 'scheduling_token' 
-          : 'validation_token';
-      
-      const { data: assistance, error: fetchError } = await supabase
-        .from('assistances')
-        .select(tokenField)
-        .eq('id', assistanceId)
-        .single();
-      
-      if (fetchError) {
-        throw new Error(`Erro ao buscar dados da assistência: ${fetchError.message}`);
-      }
-      
-      if (!assistance || !assistance[tokenField]) {
-        // If token doesn't exist, generate a new one
-        const newToken = await regenerateToken(assistanceId, tokenField);
-        if (!newToken) {
-          throw new Error(`Token de ${emailType} não encontrado. Falha ao gerar um novo token.`);
-        }
-        toast.success(`Um novo token de ${emailType} foi gerado pois não havia um token válido.`);
-      }
-      
-      // Now send the email with the existing or new token
-      console.log('Calling send-supplier-email function...');
-      const response = await fetch('https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/send-supplier-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          assistanceId,
-          emailType
-        })
-      });
+    const { success, error } = await sendAssistanceEmail(assistanceId, emailType);
 
-      console.log('Function response status:', response.status);
-      const result = await response.json();
-      console.log('Function response result:', result);
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao enviar email');
-      }
-
+    if (success) {
       toast.success('Email enviado com sucesso!');
       setIsDialogOpen(false);
-    } catch (error) {
-      console.error('Erro ao enviar email:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Erro ao enviar email';
-      setErrorMessage(errorMsg);
-      toast.error(errorMsg);
-    } finally {
-      setIsLoading(false);
+    } else {
+      const errorMessage = error || "Ocorreu um erro ao tentar enviar o email.";
+      setErrorMessage(errorMessage);
+      toast.error(errorMessage);
     }
+
+    setIsLoading(false);
   };
   
   // Function to regenerate token if missing
