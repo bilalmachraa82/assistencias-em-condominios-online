@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -22,9 +23,10 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const resendApiKey = Deno.env.get('RESEND_API_KEY') || '';
     
-    const origin = req.headers.get('origin') || Deno.env.get('APP_BASE_URL') || '';
+    // Use the correct application domain instead of request origin
+    const baseUrl = 'https://assistencias-em-condominios-online.lovable.app';
     
-    console.log('Request origin:', origin);
+    console.log('Using base URL:', baseUrl);
     
     if (!resendApiKey) {
       return new Response(
@@ -106,8 +108,7 @@ serve(async (req) => {
     let emailContent = '';
     let supplierActionUrl = '';
     
-    const baseUrl = origin;
-    console.log('Using base URL:', baseUrl);
+    console.log('Using base URL for links:', baseUrl);
     
     switch(emailType) {
       case 'acceptance':
@@ -142,7 +143,8 @@ serve(async (req) => {
       html: emailContent,
     };
 
-    console.log('Sending email with Resend. Payload:', JSON.stringify(payload, null, 2));
+    console.log('Sending email with Resend. Email subject:', emailSubject);
+    console.log('Supplier action URL:', supplierActionUrl);
 
     // Send email using Resend API
     const emailResponse = await fetch('https://api.resend.com/emails', {
