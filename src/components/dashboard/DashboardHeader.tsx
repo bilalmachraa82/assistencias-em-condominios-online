@@ -1,6 +1,6 @@
+
 import { Button } from "@/components/ui/button";
-import { MapPin, Plus, Camera, Sun } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 import BuildingSelectorDialog from "../assistance/BuildingSelectorDialog";
 import AssistanceFormDialog from "../assistance/AssistanceFormDialog";
 import useCreateAssistance from "@/hooks/useCreateAssistance";
@@ -57,9 +57,6 @@ export function DashboardHeader() {
           className="apple-button"
         >
           <Plus className="mr-2 h-4 w-4" /> Nova Assistência
-        </Button>
-        <Button variant="ghost" className="glass-card hover:bg-accent">
-          <Camera className="mr-2 h-4 w-4" /> Nova Foto
         </Button>
       </div>
 
