@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -102,7 +101,7 @@ export default function PhotoUploadTester() {
 
       setTestAssistanceId(data.id);
       setTestState('uploading');
-      toast.success(`Assistência de teste #${data.id} criada! Pode agora fazer upload de fotos.`);
+      toast.success(`Assistência de teste #${data.id} criada! Pode agora fazer upload de fotos para a categoria "Diagnóstico".`);
     } catch (error: any) {
       setErrorMessage(error.message || 'Erro ao criar assistência de teste');
       setTestState('error');
@@ -111,7 +110,7 @@ export default function PhotoUploadTester() {
 
   const handleUploadCompleted = () => {
     setTestState('success');
-    setTestResult(`Foto carregada com sucesso! A assistência de teste #${testAssistanceId} contém agora as fotos enviadas.`);
+    setTestResult(`Foto carregada com sucesso! A assistência de teste #${testAssistanceId} contém agora as fotos enviadas na categoria "Diagnóstico".`);
   };
 
   const cleanUpTest = async () => {
@@ -141,7 +140,7 @@ export default function PhotoUploadTester() {
           Teste Autónomo de Upload de Fotos
         </CardTitle>
         <CardDescription>
-          Teste completo e autónomo que cria uma assistência temporária, faz upload de fotos e limpa todos os dados automaticamente.
+          Teste completo e autónomo que cria uma assistência temporária, faz upload de fotos para a categoria "Diagnóstico" e limpa todos os dados automaticamente.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -235,11 +234,11 @@ export default function PhotoUploadTester() {
           {testState === 'uploading' && testAssistanceId && (
             <div className="text-center space-y-4">
               <p className="text-sm text-muted-foreground mb-4">
-                Assistência de teste criada! Selecione uma foto para testar o upload.
+                Assistência de teste criada! Selecione uma foto para a categoria "Diagnóstico" para testar o upload.
               </p>
               <AssistancePhotoUploader
                 assistanceId={testAssistanceId}
-                category="teste"
+                category="diagnostico"
                 onUploadCompleted={handleUploadCompleted}
               />
             </div>
