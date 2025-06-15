@@ -3,75 +3,178 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from '@/components/ui/button';
-import { TestTube, FileCheck, FileX, Info, Loader2 } from "lucide-react";
+import { TestTube, FileCheck, FileX, Info, Loader2, Play, Trash2, CheckCircle2 } from "lucide-react";
 import AssistancePhotoUploader from "@/components/assistance/sections/AssistancePhotoUploader";
 import { supabase } from '@/integrations/supabase/client';
+import { useDeleteAssistance } from '@/components/assistance/useDeleteAssistance';
+import { generateToken } from '@/utils/TokenUtils';
+import { toast } from 'sonner';
 
-// Para fins de teste, iremos usar uma assistência específica.
-// Certifique-se de que uma assistência com este ID existe na sua base de dados.
-const TEST_ASSISTANCE_ID = 1;
-const TEST_CATEGORY = "teste";
+type TestState = 'checking' | 'prereqs_missing' | 'ready' | 'creating_assistance' | 'uploading' | 'success' | 'cleaning' | 'error';
+
+interface TestPrerequisites {
+  hasBuildings: boolean;
+  hasSuppliers: boolean;
+  firstBuilding?: any;
+  firstSupplier?: any;
+}
 
 export default function PhotoUploadTester() {
-  const [testState, setTestState] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
+  const [testState, setTestState] = useState<TestState>('checking');
+  const [prerequisites, setPrerequisites] = useState<TestPrerequisites>({ hasBuildings: false, hasSuppliers: false });
+  const [testAssistanceId, setTestAssistanceId] = useState<number | null>(null);
   const [testResult, setTestResult] = useState<string | null>(null);
-  const [assistanceExists, setAssistanceExists] = useState<boolean | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const { deleteAssistance, isDeleting } = useDeleteAssistance(() => {
+    setTestAssistanceId(null);
+    setTestState('ready');
+    setTestResult(null);
+    toast.success('Dados de teste limpos com sucesso!');
+  });
 
   useEffect(() => {
-    async function checkAssistance() {
+    checkPrerequisites();
+  }, []);
+
+  const checkPrerequisites = async () => {
+    setTestState('checking');
+    try {
+      const [buildingsResult, suppliersResult] = await Promise.all([
+        supabase.from('buildings').select('id, name').eq('is_active', true).limit(1).maybeSingle(),
+        supabase.from('suppliers').select('id, name').eq('is_active', true).limit(1).maybeSingle()
+      ]);
+
+      if (buildingsResult.error || suppliersResult.error) {
+        throw new Error('Erro ao verificar pré-requisitos');
+      }
+
+      const prereqs = {
+        hasBuildings: !!buildingsResult.data,
+        hasSuppliers: !!suppliersResult.data,
+        firstBuilding: buildingsResult.data,
+        firstSupplier: suppliersResult.data
+      };
+
+      setPrerequisites(prereqs);
+
+      if (prereqs.hasBuildings && prereqs.hasSuppliers) {
+        setTestState('ready');
+      } else {
+        setTestState('prereqs_missing');
+      }
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Erro desconhecido ao verificar pré-requisitos');
+      setTestState('error');
+    }
+  };
+
+  const startAutonomousTest = async () => {
+    setTestState('creating_assistance');
+    setErrorMessage(null);
+
+    try {
+      // Generate required tokens
+      const interaction_token = generateToken();
+      const acceptance_token = generateToken();
+      const scheduling_token = generateToken();
+      const validation_token = generateToken();
+
+      // Create temporary assistance
       const { data, error } = await supabase
         .from('assistances')
+        .insert([{
+          building_id: prerequisites.firstBuilding.id,
+          supplier_id: prerequisites.firstSupplier.id,
+          type: 'Teste Autónomo',
+          description: 'Assistência temporária criada automaticamente para teste de upload de fotos.',
+          status: 'Pendente Resposta Inicial',
+          alert_level: 1,
+          interaction_token,
+          acceptance_token,
+          scheduling_token,
+          validation_token
+        }])
         .select('id')
-        .eq('id', TEST_ASSISTANCE_ID)
-        .maybeSingle();
+        .single();
 
-      if (error) {
-        setTestState('error');
-        setTestResult(`Erro ao verificar a assistência: ${error.message}`);
-        setAssistanceExists(false);
-      } else {
-        setAssistanceExists(!!data);
-      }
+      if (error) throw error;
+
+      setTestAssistanceId(data.id);
+      setTestState('uploading');
+      toast.success(`Assistência de teste #${data.id} criada! Pode agora fazer upload de fotos.`);
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Erro ao criar assistência de teste');
+      setTestState('error');
     }
-    checkAssistance();
-  }, []);
+  };
 
   const handleUploadCompleted = () => {
     setTestState('success');
-    setTestResult(`Foto carregada com sucesso para a assistência #${TEST_ASSISTANCE_ID} na categoria '${TEST_CATEGORY}'. Verifique a galeria.`);
+    setTestResult(`Foto carregada com sucesso! A assistência de teste #${testAssistanceId} contém agora as fotos enviadas.`);
+  };
+
+  const cleanUpTest = async () => {
+    if (!testAssistanceId) return;
+    
+    setTestState('cleaning');
+    const success = await deleteAssistance({ id: testAssistanceId });
+    
+    if (!success) {
+      setTestState('error');
+      setErrorMessage('Falha ao limpar dados de teste');
+    }
   };
 
   const resetTest = () => {
-    setTestState('idle');
+    setTestState('ready');
     setTestResult(null);
-  }
+    setErrorMessage(null);
+    setTestAssistanceId(null);
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TestTube className="h-5 w-5" />
-          Teste de Upload de Fotos
+          Teste Autónomo de Upload de Fotos
         </CardTitle>
         <CardDescription>
-          Verifica o fluxo completo de upload de uma foto para o bucket de armazenamento e o registo na base de dados.
+          Teste completo e autónomo que cria uma assistência temporária, faz upload de fotos e limpa todos os dados automaticamente.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Pré-requisito</AlertTitle>
-          <AlertDescription>
-            Este teste requer que uma assistência com o ID <strong>{TEST_ASSISTANCE_ID}</strong> exista na base de dados.
-            {assistanceExists === null && <span className="flex items-center gap-2"> <Loader2 className="h-4 w-4 animate-spin"/> A verificar...</span>}
-            {assistanceExists === false && <span className="text-red-600 font-bold"> A assistência de teste não foi encontrada! Crie-a para continuar.</span>}
-            {assistanceExists === true && <span className="text-green-600 font-bold"> A assistência de teste foi encontrada. Pode prosseguir.</span>}
-          </AlertDescription>
-        </Alert>
+        {/* Prerequisites Check */}
+        {testState === 'checking' && (
+          <Alert>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <AlertTitle>A verificar pré-requisitos...</AlertTitle>
+            <AlertDescription>
+              A verificar se existem edifícios e fornecedores na base de dados.
+            </AlertDescription>
+          </Alert>
+        )}
 
+        {testState === 'prereqs_missing' && (
+          <Alert variant="destructive">
+            <FileX className="h-4 w-4" />
+            <AlertTitle>Pré-requisitos em falta</AlertTitle>
+            <AlertDescription>
+              Para executar o teste, precisa de ter pelo menos:
+              <ul className="list-disc list-inside mt-2">
+                {!prerequisites.hasBuildings && <li>Um edifício ativo</li>}
+                {!prerequisites.hasSuppliers && <li>Um fornecedor ativo</li>}
+              </ul>
+              Crie os dados necessários nas respetivas páginas e depois clique em "Verificar Novamente".
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Success State */}
         {testState === 'success' && (
           <Alert variant="default" className="bg-green-50 border-green-200">
-            <FileCheck className="h-4 w-4 text-green-700" />
+            <CheckCircle2 className="h-4 w-4 text-green-700" />
             <AlertTitle className="text-green-800">Teste Concluído com Sucesso!</AlertTitle>
             <AlertDescription className="text-green-700">
               {testResult}
@@ -79,37 +182,100 @@ export default function PhotoUploadTester() {
           </Alert>
         )}
 
+        {/* Error State */}
         {testState === 'error' && (
           <Alert variant="destructive">
             <FileX className="h-4 w-4" />
             <AlertTitle>Erro no Teste</AlertTitle>
             <AlertDescription>
-              {testResult}
+              {errorMessage}
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg min-h-[150px]">
-          {assistanceExists === null && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
+        {/* Info about test setup */}
+        {(testState === 'ready' || testState === 'creating_assistance' || testState === 'uploading') && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertTitle>Configuração do Teste</AlertTitle>
+            <AlertDescription>
+              Será utilizado o edifício <strong>{prerequisites.firstBuilding?.name}</strong> e o fornecedor <strong>{prerequisites.firstSupplier?.name}</strong> para criar a assistência de teste.
+            </AlertDescription>
+          </Alert>
+        )}
 
-          {assistanceExists && (testState === 'idle' || testState === 'running') && (
-            <>
-              <p className="mb-4 text-sm text-muted-foreground">Clique abaixo para selecionar uma foto e iniciar o teste.</p>
+        {/* Test Controls */}
+        <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg min-h-[200px]">
+          {testState === 'prereqs_missing' && (
+            <Button onClick={checkPrerequisites} variant="outline" className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4" />
+              Verificar Novamente
+            </Button>
+          )}
+
+          {testState === 'ready' && (
+            <div className="text-center space-y-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Clique no botão abaixo para iniciar o teste autónomo.
+              </p>
+              <Button onClick={startAutonomousTest} className="flex items-center gap-2">
+                <Play className="h-4 w-4" />
+                Iniciar Teste Autónomo
+              </Button>
+            </div>
+          )}
+
+          {testState === 'creating_assistance' && (
+            <div className="text-center space-y-2">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto" />
+              <p className="text-sm text-muted-foreground">A criar assistência de teste...</p>
+            </div>
+          )}
+
+          {testState === 'uploading' && testAssistanceId && (
+            <div className="text-center space-y-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Assistência de teste criada! Selecione uma foto para testar o upload.
+              </p>
               <AssistancePhotoUploader
-                assistanceId={TEST_ASSISTANCE_ID}
-                category={TEST_CATEGORY}
+                assistanceId={testAssistanceId}
+                category="teste"
                 onUploadCompleted={handleUploadCompleted}
               />
-            </>
+            </div>
           )}
 
-          {assistanceExists && (testState === 'success' || testState === 'error') &&(
-             <Button onClick={resetTest} variant="outline">Executar Novo Teste</Button>
+          {testState === 'success' && (
+            <div className="text-center space-y-4">
+              <Button 
+                onClick={cleanUpTest} 
+                variant="destructive" 
+                disabled={isDeleting}
+                className="flex items-center gap-2"
+              >
+                {isDeleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                {isDeleting ? 'A limpar...' : 'Limpar Dados e Recomeçar'}
+              </Button>
+            </div>
           )}
 
-           {assistanceExists === false && (
-             <p className="text-red-600 text-center">Por favor, crie uma assistência com o ID {TEST_ASSISTANCE_ID} e recarregue a página para poder executar o teste.</p>
-           )}
+          {testState === 'cleaning' && (
+            <div className="text-center space-y-2">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto" />
+              <p className="text-sm text-muted-foreground">A limpar dados de teste...</p>
+            </div>
+          )}
+
+          {testState === 'error' && (
+            <Button onClick={resetTest} variant="outline" className="flex items-center gap-2">
+              <Play className="h-4 w-4" />
+              Tentar Novamente
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
