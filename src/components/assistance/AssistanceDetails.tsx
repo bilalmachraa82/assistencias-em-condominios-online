@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -128,7 +127,7 @@ export default function AssistanceDetails({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] bg-[#192133] border-[#2A3349] text-white">
+      <DialogContent className="sm:max-w-[700px] bg-[#192133] border-[#2A3349] text-white flex flex-col max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             <span>Assistência #{assistance.id}</span>
@@ -178,7 +177,7 @@ export default function AssistanceDetails({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="flex-1 space-y-6 py-4 overflow-y-auto">
           <BasicInfoSection
             assistance={assistance}
             isEditing={isEditing}
