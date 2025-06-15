@@ -27,34 +27,74 @@ export function useBuildings() {
     queryKey: ['buildings'],
     queryFn: async () => {
       console.log('🏗️ Fetching buildings from database...');
-      const { data, error } = await supabase
-        .from('buildings')
-        .select('*')
-        .order('name');
       
-      if (error) {
-        console.error('❌ Error fetching buildings:', error);
-        throw error;
+      // First, let's check if we can connect to the database
+      console.log('🔗 Testing database connection...');
+      
+      try {
+        const { data, error, count } = await supabase
+          .from('buildings')
+          .select('*', { count: 'exact' })
+          .order('name');
+        
+        console.log('📊 Raw Supabase response:', { data, error, count });
+        
+        if (error) {
+          console.error('❌ Supabase error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          throw error;
+        }
+        
+        console.log('✅ Buildings fetched successfully!');
+        console.log('📋 Total buildings found:', count);
+        console.log('📋 Buildings data structure:', data);
+        
+        if (!data || data.length === 0) {
+          console.warn('⚠️ No buildings found in database - this might be expected if no buildings have been created yet');
+        }
+        
+        return data || [];
+      } catch (err) {
+        console.error('💥 Exception in buildings query:', err);
+        throw err;
       }
-      
-      console.log('✅ Buildings fetched successfully:', data?.length || 0, 'buildings found');
-      console.log('📋 Buildings data:', data);
-      return data;
     },
   });
 
   // Show error if data fetch failed
   if (error) {
     console.error('🚨 Buildings query error:', error);
+    console.error('🚨 Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
   }
+
+  // Log the current state for debugging
+  console.log('🔍 Current buildings state:', {
+    buildings,
+    isLoading,
+    error: error?.message,
+    buildingsCount: buildings?.length || 0
+  });
 
   // Create building
   const createBuilding = useMutation({
     mutationFn: async (values: { name: string; address?: string; cadastral_code?: string; admin_notes?: string; is_active?: boolean }) => {
+      console.log('📝 Creating building with values:', values);
       const { error } = await supabase
         .from('buildings')
         .insert([values]);
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error creating building:', error);
+        throw error;
+      }
+      console.log('✅ Building created successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
