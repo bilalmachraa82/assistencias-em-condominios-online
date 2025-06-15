@@ -7,6 +7,7 @@ import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import AssistanceAnalytics from '@/components/analytics/AssistanceAnalytics';
 import PerformanceOptimizer from '@/components/performance/PerformanceOptimizer';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import SystemHealthCheck from '@/components/testing/SystemHealthCheck';
 
 export default function Dashboard() {
   return (
@@ -40,9 +41,7 @@ export default function Dashboard() {
           
           <TabsContent value="system" className="space-y-4">
             <div className="grid gap-6">
-              <div className="text-center py-8 text-muted-foreground">
-                Informações do sistema em desenvolvimento...
-              </div>
+              <SystemHealthCheck />
             </div>
           </TabsContent>
         </Tabs>

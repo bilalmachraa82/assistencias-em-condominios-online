@@ -4,20 +4,35 @@ import { Bell, Wifi, WifiOff } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useRealtimeAssistances } from "@/hooks/useRealtimeAssistances";
+import { useRealtimeAssistances, RealtimeNotificationPayload } from "@/hooks/useRealtimeAssistances";
 import { supabase } from "@/integrations/supabase/client";
+
+type Notification = {
+  id: string;
+  message: string;
+  timestamp: Date;
+  type: 'info' | 'success' | 'warning';
+};
 
 export default function RealtimeNotifications() {
   const [isConnected, setIsConnected] = React.useState(true);
-  const [notifications, setNotifications] = React.useState<Array<{
-    id: string;
-    message: string;
-    timestamp: Date;
-    type: 'info' | 'success' | 'warning';
-  }>>([]);
+  const [notifications, setNotifications] = React.useState<Notification[]>([]);
 
-  // Enable realtime updates
-  useRealtimeAssistances();
+  const addNotification = React.useCallback((notificationPayload: RealtimeNotificationPayload) => {
+    const notification: Notification = {
+      id: Date.now().toString(),
+      message: notificationPayload.message,
+      timestamp: new Date(),
+      type: notificationPayload.type
+    };
+    
+    setNotifications(prev => [notification, ...prev.slice(0, 9)]); // Keep last 10
+  }, []);
+
+  // Enable realtime updates and pass callback
+  useRealtimeAssistances({
+    onNotification: addNotification
+  });
 
   React.useEffect(() => {
     // Monitor connection status
@@ -35,17 +50,6 @@ export default function RealtimeNotifications() {
       supabase.removeChannel(channel);
     };
   }, []);
-
-  const addNotification = (message: string, type: 'info' | 'success' | 'warning' = 'info') => {
-    const notification = {
-      id: Date.now().toString(),
-      message,
-      timestamp: new Date(),
-      type
-    };
-    
-    setNotifications(prev => [notification, ...prev.slice(0, 9)]); // Keep last 10
-  };
 
   const clearNotifications = () => {
     setNotifications([]);
