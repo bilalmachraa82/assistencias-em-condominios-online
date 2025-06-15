@@ -1,9 +1,8 @@
 
-// import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "./index.css";
 import Dashboard from "./pages/Dashboard";
-/*
 import Buildings from "./pages/Buildings";
 import Suppliers from "./pages/Suppliers";
 import AssistenciasDashboard from "./pages/AssistenciasDashboard";
@@ -15,9 +14,7 @@ import AcceptRequest from "./pages/supplier/AcceptRequest";
 import ScheduleRequest from "./pages/supplier/ScheduleRequest";
 import CompleteRequest from "./pages/supplier/CompleteRequest";
 import Confirmation from "./pages/supplier/Confirmation";
-*/
 
-/*
 const router = createBrowserRouter([
   {
     path: "/",
@@ -62,11 +59,7 @@ const router = createBrowserRouter([
     element: <NotFound />,
   },
 ]);
-*/
 
 export default function App() {
-  // To debug the white screen issue, we are temporarily bypassing the router
-  // and rendering the Dashboard component directly.
-  // return <RouterProvider router={router} />;
-  return <Dashboard />;
+  return <RouterProvider router={router} />;
 }
