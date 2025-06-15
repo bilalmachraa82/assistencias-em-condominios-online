@@ -62,22 +62,50 @@ export default function SystemHealthCheck() {
       ));
     }
 
-    // Check Storage
+    // Check Storage - Verificação mais robusta
     try {
-      const { data, error } = await supabase.storage.listBuckets();
-      if (error) throw error;
+      // 1. Verificar se conseguimos listar buckets
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      if (listError) throw listError;
       
-      const hasAssistancePhotos = data?.some(bucket => bucket.name === 'assistance-photos');
-      const totalBuckets = data?.length || 0;
+      const hasAssistancePhotos = buckets?.some(bucket => bucket.name === 'assistance-photos');
+      const totalBuckets = buckets?.length || 0;
+      
+      if (!hasAssistancePhotos) {
+        setChecks(prev => prev.map(check => 
+          check.name === 'Storage' 
+            ? { 
+                ...check, 
+                status: 'error' as const, 
+                message: 'Bucket "assistance-photos" não encontrado',
+                count: totalBuckets
+              }
+            : check
+        ));
+        return;
+      }
+
+      // 2. Verificar se conseguimos obter informações do bucket
+      const { data: bucket, error: bucketError } = await supabase.storage.getBucket('assistance-photos');
+      if (bucketError) throw bucketError;
+
+      // 3. Tentar fazer uma operação simples no bucket (listar ficheiros)
+      const { data: files, error: filesError } = await supabase.storage
+        .from('assistance-photos')
+        .list('', { limit: 1 });
+        
+      if (filesError) {
+        console.warn('Warning listing files:', filesError);
+      }
+      
+      const isPublic = bucket?.public ? 'público' : 'privado';
       
       setChecks(prev => prev.map(check => 
         check.name === 'Storage' 
           ? { 
               ...check, 
-              status: hasAssistancePhotos ? 'healthy' as const : 'warning' as const, 
-              message: hasAssistancePhotos 
-                ? `Bucket "assistance-photos" OK. Total: ${totalBuckets} bucket(s).` 
-                : 'Bucket "assistance-photos" não encontrado',
+              status: 'healthy' as const, 
+              message: `Bucket "assistance-photos" OK (${isPublic}). Total: ${totalBuckets} bucket(s).`,
               count: totalBuckets
             }
           : check
