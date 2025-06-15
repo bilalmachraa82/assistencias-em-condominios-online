@@ -221,7 +221,7 @@ export default function EndToEndTester() {
         .from('assistance_photos')
         .insert({
           assistance_id: assistance.id,
-          category: 'teste',
+          category: 'diagnostico',
           photo_url: 'https://example.com/test.jpg',
           uploaded_by: 'teste'
         });
@@ -236,7 +236,7 @@ export default function EndToEndTester() {
           .from('assistance_photos')
           .delete()
           .eq('assistance_id', assistance.id)
-          .eq('category', 'teste');
+          .eq('category', 'diagnostico');
       }
 
       // Step 8: Test edge functions
