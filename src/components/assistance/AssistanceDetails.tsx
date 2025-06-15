@@ -133,6 +133,10 @@ export default function AssistanceDetails({
           <DialogTitle className="flex justify-between items-center">
             <span>Assistência #{assistance.id}</span>
             <div className="flex items-center gap-2">
+              <EmailSender 
+                assistanceId={assistance.id} 
+                assistanceStatus={assistance.status}
+              />
               {!isEditing ? (
                 <Button
                   variant="outline"
@@ -167,10 +171,6 @@ export default function AssistanceDetails({
                   </Button>
                 </div>
               )}
-              <EmailSender 
-                assistanceId={assistance.id} 
-                assistanceStatus={assistance.status}
-              />
             </div>
           </DialogTitle>
           <DialogDescription className="text-gray-300">
