@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -125,6 +124,15 @@ serve(async (req) => {
     console.log('Subject:', emailSubject);
     console.log('Action URL:', supplierActionUrl);
 
+    const payload = {
+      from: 'LuvImg <onboarding@resend.dev>',
+      to: [assistance.suppliers.email],
+      subject: emailSubject,
+      html: emailContent,
+    };
+
+    console.log('Sending email with Resend. Payload:', JSON.stringify(payload, null, 2));
+
     // Send email using Resend API
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -132,12 +140,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        from: 'LuvImg <onboarding@resend.dev>',
-        to: [assistance.suppliers.email],
-        subject: emailSubject,
-        html: emailContent,
-      })
+      body: JSON.stringify(payload)
     });
 
     const emailResult = await emailResponse.json();
@@ -149,6 +152,8 @@ serve(async (req) => {
         { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
+
+    console.log('Email sent successfully via Resend. Response ID:', emailResult.id);
 
     // Log the email in the database
     await supabase

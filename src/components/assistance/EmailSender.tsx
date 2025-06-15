@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Mail } from 'lucide-react';
@@ -16,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
+import { generateToken } from '@/utils/TokenUtils';
 
 interface EmailSenderProps {
   assistanceId: number;
@@ -123,12 +123,8 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
   // Function to regenerate token if missing
   const regenerateToken = async (assistanceId: number, tokenField: string): Promise<string | null> => {
     try {
-      // Generate a new token
-      const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-      let token = '';
-      for (let i = 0; i < 22; i++) {
-        token += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
+      // Generate a new token using the centralized utility function
+      const token = generateToken();
       
       // Update the assistance with the new token
       const { data, error } = await supabase
