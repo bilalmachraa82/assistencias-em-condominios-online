@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import { 
@@ -42,6 +41,8 @@ export function StatsCards() {
     { name: 'Emergência', value: stats?.urgencyDistribution?.emergency || 0 }
   ];
 
+  const weeklyChartData = stats?.weeklyTrend || [];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
       <Card className="chart-card relative overflow-hidden">
@@ -54,7 +55,7 @@ export function StatsCards() {
           </div>
           <div className="absolute right-2 top-2 opacity-50 text-xs text-muted-foreground">Tempo real</div>
           <ResponsiveContainer width="100%" height={60}>
-            <LineChart data={mockWeekData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
+            <LineChart data={weeklyChartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
               <Line type="monotone" dataKey="assist" stroke="hsl(var(--success))" strokeWidth={2} dot={false} />
               <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
               <XAxis dataKey="name" hide />

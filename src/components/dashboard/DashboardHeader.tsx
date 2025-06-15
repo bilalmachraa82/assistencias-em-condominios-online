@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { MapPin, Plus, Camera, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -53,12 +52,6 @@ export function DashboardHeader() {
         </p>
       </div>
       <div className="flex items-center gap-4">
-        <div className="glass-card px-4 py-2 rounded-full flex items-center gap-2 text-foreground">
-          <MapPin className="h-4 w-4" />
-          <span>Lisboa</span>
-          <Sun className="h-4 w-4 text-amber-500" />
-          <span>21°C</span>
-        </div>
         <Button 
           onClick={() => setIsNewAssistanceDialogOpen(true)}
           className="apple-button"
