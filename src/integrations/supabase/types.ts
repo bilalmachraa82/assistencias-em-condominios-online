@@ -377,6 +377,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      audit_sensitive_operation: {
+        Args: {
+          operation_type: string
+          table_name: string
+          record_id: number
+          details?: Json
+        }
+        Returns: undefined
+      }
       delete_assistance_safely: {
         Args: { p_assistance_id: number }
         Returns: Json

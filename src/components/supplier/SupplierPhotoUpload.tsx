@@ -1,7 +1,8 @@
+
 import React, { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2, Camera, X } from "lucide-react";
+import { Upload, Loader2, Camera, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { type PhotoCategory, PHOTO_CATEGORIES, VALID_PHOTO_CATEGORIES } from "@/config/photoCategories";
 
@@ -11,6 +12,10 @@ interface SupplierPhotoUploadProps {
   onUploadCompleted?: () => void;
 }
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_FILES = 10; // Limit number of files per upload
+
 export default function SupplierPhotoUpload({
   assistanceId,
   category,
@@ -18,21 +23,61 @@ export default function SupplierPhotoUpload({
 }: SupplierPhotoUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const validateFile = (file: File): string | null => {
+    if (file.size > MAX_FILE_SIZE) {
+      return `Ficheiro "${file.name}" é muito grande. Máximo: 5MB`;
+    }
+    
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      return `Tipo de ficheiro não permitido: ${file.type}`;
+    }
+    
+    return null;
+  };
+
+  const sanitizeFileName = (fileName: string): string => {
+    return fileName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // Create preview URLs
+    // Validate file count
+    if (files.length > MAX_FILES) {
+      toast.error(`Máximo de ${MAX_FILES} ficheiros por upload`);
+      return;
+    }
+
+    // Validate all files
+    const validationErrors: string[] = [];
+    const validFiles: File[] = [];
     const newPreviews: string[] = [];
+
     Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const url = URL.createObjectURL(file);
-        newPreviews.push(url);
+      const error = validateFile(file);
+      if (error) {
+        validationErrors.push(error);
+      } else {
+        validFiles.push(file);
+        if (file.type.startsWith('image/')) {
+          const url = URL.createObjectURL(file);
+          newPreviews.push(url);
+        }
       }
     });
-    setPreviewImages(newPreviews);
+
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(error => toast.error(error));
+    }
+
+    if (validFiles.length > 0) {
+      setSelectedFiles(validFiles);
+      setPreviewImages(newPreviews);
+    }
   };
 
   const handleUpload = async () => {
@@ -41,8 +86,7 @@ export default function SupplierPhotoUpload({
       return;
     }
 
-    const files = inputRef.current?.files;
-    if (!files || files.length === 0) {
+    if (selectedFiles.length === 0) {
       toast.error('Por favor, selecione pelo menos uma foto');
       return;
     }
@@ -50,52 +94,72 @@ export default function SupplierPhotoUpload({
     setIsUploading(true);
 
     try {
-      for (const file of Array.from(files)) {
-        if (!file.type.startsWith('image/')) continue;
+      let successCount = 0;
+      let errorCount = 0;
 
-        const ext = file.name.split('.').pop();
-        const filePath = `assistances/${assistanceId}/${category}/${Date.now()}_${Math.random()
-          .toString(36)
-          .substr(2, 6)}.${ext}`;
+      for (const file of selectedFiles) {
+        try {
+          const sanitizedFileName = sanitizeFileName(file.name);
+          const ext = sanitizedFileName.split('.').pop() || 'jpg';
+          const timestamp = Date.now();
+          const randomId = Math.random().toString(36).substr(2, 6);
+          const filePath = `assistances/${assistanceId}/${category}/${timestamp}_${randomId}.${ext}`;
 
-        // Upload to storage
-        const { data: storageData, error: uploadError } = await supabase.storage
-          .from("assistance-photos")
-          .upload(filePath, file, { upsert: false });
+          // Upload to storage
+          const { data: storageData, error: uploadError } = await supabase.storage
+            .from("assistance-photos")
+            .upload(filePath, file, { 
+              upsert: false,
+              contentType: file.type
+            });
 
-        if (uploadError) {
-          toast.error(`Erro ao fazer upload: ${uploadError.message}`);
-          continue;
-        }
+          if (uploadError) {
+            console.error(`Upload error for ${file.name}:`, uploadError);
+            errorCount++;
+            continue;
+          }
 
-        // Get public URL
-        const { data: pubUrl } = supabase.storage
-          .from("assistance-photos")
-          .getPublicUrl(filePath);
+          // Get public URL
+          const { data: pubUrl } = supabase.storage
+            .from("assistance-photos")
+            .getPublicUrl(filePath);
 
-        // Save to database
-        const { error: dbError } = await supabase
-          .from("assistance_photos")
-          .insert([
-            {
-              assistance_id: assistanceId,
-              category,
-              photo_url: pubUrl?.publicUrl || "",
-              uploaded_by: "supplier",
-            },
-          ]);
+          // Save to database
+          const { error: dbError } = await supabase
+            .from("assistance_photos")
+            .insert([
+              {
+                assistance_id: assistanceId,
+                category,
+                photo_url: pubUrl?.publicUrl || "",
+                uploaded_by: "supplier",
+              },
+            ]);
 
-        if (dbError) {
-          toast.error(`Erro ao guardar na base de dados: ${dbError.message}`);
-          continue;
+          if (dbError) {
+            console.error(`DB error for ${file.name}:`, dbError);
+            errorCount++;
+            continue;
+          }
+
+          successCount++;
+        } catch (fileError) {
+          console.error(`Error processing ${file.name}:`, fileError);
+          errorCount++;
         }
       }
 
-      toast.success("Fotos enviadas com sucesso!");
-      setPreviewImages([]);
-      if (inputRef.current) inputRef.current.value = "";
-      if (onUploadCompleted) onUploadCompleted();
+      if (successCount > 0) {
+        toast.success(`${successCount} foto(s) enviada(s) com sucesso!`);
+        clearPreviews();
+        if (onUploadCompleted) onUploadCompleted();
+      }
+      
+      if (errorCount > 0) {
+        toast.error(`${errorCount} foto(s) falharam no envio`);
+      }
     } catch (error: any) {
+      console.error('Upload process error:', error);
       toast.error(`Erro: ${error?.message || "Erro inesperado"}`);
     } finally {
       setIsUploading(false);
@@ -105,6 +169,7 @@ export default function SupplierPhotoUpload({
   const clearPreviews = () => {
     previewImages.forEach(url => URL.revokeObjectURL(url));
     setPreviewImages([]);
+    setSelectedFiles([]);
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -118,7 +183,7 @@ export default function SupplierPhotoUpload({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/gif"
         multiple
         className="hidden"
         onChange={handleFileChange}
@@ -163,14 +228,21 @@ export default function SupplierPhotoUpload({
           </div>
         </div>
       ) : (
-        <Button
-          variant="outline"
-          onClick={() => inputRef.current?.click()}
-          className="w-full flex items-center gap-2"
-        >
-          <Camera className="h-4 w-4" />
-          Selecionar Fotos
-        </Button>
+        <div className="space-y-3">
+          <Button
+            variant="outline"
+            onClick={() => inputRef.current?.click()}
+            className="w-full flex items-center gap-2"
+          >
+            <Camera className="h-4 w-4" />
+            Selecionar Fotos
+          </Button>
+          
+          <div className="text-xs text-gray-500 flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            Máximo {MAX_FILES} ficheiros • 5MB cada • JPG, PNG, WebP, GIF
+          </div>
+        </div>
       )}
     </div>
   );
