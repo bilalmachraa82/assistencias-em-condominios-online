@@ -1,15 +1,29 @@
 
 import { Card } from "@/components/ui/card"
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import { 
   ChartContainer, 
   ChartTooltip,
   ChartTooltipContent
 } from "@/components/ui/chart";
+import type { ChartConfig } from "@/components/ui/chart";
 import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
 const COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
+
+const activeAssistancesChartConfig = {
+  assist: {
+    label: "Assistências",
+    color: "hsl(var(--success))",
+  },
+} satisfies ChartConfig;
+
+const pieChartConfig = {
+  normal: { label: "Normal", color: "#22c55e" },
+  urgent: { label: "Urgente", color: "#f59e0b" },
+  emergency: { label: "Emergência", color: "#ef4444" },
+} satisfies ChartConfig;
 
 export function StatsCards() {
   const { stats, isLoadingStats } = useDashboardData();
@@ -29,17 +43,17 @@ export function StatsCards() {
   }
 
   const pieData = [
-    { name: 'Normal', value: stats?.urgencyDistribution?.normal || 0 },
-    { name: 'Urgente', value: stats?.urgencyDistribution?.urgent || 0 },
-    { name: 'Emergência', value: stats?.urgencyDistribution?.emergency || 0 }
+    { name: 'normal', value: stats?.urgencyDistribution?.normal || 0 },
+    { name: 'urgent', value: stats?.urgencyDistribution?.urgent || 0 },
+    { name: 'emergency', value: stats?.urgencyDistribution?.emergency || 0 }
   ];
 
   const weeklyChartData = stats?.weeklyTrend || [];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-      <Card className="chart-card relative overflow-hidden">
-        <div className="p-6">
+      <Card className="chart-card relative overflow-hidden flex flex-col">
+        <div className="p-6 pb-2">
           <h2 className="chart-title">Assistências Ativas</h2>
           <p className="chart-value text-success">{stats?.activeAssistances || 0}</p>
           <div className="chart-metric mt-1 chart-metric-up">
@@ -47,18 +61,30 @@ export function StatsCards() {
             <span>Sistema em funcionamento</span>
           </div>
           <div className="absolute right-2 top-2 opacity-50 text-xs text-muted-foreground">Tempo real</div>
-          <ResponsiveContainer width="100%" height={60}>
-            <LineChart data={weeklyChartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
-              <Line type="monotone" dataKey="assist" stroke="hsl(var(--success))" strokeWidth={2} dot={false} />
-              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+        </div>
+        <div className="flex-1">
+          <ChartContainer config={activeAssistancesChartConfig} className="h-full w-full">
+            <LineChart
+              accessibilityLayer
+              data={weeklyChartData}
+              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+            >
+              <CartesianGrid vertical={false} strokeDasharray="3 3" strokeOpacity={0.1} />
               <XAxis dataKey="name" hide />
-              <YAxis hide />
+              <YAxis hide domain={["dataMin", "dataMax"]} />
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent indicator="line" hideLabel />}
               />
+              <Line
+                dataKey="assist"
+                type="monotone"
+                stroke="var(--color-assist)"
+                strokeWidth={2}
+                dot={false}
+              />
             </LineChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </div>
       </Card>
       
@@ -89,13 +115,7 @@ export function StatsCards() {
         <div className="p-6">
           <h2 className="chart-title">Distribuição de Urgências</h2>
           <div className="h-56 flex items-center justify-center">
-            <ChartContainer 
-              config={{
-                normal: { color: "#22c55e" },
-                urgent: { color: "#f59e0b" },
-                emergency: { color: "#ef4444" }
-              }}
-            >
+            <ChartContainer config={pieChartConfig}>
               <PieChart>
                 <Pie
                   data={pieData}
@@ -106,13 +126,14 @@ export function StatsCards() {
                   fill="#8884d8"
                   paddingAngle={5}
                   dataKey="value"
+                  nameKey="name"
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <ChartTooltip
-                  content={<ChartTooltipContent nameKey="name" />}
+                  content={<ChartTooltipContent nameKey="name" hideIndicator />}
                 />
               </PieChart>
             </ChartContainer>
