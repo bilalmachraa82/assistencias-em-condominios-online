@@ -1,5 +1,6 @@
+
 import { Card } from "@/components/ui/card"
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import { 
   ChartContainer, 
   ChartTooltip,
@@ -7,14 +8,6 @@ import {
 } from "@/components/ui/chart";
 import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
-
-const mockWeekData = [
-  { name: 'Seg', assist: 9 },
-  { name: 'Ter', assist: 11 },
-  { name: 'Qua', assist: 12 },
-  { name: 'Qui', assist: 14 },
-  { name: 'Sex', assist: 13 },
-];
 
 const COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
 
@@ -60,7 +53,10 @@ export function StatsCards() {
               <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
               <XAxis dataKey="name" hide />
               <YAxis hide />
-              <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '0.5rem' }} />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="line" hideLabel />}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -115,7 +111,9 @@ export function StatsCards() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <ChartTooltip></ChartTooltip>
+                <ChartTooltip
+                  content={<ChartTooltipContent nameKey="name" />}
+                />
               </PieChart>
             </ChartContainer>
           </div>
