@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +23,7 @@ export function useBuildings() {
   const queryClient = useQueryClient();
 
   // Fetch all buildings
-  const { data: buildings, isLoading } = useQuery({
+  const { data: buildings, isLoading, error } = useQuery({
     queryKey: ['buildings'],
     queryFn: async () => {
       console.log('🏗️ Fetching buildings from database...');
@@ -43,6 +42,11 @@ export function useBuildings() {
       return data;
     },
   });
+
+  // Show error if data fetch failed
+  if (error) {
+    console.error('🚨 Buildings query error:', error);
+  }
 
   // Create building
   const createBuilding = useMutation({
