@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 // Custom components
 import AssistanceFilter from '@/components/assistance/AssistanceFilter';
-import AssistanceDetailsWrapper from '@/components/assistance/AssistanceDetailsWrapper';
+import AssistanceDetails from '@/components/assistance/AssistanceDetails';
 import AssistanceList from '@/components/assistance/AssistanceList';
 import { AssistanceCalendarView } from '@/components/assistance/AssistanceCalendarView';
 import NewAssistanceButton from '@/components/assistance/NewAssistanceButton';
@@ -202,7 +202,7 @@ export default function AssistenciasDashboard() {
           </div>
         </div>
 
-        <AssistanceDetailsWrapper 
+        <AssistanceDetails 
           isOpen={isViewDialogOpen}
           onClose={handleDialogClose}
           assistance={selectedAssistance}

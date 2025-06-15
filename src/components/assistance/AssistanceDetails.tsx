@@ -23,13 +23,13 @@ import TokensSection from "./sections/TokensSection";
 import AdminNotesSection from "./sections/AdminNotesSection";
 import AssistanceMessagesSection from "./sections/AssistanceMessagesSection";
 import { formatDate, formatDateTime } from "@/utils/DateTimeUtils";
+import EmailSender from "./EmailSender";
 
 interface AssistanceDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   assistance: any;
   onAssistanceUpdate: () => Promise<void>;
-  additionalContent?: React.ReactNode;
 }
 
 export default function AssistanceDetails({
@@ -37,7 +37,6 @@ export default function AssistanceDetails({
   onClose,
   assistance,
   onAssistanceUpdate,
-  additionalContent,
 }: AssistanceDetailsProps) {
   if (!assistance) return null;
 
@@ -133,40 +132,46 @@ export default function AssistanceDetails({
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             <span>Assistência #{assistance.id}</span>
-            {!isEditing ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex gap-1 items-center bg-white/10 border-white/20 text-white hover:bg-white/20"
-                onClick={() => setIsEditing(true)}
-              >
-                <Pencil className="h-4 w-4" /> Editar
-              </Button>
-            ) : (
-              <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              {!isEditing ? (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex gap-1 items-center text-red-400 bg-red-500/10 border-red-500/20 hover:bg-red-500/20"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setStatus((assistance.status as AssistanceStatusValue) ?? "Pendente Resposta Inicial");
-                    setAdminNotes(assistance.admin_notes || "");
-                  }}
+                  className="flex gap-1 items-center bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  onClick={() => setIsEditing(true)}
                 >
-                  <X className="h-4 w-4" /> Cancelar
+                  <Pencil className="h-4 w-4" /> Editar
                 </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="flex gap-1 items-center gradient-btn"
-                  onClick={handleSaveChanges}
-                  disabled={isSubmitting}
-                >
-                  <Save className="h-4 w-4" /> Salvar
-                </Button>
-              </div>
-            )}
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex gap-1 items-center text-red-400 bg-red-500/10 border-red-500/20 hover:bg-red-500/20"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setStatus((assistance.status as AssistanceStatusValue) ?? "Pendente Resposta Inicial");
+                      setAdminNotes(assistance.admin_notes || "");
+                    }}
+                  >
+                    <X className="h-4 w-4" /> Cancelar
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="flex gap-1 items-center gradient-btn"
+                    onClick={handleSaveChanges}
+                    disabled={isSubmitting}
+                  >
+                    <Save className="h-4 w-4" /> Salvar
+                  </Button>
+                </div>
+              )}
+              <EmailSender 
+                assistanceId={assistance.id} 
+                assistanceStatus={assistance.status}
+              />
+            </div>
           </DialogTitle>
           <DialogDescription className="text-gray-300">
             Informações detalhadas da solicitação de assistência.
@@ -229,8 +234,6 @@ export default function AssistanceDetails({
             </div>
           )}
         </div>
-
-        {additionalContent}
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} className="bg-white/10 border-white/20 text-white hover:bg-white/20">

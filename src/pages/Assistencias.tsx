@@ -1,11 +1,10 @@
-
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
 
 // Custom components
 import AssistanceFilter from '@/components/assistance/AssistanceFilter';
-import AssistanceDetailsWrapper from '@/components/assistance/AssistanceDetailsWrapper';
+import AssistanceDetails from '@/components/assistance/AssistanceDetails';
 import AssistanceList from '@/components/assistance/AssistanceList';
 import NewAssistanceButton from '@/components/assistance/NewAssistanceButton';
 import useAssistanceData from '@/components/assistance/useAssistanceData';
@@ -140,7 +139,7 @@ export default function Assistencias() {
           </div>
         </div>
 
-        <AssistanceDetailsWrapper 
+        <AssistanceDetails 
           isOpen={isViewDialogOpen}
           onClose={handleDialogClose}
           assistance={selectedAssistance}
