@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Mail } from 'lucide-react';
@@ -62,6 +63,7 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
   const handleSendEmail = async () => {
     setIsLoading(true);
     setErrorMessage(null);
+    console.log(`Attempting to send ${emailType} email for assistance ID: ${assistanceId}`);
     
     try {
       // First verify the token exists for the selected email type
@@ -91,6 +93,7 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
       }
       
       // Now send the email with the existing or new token
+      console.log('Calling send-supplier-email function...');
       const response = await fetch('https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/send-supplier-email', {
         method: 'POST',
         headers: {
@@ -102,7 +105,9 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
         })
       });
 
+      console.log('Function response status:', response.status);
       const result = await response.json();
+      console.log('Function response result:', result);
 
       if (!response.ok) {
         throw new Error(result.error || 'Erro ao enviar email');

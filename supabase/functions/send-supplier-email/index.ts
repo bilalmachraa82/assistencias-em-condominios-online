@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -7,12 +8,16 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('Function "send-supplier-email" invoked.');
+  console.log(`Request method: ${req.method}`);
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request.');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('Starting execution inside try block.');
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -31,6 +36,7 @@ serve(async (req) => {
     }
 
     const { assistanceId, emailType } = await req.json();
+    console.log(`Received data: assistanceId=${assistanceId}, emailType=${emailType}`);
 
     if (!assistanceId || !emailType) {
       return new Response(
@@ -40,6 +46,7 @@ serve(async (req) => {
     }
 
     // Get assistance data with related tables
+    console.log(`Fetching assistance data for ID: ${assistanceId}`);
     const { data: assistance, error: assistanceError } = await supabase
       .from('assistances')
       .select(`
@@ -64,6 +71,8 @@ serve(async (req) => {
         { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
+    console.log('Assistance data fetched successfully:', assistance);
+
 
     // Determine which email to send based on emailType
     let emailSubject = '';
@@ -117,12 +126,6 @@ serve(async (req) => {
           { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
     }
-
-    console.log('Sending email with Resend...');
-    console.log('From: onboarding@resend.dev');
-    console.log('To:', assistance.suppliers.email);
-    console.log('Subject:', emailSubject);
-    console.log('Action URL:', supplierActionUrl);
 
     const payload = {
       from: 'LuvImg <onboarding@resend.dev>',
