@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Mail } from 'lucide-react';
@@ -107,10 +108,11 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
   return (
     <>
       <Button 
-        variant="outline" 
+        variant="outline"
+        size="sm"
         onClick={() => setIsDialogOpen(true)}
         disabled={disabled || isLoading}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 bg-white/10 border-white/20 text-white hover:bg-white/20"
       >
         <Mail className="h-4 w-4" />
         <span>Enviar Email</span>
