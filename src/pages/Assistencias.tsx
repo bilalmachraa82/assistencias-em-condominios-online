@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
@@ -11,8 +12,6 @@ import useAssistanceData from '@/components/assistance/useAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
-import { getUserFriendlyError, logError } from '@/utils/ErrorUtils';
-import { DeleteAssistanceResult, validateDeleteAssistanceResult } from '@/types/assistance';
 import { useDeleteAssistance } from "@/components/assistance/useDeleteAssistance";
 
 export default function Assistencias() {

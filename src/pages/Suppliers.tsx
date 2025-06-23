@@ -7,6 +7,7 @@ import SupplierActions from '@/components/suppliers/SupplierActions';
 import SupplierForm from '@/components/suppliers/SupplierForm';
 import DeleteSupplierDialog from '@/components/suppliers/DeleteSupplierDialog';
 import DeleteAllSuppliersDialog from '@/components/suppliers/DeleteAllSuppliersDialog';
+import ExportSuppliersButton from '@/components/suppliers/ExportSuppliersButton';
 import TestingTab from '@/components/suppliers/TestingTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -60,6 +61,9 @@ export default function Suppliers() {
             <p className="text-muted-foreground">
               Gerencie a lista de fornecedores e teste o sistema
             </p>
+          </div>
+          <div className="flex gap-2">
+            <ExportSuppliersButton suppliers={suppliers} isLoading={isLoading} />
           </div>
         </div>
 
