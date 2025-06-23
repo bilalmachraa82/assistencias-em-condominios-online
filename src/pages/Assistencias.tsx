@@ -30,14 +30,8 @@ export default function Assistencias() {
     filters
   } = useAssistanceData(sortOrder);
 
-  // Hook robusto para eliminação
-  const { deleteAssistance, isDeleting } = useDeleteAssistance(async () => {
-    // Após exclusão, refetcha a lista
-    await refetchAssistances();
-    // Fecha dialogs, limpa seleção, etc
-    setIsViewDialogOpen(false);
-    setSelectedAssistance(null);
-  });
+  // Hook robusto para eliminação - SEM callback para evitar conflitos
+  const { deleteAssistance, isDeleting } = useDeleteAssistance();
 
   // Handle assistance view
   const handleViewAssistance = async (assistance: any) => {
@@ -108,9 +102,33 @@ export default function Assistencias() {
     }
   }, [refetchAssistances, selectedAssistance, isViewDialogOpen]);
 
-  // Handle assistance deletion with robust error handling and verification
+  // Handle assistance deletion - CORRIGIDO DEFINITIVAMENTE
   const handleDeleteAssistance = async (assistance: any) => {
-    await deleteAssistance(assistance);
+    try {
+      console.log(`🗑️ Starting deletion process for assistance #${assistance.id}`);
+      
+      // Chama o hook de eliminação e aguarda o resultado
+      const success = await deleteAssistance(assistance);
+      
+      if (success) {
+        console.log(`✅ Assistance #${assistance.id} deleted successfully`);
+        
+        // Se a assistência deletada estava sendo visualizada, fecha o dialog
+        if (selectedAssistance && selectedAssistance.id === assistance.id) {
+          setIsViewDialogOpen(false);
+          setSelectedAssistance(null);
+        }
+        
+        // Refetch a lista após eliminação bem-sucedida
+        await handleRefetchAssistances();
+      } else {
+        console.error(`❌ Failed to delete assistance #${assistance.id}`);
+        toast.error('Falha ao eliminar assistência. Tente novamente.');
+      }
+    } catch (error) {
+      console.error(`💥 Exception during deletion of assistance #${assistance.id}:`, error);
+      toast.error('Erro inesperado ao eliminar assistência.');
+    }
   };
 
   // Handle dialog close with refresh
