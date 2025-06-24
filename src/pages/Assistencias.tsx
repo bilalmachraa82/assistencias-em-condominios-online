@@ -12,12 +12,12 @@ import useAssistanceData from '@/components/assistance/useAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
-import { useDeleteAssistance } from "@/components/assistance/useDeleteAssistance";
 
 export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Use custom hook to fetch and filter data
   const {
@@ -29,9 +29,6 @@ export default function Assistencias() {
     pagination,
     filters
   } = useAssistanceData(sortOrder);
-
-  // Hook robusto para eliminação - SEM callback para evitar conflitos
-  const { deleteAssistance, isDeleting } = useDeleteAssistance();
 
   // Handle assistance view
   const handleViewAssistance = async (assistance: any) => {
@@ -102,32 +99,50 @@ export default function Assistencias() {
     }
   }, [refetchAssistances, selectedAssistance, isViewDialogOpen]);
 
-  // Handle assistance deletion - CORRIGIDO DEFINITIVAMENTE
+  // Simplified and robust assistance deletion
   const handleDeleteAssistance = async (assistance: any) => {
+    if (isDeleting) return; // Prevent multiple simultaneous deletions
+    
+    setIsDeleting(true);
+    console.log(`🗑️ Starting deletion process for assistance #${assistance.id}`);
+    
     try {
-      console.log(`🗑️ Starting deletion process for assistance #${assistance.id}`);
-      
-      // Chama o hook de eliminação e aguarda o resultado
-      const success = await deleteAssistance(assistance);
-      
-      if (success) {
-        console.log(`✅ Assistance #${assistance.id} deleted successfully`);
-        
-        // Se a assistência deletada estava sendo visualizada, fecha o dialog
-        if (selectedAssistance && selectedAssistance.id === assistance.id) {
-          setIsViewDialogOpen(false);
-          setSelectedAssistance(null);
-        }
-        
-        // Refetch a lista após eliminação bem-sucedida
-        await handleRefetchAssistances();
-      } else {
-        console.error(`❌ Failed to delete assistance #${assistance.id}`);
-        toast.error('Falha ao eliminar assistência. Tente novamente.');
+      // Call the corrected SQL function
+      const { data: result, error: rpcError } = await supabase
+        .rpc('delete_assistance_safely', { p_assistance_id: assistance.id });
+
+      if (rpcError) {
+        console.error('❌ RPC Error during deletion:', rpcError);
+        toast.error(`Erro ao eliminar assistência: ${rpcError.message}`);
+        return;
       }
+
+      console.log('📋 Deletion result:', result);
+
+      if (!result?.success) {
+        console.error('❌ Function returned failure:', result?.error);
+        toast.error(result?.error || 'Erro ao eliminar assistência');
+        return;
+      }
+
+      // Success - show confirmation and update UI
+      console.log(`✅ Assistance #${assistance.id} deleted successfully`);
+      toast.success(`Assistência #${assistance.id} eliminada com sucesso!`);
+      
+      // Close dialog if the deleted assistance was being viewed
+      if (selectedAssistance && selectedAssistance.id === assistance.id) {
+        setIsViewDialogOpen(false);
+        setSelectedAssistance(null);
+      }
+      
+      // Refresh the list
+      await handleRefetchAssistances();
+      
     } catch (error) {
-      console.error(`💥 Exception during deletion of assistance #${assistance.id}:`, error);
-      toast.error('Erro inesperado ao eliminar assistência.');
+      console.error(`💥 Exception during deletion:`, error);
+      toast.error('Erro inesperado ao eliminar assistência');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
