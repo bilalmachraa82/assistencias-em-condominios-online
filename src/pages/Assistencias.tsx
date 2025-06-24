@@ -12,6 +12,7 @@ import useAssistanceData from '@/components/assistance/useAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
+import { validateDeleteAssistanceResult } from '@/types/assistance';
 
 export default function Assistencias() {
   const [selectedAssistance, setSelectedAssistance] = useState<any>(null);
@@ -118,10 +119,13 @@ export default function Assistencias() {
       }
 
       console.log('📋 Deletion result:', result);
+      
+      // Use the validation function to ensure proper typing
+      const validatedResult = validateDeleteAssistanceResult(result);
 
-      if (!result?.success) {
-        console.error('❌ Function returned failure:', result?.error);
-        toast.error(result?.error || 'Erro ao eliminar assistência');
+      if (!validatedResult.success) {
+        console.error('❌ Function returned failure:', validatedResult.error);
+        toast.error(validatedResult.error || 'Erro ao eliminar assistência');
         return;
       }
 

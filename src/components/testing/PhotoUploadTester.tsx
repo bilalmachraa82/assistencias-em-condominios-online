@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { TestTube, FileCheck, FileX, Info, Loader2, Play, Trash2, CheckCircle2 } from "lucide-react";
 import AssistancePhotoUploader from "@/components/assistance/sections/AssistancePhotoUploader";
 import { supabase } from '@/integrations/supabase/client';
-import { useDeleteAssistance } from '@/components/assistance/useDeleteAssistance';
 import { generateToken } from '@/utils/TokenUtils';
 import { toast } from 'sonner';
 import { VALID_PHOTO_CATEGORIES } from '@/config/photoCategories';
+import { validateDeleteAssistanceResult } from '@/types/assistance';
 
 type TestState = 'checking' | 'prereqs_missing' | 'ready' | 'creating_assistance' | 'uploading' | 'success' | 'cleaning' | 'error';
 
@@ -26,13 +26,7 @@ export default function PhotoUploadTester() {
   const [testAssistanceId, setTestAssistanceId] = useState<number | null>(null);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const { deleteAssistance, isDeleting } = useDeleteAssistance(() => {
-    setTestAssistanceId(null);
-    setTestState('ready');
-    setTestResult(null);
-    toast.success('Dados de teste limpos com sucesso!');
-  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     checkPrerequisites();
@@ -118,12 +112,48 @@ export default function PhotoUploadTester() {
   const cleanUpTest = async () => {
     if (!testAssistanceId) return;
     
+    setIsDeleting(true);
     setTestState('cleaning');
-    const success = await deleteAssistance({ id: testAssistanceId });
     
-    if (!success) {
+    try {
+      console.log(`🗑️ Starting cleanup for test assistance #${testAssistanceId}`);
+      
+      const { data: result, error: rpcError } = await supabase
+        .rpc('delete_assistance_safely', { p_assistance_id: testAssistanceId });
+
+      if (rpcError) {
+        console.error('❌ RPC Error during cleanup:', rpcError);
+        toast.error(`Erro ao limpar dados de teste: ${rpcError.message}`);
+        setTestState('error');
+        setErrorMessage('Falha ao limpar dados de teste');
+        return;
+      }
+
+      console.log('📋 Cleanup result:', result);
+      const validatedResult = validateDeleteAssistanceResult(result);
+
+      if (!validatedResult.success) {
+        console.error('❌ Cleanup function returned failure:', validatedResult.error);
+        toast.error(validatedResult.error || 'Erro ao limpar dados de teste');
+        setTestState('error');
+        setErrorMessage('Falha ao limpar dados de teste');
+        return;
+      }
+
+      console.log(`✅ Test assistance #${testAssistanceId} cleaned up successfully`);
+      toast.success('Dados de teste limpos com sucesso!');
+      
+      setTestAssistanceId(null);
+      setTestState('ready');
+      setTestResult(null);
+      
+    } catch (error: any) {
+      console.error(`💥 Exception during cleanup:`, error);
+      toast.error('Erro inesperado ao limpar dados de teste');
       setTestState('error');
-      setErrorMessage('Falha ao limpar dados de teste');
+      setErrorMessage('Erro inesperado ao limpar dados de teste');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
