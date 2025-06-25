@@ -34,11 +34,14 @@ export default function AcceptRequest() {
     }
     
     const loadAssistance = async () => {
+      console.log('🔄 Loading assistance data with token:', token);
       const result = await fetchAssistanceData('accept', token);
       
       if (!result.success) {
+        console.error('❌ Failed to load assistance:', result.error);
         setError(result.error || 'Erro ao carregar os detalhes da assistência');
       } else {
+        console.log('✅ Assistance loaded successfully:', result.data);
         setAssistance(result.data);
       }
       
@@ -54,6 +57,11 @@ export default function AcceptRequest() {
     console.log('Selected date:', selectedDate);
     console.log('Selected time:', selectedTime);
     
+    if (!token) {
+      toast.error('Token inválido');
+      return;
+    }
+    
     // Validation
     if (acceptWithSchedule && (!selectedDate || !selectedTime)) {
       toast.error('Por favor, selecione uma data e hora para o agendamento');
@@ -68,18 +76,22 @@ export default function AcceptRequest() {
       const [hours, minutes] = selectedTime.split(':');
       datetime.setHours(parseInt(hours), parseInt(minutes));
       data = { datetime: datetime.toISOString() };
-      console.log('Scheduling data:', data);
+      console.log('📅 Scheduling data:', data);
     }
     
-    const result = await submitSupplierAction('accept', token!, data);
+    console.log('📤 Submitting acceptance...');
+    const result = await submitSupplierAction('accept', token, data);
     
     if (result.success) {
       const message = acceptWithSchedule 
         ? 'Assistência aceite e agendada com sucesso!'
         : 'Assistência aceite com sucesso!';
+      console.log('✅ Acceptance successful:', message);
       toast.success(message);
       navigate('/supplier/confirmation?action=accepted');
     } else {
+      console.error('❌ Acceptance failed:', result.error);
+      toast.error(result.error || 'Erro ao aceitar assistência');
       setSubmitting(false);
     }
   };
@@ -90,16 +102,25 @@ export default function AcceptRequest() {
       return;
     }
     
+    if (!token) {
+      toast.error('Token inválido');
+      return;
+    }
+    
     setSubmitting(true);
     
-    const result = await submitSupplierAction('reject', token!, {
+    console.log('📤 Submitting rejection...');
+    const result = await submitSupplierAction('reject', token, {
       reason: rejectionReason
     });
     
     if (result.success) {
+      console.log('✅ Rejection successful');
       toast.success('Assistência recusada');
       navigate('/supplier/confirmation?action=rejected');
     } else {
+      console.error('❌ Rejection failed:', result.error);
+      toast.error(result.error || 'Erro ao recusar assistência');
       setSubmitting(false);
     }
   };
@@ -173,25 +194,29 @@ export default function AcceptRequest() {
             </div>
 
             {acceptWithSchedule && (
-              <div className="grid gap-4 md:grid-cols-2 p-4 bg-blue-50 rounded border border-blue-200">
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-900">Data</label>
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={(date) => date < new Date()}
-                    className="rounded-md border bg-white shadow-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-900">Hora</label>
-                  <Input
-                    type="time"
-                    value={selectedTime}
-                    onChange={(e) => setSelectedTime(e.target.value)}
-                    className="bg-white border-gray-300 text-gray-900"
-                  />
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-900">Data</label>
+                    <div className="w-full">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        disabled={(date) => date < new Date()}
+                        className="w-full max-w-none"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-900">Hora</label>
+                    <Input
+                      type="time"
+                      value={selectedTime}
+                      onChange={(e) => setSelectedTime(e.target.value)}
+                      className="bg-white border-gray-300 text-gray-900 w-full"
+                    />
+                  </div>
                 </div>
               </div>
             )}
