@@ -194,28 +194,34 @@ export default function AcceptRequest() {
             </div>
 
             {acceptWithSchedule && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="grid gap-4 md:grid-cols-2">
+              <div className="p-6 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="grid gap-6 lg:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium mb-2 block text-gray-900">Data</label>
+                    <label className="text-base font-semibold mb-3 block text-gray-900">Selecionar Data</label>
                     <div className="w-full">
                       <Calendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
                         disabled={(date) => date < new Date()}
-                        className="w-full max-w-none"
+                        className="w-full max-w-none bg-white rounded-lg shadow-sm"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block text-gray-900">Hora</label>
-                    <Input
-                      type="time"
-                      value={selectedTime}
-                      onChange={(e) => setSelectedTime(e.target.value)}
-                      className="bg-white border-gray-300 text-gray-900 w-full"
-                    />
+                    <label className="text-base font-semibold mb-3 block text-gray-900">Selecionar Hora</label>
+                    <div className="space-y-3">
+                      <Input
+                        type="time"
+                        value={selectedTime}
+                        onChange={(e) => setSelectedTime(e.target.value)}
+                        className="bg-white border-gray-300 text-gray-900 text-lg p-4 h-14 text-center font-mono"
+                        style={{ fontSize: '18px' }}
+                      />
+                      <div className="text-sm text-gray-600 bg-white p-3 rounded border">
+                        <strong>Hora selecionada:</strong> {selectedTime || 'Nenhuma hora selecionada'}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -228,7 +234,7 @@ export default function AcceptRequest() {
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Se pretende recusar, indique o motivo..."
-              className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+              className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
               rows={3}
             />
           </div>
