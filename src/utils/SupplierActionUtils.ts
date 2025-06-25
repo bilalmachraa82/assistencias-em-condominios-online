@@ -48,7 +48,7 @@ export async function submitSupplierAction(
     }
     
     return { success: true, ...result };
-  } catch (err) {
+  } catch (err: any) {
     console.error(`Erro ao processar ${action}:`, err);
     toast.error(`Erro ao processar sua solicitação. Por favor, tente novamente.`);
     return { success: false, error: err.message };
@@ -93,7 +93,7 @@ export async function fetchAssistanceData(
     }
     
     return { success: true, data: result.data };
-  } catch (err) {
+  } catch (err: any) {
     console.error(`Erro ao buscar dados para ${action}:`, err);
     toast.error('Erro ao carregar os detalhes da assistência. Por favor, tente novamente mais tarde.');
     return { success: false, error: err.message };
@@ -126,12 +126,12 @@ function getActionName(action: string): string {
 export function getTypeBadgeClass(type: string): string {
   switch (type) {
     case 'Normal':
-      return 'bg-green-500/20 text-green-300';
+      return 'bg-green-100 text-green-800 border border-green-200';
     case 'Urgente':
-      return 'bg-orange-500/20 text-orange-300';
+      return 'bg-orange-100 text-orange-800 border border-orange-200';
     case 'Emergência':
-      return 'bg-red-500/20 text-red-300';
+      return 'bg-red-100 text-red-800 border border-red-200';
     default:
-      return 'bg-gray-500/20 text-gray-300';
+      return 'bg-gray-100 text-gray-800 border border-gray-200';
   }
 }

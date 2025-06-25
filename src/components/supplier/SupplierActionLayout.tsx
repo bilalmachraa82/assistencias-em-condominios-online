@@ -1,6 +1,6 @@
 
 import React, { ReactNode } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
 
 interface LayoutProps {
@@ -21,14 +21,14 @@ export default function SupplierActionLayout({
   statusBadge
 }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center p-4">
-      <Card className="max-w-lg w-full shadow-xl">
-        <CardHeader>
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center p-4">
+      <Card className="max-w-4xl w-full shadow-xl bg-white">
+        <CardHeader className="bg-white">
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-2xl">{title}</CardTitle>
+              <CardTitle className="text-2xl text-gray-900">{title}</CardTitle>
               {description && (
-                <CardDescription className="mt-2">{description}</CardDescription>
+                <CardDescription className="mt-2 text-gray-600">{description}</CardDescription>
               )}
             </div>
             {statusBadge && (
@@ -38,13 +38,13 @@ export default function SupplierActionLayout({
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-white">
           {loading ? (
             <div className="w-full flex justify-center items-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
             </div>
           ) : error ? (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
               <p>{error}</p>
             </div>
           ) : (

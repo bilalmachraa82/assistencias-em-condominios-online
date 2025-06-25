@@ -49,6 +49,17 @@ export default function AcceptRequest() {
   }, [token]);
 
   const handleAccept = async () => {
+    console.log('🔄 Starting acceptance process...');
+    console.log('Accept with schedule:', acceptWithSchedule);
+    console.log('Selected date:', selectedDate);
+    console.log('Selected time:', selectedTime);
+    
+    // Validation
+    if (acceptWithSchedule && (!selectedDate || !selectedTime)) {
+      toast.error('Por favor, selecione uma data e hora para o agendamento');
+      return;
+    }
+    
     setSubmitting(true);
     
     let data = undefined;
@@ -57,6 +68,7 @@ export default function AcceptRequest() {
       const [hours, minutes] = selectedTime.split(':');
       datetime.setHours(parseInt(hours), parseInt(minutes));
       data = { datetime: datetime.toISOString() };
+      console.log('Scheduling data:', data);
     }
     
     const result = await submitSupplierAction('accept', token!, data);
@@ -93,7 +105,7 @@ export default function AcceptRequest() {
   };
 
   const statusBadge = assistance?.type ? (
-    <span className={`px-3 py-1 rounded-full text-xs ${getTypeBadgeClass(assistance.type)}`}>
+    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getTypeBadgeClass(assistance.type)}`}>
       {assistance.type}
     </span>
   ) : null;
@@ -112,8 +124,8 @@ export default function AcceptRequest() {
             <div className="flex items-start gap-2">
               <Building className="h-4 w-4 mt-1 text-gray-500" />
               <div>
-                <div className="text-sm font-medium">Edifício</div>
-                <div className="text-sm text-gray-600">{assistance.buildings.name}</div>
+                <div className="text-sm font-medium text-gray-900">Edifício</div>
+                <div className="text-sm text-gray-700">{assistance.buildings.name}</div>
                 <div className="text-xs text-gray-500">{assistance.buildings.address}</div>
               </div>
             </div>
@@ -121,21 +133,21 @@ export default function AcceptRequest() {
             <div className="flex items-start gap-2">
               <Wrench className="h-4 w-4 mt-1 text-gray-500" />
               <div>
-                <div className="text-sm font-medium">Tipo de Intervenção</div>
-                <div className="text-sm text-gray-600">{assistance.intervention_types.name}</div>
+                <div className="text-sm font-medium text-gray-900">Tipo de Intervenção</div>
+                <div className="text-sm text-gray-700">{assistance.intervention_types.name}</div>
               </div>
             </div>
           </div>
 
           <div className="border-t pt-4">
-            <div className="text-sm font-medium mb-2">Descrição</div>
-            <div className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded">
+            <div className="text-sm font-medium mb-2 text-gray-900">Descrição</div>
+            <div className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded border text-gray-800">
               {assistance.description}
             </div>
           </div>
 
           <div className="border-t pt-4">
-            <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-medium mb-4 flex items-center gap-2 text-gray-900">
               <MessageCircle className="h-4 w-4" />
               Comunicação
             </h3>
@@ -152,33 +164,33 @@ export default function AcceptRequest() {
                 id="schedule"
                 checked={acceptWithSchedule}
                 onChange={(e) => setAcceptWithSchedule(e.target.checked)}
-                className="rounded"
+                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
               />
-              <label htmlFor="schedule" className="text-sm font-medium flex items-center gap-1">
+              <label htmlFor="schedule" className="text-sm font-medium flex items-center gap-1 text-gray-900">
                 <Clock className="h-4 w-4" />
                 Aceitar e agendar imediatamente
               </label>
             </div>
 
             {acceptWithSchedule && (
-              <div className="grid gap-4 md:grid-cols-2 p-4 bg-gray-50 rounded">
+              <div className="grid gap-4 md:grid-cols-2 p-4 bg-blue-50 rounded border border-blue-200">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Data</label>
+                  <label className="text-sm font-medium mb-2 block text-gray-900">Data</label>
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     disabled={(date) => date < new Date()}
-                    className="rounded-md border bg-white"
+                    className="rounded-md border bg-white shadow-sm"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Hora</label>
+                  <label className="text-sm font-medium mb-2 block text-gray-900">Hora</label>
                   <Input
                     type="time"
                     value={selectedTime}
                     onChange={(e) => setSelectedTime(e.target.value)}
-                    className="bg-white"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
               </div>
@@ -186,12 +198,12 @@ export default function AcceptRequest() {
           </div>
 
           <div className="border-t pt-4">
-            <label className="text-sm font-medium mb-2 block">Motivo da Recusa (opcional)</label>
+            <label className="text-sm font-medium mb-2 block text-gray-900">Motivo da Recusa (opcional)</label>
             <Textarea
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Se pretende recusar, indique o motivo..."
-              className="bg-white"
+              className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
               rows={3}
             />
           </div>
@@ -210,10 +222,10 @@ export default function AcceptRequest() {
             <Button
               onClick={handleAccept}
               disabled={submitting || (acceptWithSchedule && (!selectedDate || !selectedTime))}
-              className="flex items-center gap-2 flex-1"
+              className="flex items-center gap-2 flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Check className="h-4 w-4" />
-              {acceptWithSchedule ? 'Aceitar e Agendar' : 'Aceitar'}
+              {submitting ? 'Processando...' : (acceptWithSchedule ? 'Aceitar e Agendar' : 'Aceitar')}
             </Button>
           </div>
         </div>
