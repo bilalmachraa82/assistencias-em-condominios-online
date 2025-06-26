@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import {
   Form,
   FormControl,
@@ -11,6 +11,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -19,47 +22,68 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const serviceTypeSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  description: z.string().optional(),
+  maps_to_urgency: z.enum(['Normal', 'Urgente'], {
+    required_error: 'Seleccione o nível de urgência',
+  }),
+});
+
+type ServiceTypeFormData = z.infer<typeof serviceTypeSchema>;
+
 interface ServiceTypeFormProps {
-  initialData?: any;
-  onSubmit: (data: any) => void;
+  initialData?: {
+    id: number;
+    name: string;
+    description?: string;
+    maps_to_urgency?: string;
+  };
+  onSubmit: (data: ServiceTypeFormData) => void;
   onCancel: () => void;
 }
 
-const URGENCY_OPTIONS = ['Normal', 'Urgente', 'Orçamento', 'Garantia'];
-const CATEGORIES = [
-  'Canalização / Hidráulica',
-  'Eletricidade',
-  'Construção Civil / Pedreiro',
-  'Pinturas',
-  'Serralharia / Automatismos',
-  'Elevadores',
-  'Jardinagem',
-  'Limpeza',
-  'Segurança e Incêndio',
-  'Outros',
-  'Administrativos/Processuais'
-];
-
 export default function ServiceTypeForm({ initialData, onSubmit, onCancel }: ServiceTypeFormProps) {
-  const form = useForm({
+  const form = useForm<ServiceTypeFormData>({
+    resolver: zodResolver(serviceTypeSchema),
     defaultValues: {
       name: initialData?.name || '',
       description: initialData?.description || '',
-      maps_to_urgency: initialData?.maps_to_urgency || 'Normal',
+      maps_to_urgency: (initialData?.maps_to_urgency as 'Normal' | 'Urgente') || 'Normal',
     },
   });
 
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name,
+        description: initialData.description || '',
+        maps_to_urgency: (initialData.maps_to_urgency as 'Normal' | 'Urgente') || 'Normal',
+      });
+    } else {
+      form.reset({
+        name: '',
+        description: '',
+        maps_to_urgency: 'Normal',
+      });
+    }
+  }, [initialData, form]);
+
+  const handleSubmit = (data: ServiceTypeFormData) => {
+    onSubmit(data);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nome do Serviço</FormLabel>
+              <FormLabel>Nome da Categoria *</FormLabel>
               <FormControl>
-                <Input placeholder="Digite o nome do serviço" {...field} />
+                <Input placeholder="Ex: Electricidade" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -71,21 +95,14 @@ export default function ServiceTypeForm({ initialData, onSubmit, onCancel }: Ser
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Categoria</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel>Descrição</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Descrição detalhada da categoria de serviço..."
+                  rows={3}
+                  {...field} 
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -96,19 +113,16 @@ export default function ServiceTypeForm({ initialData, onSubmit, onCancel }: Ser
           name="maps_to_urgency"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nível de Urgência</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <FormLabel>Nível de Urgência *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o nível de urgência" />
+                    <SelectValue placeholder="Seleccione o nível de urgência" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {URGENCY_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="Normal">Normal</SelectItem>
+                  <SelectItem value="Urgente">Urgente</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -116,12 +130,12 @@ export default function ServiceTypeForm({ initialData, onSubmit, onCancel }: Ser
           )}
         />
 
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex justify-end space-x-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
           <Button type="submit">
-            {initialData ? 'Salvar Alterações' : 'Criar Categoria'}
+            {initialData ? 'Actualizar' : 'Criar'}
           </Button>
         </div>
       </form>

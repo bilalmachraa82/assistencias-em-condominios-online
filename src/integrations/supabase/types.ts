@@ -223,6 +223,7 @@ export type Database = {
           id: number
           is_active: boolean
           name: string
+          nif: string | null
         }
         Insert: {
           address?: string | null
@@ -232,6 +233,7 @@ export type Database = {
           id?: number
           is_active?: boolean
           name: string
+          nif?: string | null
         }
         Update: {
           address?: string | null
@@ -241,6 +243,7 @@ export type Database = {
           id?: number
           is_active?: boolean
           name?: string
+          nif?: string | null
         }
         Relationships: []
       }

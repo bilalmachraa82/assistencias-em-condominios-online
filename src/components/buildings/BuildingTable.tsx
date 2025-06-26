@@ -1,32 +1,35 @@
 
-import React, { useEffect } from 'react';
-import { X, Check, Edit, Trash } from 'lucide-react';
+import React from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import StatusBadge from "@/components/assistance/badges/StatusBadge";
+import { Badge } from "@/components/ui/badge";
+import { Pencil, Trash2 } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Building = {
   id: number;
   name: string;
   address?: string;
   cadastral_code?: string;
+  nif?: string;
   admin_notes?: string;
   is_active: boolean;
+  created_at?: string;
 };
 
 interface BuildingTableProps {
-  buildings: Building[] | null;
+  buildings?: Building[];
   isLoading: boolean;
   onEdit: (building: Building) => void;
-  onDelete: (building: {
-    id: number;
-    name: string;
-  }) => void;
-  onToggleStatus: (building: {
-    id: number;
-    is_active: boolean;
-  }) => void;
+  onDelete: (building: { id: number; name: string }) => void;
+  onToggleStatus: (building: { id: number; is_active: boolean }) => void;
 }
 
 export default function BuildingTable({
@@ -34,77 +37,137 @@ export default function BuildingTable({
   isLoading,
   onEdit,
   onDelete,
-  onToggleStatus
+  onToggleStatus,
 }: BuildingTableProps) {
-  // Debug logging
-  useEffect(() => {
-    console.log('🏗️ BuildingTable - Received buildings:', buildings);
-    console.log('⏳ BuildingTable - Is loading:', isLoading);
-    console.log('📊 BuildingTable - Buildings count:', buildings?.length || 0);
-  }, [buildings, isLoading]);
+  console.log('🏗️ BuildingTable - Received buildings:', buildings);
+  console.log('⏳ BuildingTable - Is loading:', isLoading);
+  console.log('📊 BuildingTable - Buildings count:', buildings?.length || 0);
 
-  return (
-    <div className="border rounded-md overflow-hidden">
-      <ScrollArea className="w-full">
+  if (isLoading) {
+    return (
+      <div className="rounded-md border">
         <Table>
-          <TableHeader className="bg-white hover:bg-white">
+          <TableHeader>
             <TableRow>
-              <TableHead className="bg-slate-50 whitespace-nowrap">Nome</TableHead>
-              <TableHead className="whitespace-nowrap">Morada</TableHead>
-              <TableHead className="whitespace-nowrap">Código Cadastral</TableHead>
-              <TableHead className="whitespace-nowrap">Notas</TableHead>
-              <TableHead className="whitespace-nowrap">Status</TableHead>
-              <TableHead className="w-[180px] whitespace-nowrap">Ações</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Morada</TableHead>
+              <TableHead>Código Postal</TableHead>
+              <TableHead>NIF</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Notas</TableHead>
+              <TableHead className="w-[120px]">Acções</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center">
-                  Carregando...
+            {[...Array(5)].map((_, i) => (
+              <TableRow key={i}>
+                <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-[60px]" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <Skeleton className="h-8 w-8" />
+                    <Skeleton className="h-8 w-8" />
+                  </div>
                 </TableCell>
               </TableRow>
-            ) : buildings?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center">
-                  Nenhum edifício cadastrado
-                </TableCell>
-              </TableRow>
-            ) : (
-              buildings?.map(building => (
-                <TableRow key={building.id}>
-                  <TableCell className="max-w-[150px] truncate">{building.name}</TableCell>
-                  <TableCell className="max-w-[150px] truncate">{building.address || '-'}</TableCell>
-                  <TableCell className="max-w-[100px] truncate">{building.cadastral_code || '-'}</TableCell>
-                  <TableCell className="max-w-[150px] truncate">{building.admin_notes || '-'}</TableCell>
-                  <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${building.is_active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                      {building.is_active ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-1">
-                      <Button variant="outline" size="sm" onClick={() => onToggleStatus(building)} title={building.is_active ? "Desativar edifício" : "Ativar edifício"} className="h-8 w-8 p-0">
-                        {building.is_active ? <X className="h-4 w-4 text-red-500" /> : <Check className="h-4 w-4 text-green-500" />}
-                      </Button>
-                      
-                      <Button variant="outline" size="sm" onClick={() => onEdit(building)} className="flex items-center gap-1 text-emerald-700 px-2">
-                        <Edit className="h-3 w-3" />
-                        <span className="hidden sm:inline">Editar</span>
-                      </Button>
-                      
-                      <Button variant="outline" size="sm" onClick={() => onDelete(building)} className="flex items-center gap-1 text-red-600 hover:text-red-800 hover:bg-red-50 px-2">
-                        <Trash className="h-3 w-3" />
-                        <span className="hidden sm:inline">Remover</span>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
+            ))}
           </TableBody>
         </Table>
-      </ScrollArea>
+      </div>
+    );
+  }
+
+  if (!buildings || buildings.length === 0) {
+    return (
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Morada</TableHead>
+              <TableHead>Código Postal</TableHead>
+              <TableHead>NIF</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Notas</TableHead>
+              <TableHead className="w-[120px]">Acções</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                Nenhum edifício cadastrado. Clique em "Novo Edifício" para adicionar o primeiro.
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>Morada</TableHead>
+            <TableHead>Código Postal</TableHead>
+            <TableHead>NIF</TableHead>
+            <TableHead>Estado</TableHead>
+            <TableHead>Notas</TableHead>
+            <TableHead className="w-[120px]">Acções</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {buildings.map((building) => (
+            <TableRow key={building.id}>
+              <TableCell className="font-medium">{building.name}</TableCell>
+              <TableCell className="max-w-[200px] truncate">
+                {building.address || '-'}
+              </TableCell>
+              <TableCell>{building.cadastral_code || '-'}</TableCell>
+              <TableCell>{building.nif || '-'}</TableCell>
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onToggleStatus(building)}
+                  className="p-0 h-auto"
+                >
+                  <Badge variant={building.is_active ? "default" : "secondary"}>
+                    {building.is_active ? 'Activo' : 'Inactivo'}
+                  </Badge>
+                </Button>
+              </TableCell>
+              <TableCell className="max-w-[150px] truncate text-sm text-muted-foreground">
+                {building.admin_notes || '-'}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEdit(building)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete({ id: building.id, name: building.name })}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
