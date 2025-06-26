@@ -24,24 +24,21 @@ serve(async (req) => {
     const { data: statusData, error: statusError } = await supabase
       .from('valid_statuses')
       .select('status_value')
-      .order('display_order');
+      .order('sort_order');
     
     if (statusError || !statusData || statusData.length === 0) {
       console.error('Error fetching statuses from valid_statuses table:', statusError);
       
-      // Fallback: use hardcoded values that match exactly with the StatusUtils.ts values
-      console.log('Falling back to hardcoded status values');
+      // UPDATED: Fallback to the 8 essential statuses
+      console.log('Falling back to essential status values');
       const validStatuses = [
         'Pendente Resposta Inicial',
         'Pendente Aceitação',
         'Recusada Fornecedor',
-        'Pendente Agendamento',
         'Agendado',
         'Em Progresso',
         'Pendente Validação',
         'Concluído',
-        'Reagendamento Solicitado',
-        'Validação Expirada',
         'Cancelado'
       ];
       

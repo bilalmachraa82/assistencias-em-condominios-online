@@ -80,9 +80,9 @@ const tokenFieldMap = {
   'complete': 'validation_token'
 };
 
-// Fixed status transitions - using valid statuses from database
+// UPDATED: Fixed status transitions to use only valid statuses
 const statusTransitions = {
-  'accept': (data?: any) => data?.datetime ? 'Pendente Agendamento' : 'Pendente Agendamento',
+  'accept': (data?: any) => data?.datetime ? 'Agendado' : 'Pendente Aceitação',
   'reject': () => 'Recusada Fornecedor',
   'schedule': () => 'Agendado',
   'reschedule': () => 'Agendado',
@@ -200,63 +200,47 @@ serve(async (req) => {
     
     console.log(`Setting status from "${assistance.status}" to "${newStatus}"`);
     
-    // For accept action, handle both immediate acceptance and scheduling
-    if (action === 'accept') {
+    // Update assistance using the RPC function for consistent handling
+    try {
       const extraData = getExtraUpdateData(action, data);
-      console.log('Extra update data for accept:', extraData);
+      console.log('Extra update data:', extraData);
       
-      // Update assistance directly instead of using RPC to avoid constraint issues
-      const updateData: any = {
-        status: newStatus,
-        updated_at: new Date().toISOString()
-      };
-      
-      // Add scheduled datetime if provided
-      if (extraData.scheduled_datetime) {
-        updateData.scheduled_datetime = extraData.scheduled_datetime;
-      }
-      
-      console.log('Updating assistance with data:', updateData);
-      
-      const { error: updateError } = await supabase
-        .from('assistances')
-        .update(updateData)
-        .eq('id', assistance.id);
+      // Use the RPC function for status updates
+      const { error: updateError } = await supabase.rpc('update_assistance_status', {
+        p_assistance_id: assistance.id,
+        p_new_status: newStatus,
+        p_scheduled_datetime: extraData.scheduled_datetime || null
+      });
         
       if (updateError) {
-        console.error('Erro ao atualizar assistência:', updateError);
-        return handleError(`Erro ao processar aceitação: ${updateError.message}`, updateError, 500);
+        console.error('Erro ao atualizar status via RPC:', updateError);
+        return handleError(`Erro ao processar ação: ${updateError.message}`, updateError, 500);
+      }
+      
+      // Update additional fields if needed
+      if (Object.keys(extraData).length > 1 || (Object.keys(extraData).length === 1 && !extraData.scheduled_datetime)) {
+        const additionalUpdate: any = { updated_at: new Date().toISOString() };
+        
+        if (extraData.rejection_reason) additionalUpdate.rejection_reason = extraData.rejection_reason;
+        if (extraData.reschedule_reason) additionalUpdate.reschedule_reason = extraData.reschedule_reason;
+        if (extraData.validation_reminder_count !== undefined) additionalUpdate.validation_reminder_count = extraData.validation_reminder_count;
+        
+        const { error: additionalError } = await supabase
+          .from('assistances')
+          .update(additionalUpdate)
+          .eq('id', assistance.id);
+          
+        if (additionalError) {
+          console.error('Erro ao atualizar campos adicionais:', additionalError);
+          // Don't fail the request for additional field errors
+        }
       }
       
       console.log('Assistance updated successfully');
-    } else {
-      // For other actions, use the standard approach
-      try {
-        const extraData = getExtraUpdateData(action, data);
-        console.log('Extra update data:', extraData);
-        
-        const updateData: any = {
-          status: newStatus,
-          updated_at: new Date().toISOString(),
-          ...extraData
-        };
-        
-        const { error: updateError } = await supabase
-          .from('assistances')
-          .update(updateData)
-          .eq('id', assistance.id);
-          
-        if (updateError) {
-          console.error('Erro ao atualizar assistência:', updateError);
-          return handleError(`Erro ao processar ação: ${updateError.message}`, updateError, 500);
-        }
-        
-        console.log('Assistance updated successfully');
-        
-      } catch (updateError) {
-        console.error('Exception updating assistance:', updateError);
-        return handleError('Erro ao processar ação', updateError, 500);
-      }
+      
+    } catch (updateError) {
+      console.error('Exception updating assistance:', updateError);
+      return handleError('Erro ao processar ação', updateError, 500);
     }
     
     // Audit successful operation

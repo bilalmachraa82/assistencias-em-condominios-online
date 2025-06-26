@@ -62,19 +62,16 @@ export async function isValidStatus(status: string): Promise<boolean> {
 
 /**
  * Get the next possible statuses for a given current status
- * This is used in the UI to show valid status transitions
+ * UPDATED: Simplified status flow with only 8 essential statuses
  */
 export function getNextPossibleStatuses(currentStatus: string): string[] {
-  // Define the status flow
+  // Define the simplified status flow
   const statusFlow: Record<string, string[]> = {
     'Pendente Resposta Inicial': ['Pendente Aceitação', 'Cancelado'],
-    'Pendente Aceitação': ['Pendente Agendamento', 'Recusada Fornecedor', 'Cancelado'],
-    'Pendente Agendamento': ['Agendado', 'Cancelado', 'Recusada Fornecedor'],
-    'Agendado': ['Em Progresso', 'Reagendamento Solicitado', 'Cancelado'],
+    'Pendente Aceitação': ['Agendado', 'Recusada Fornecedor', 'Cancelado'],
+    'Agendado': ['Em Progresso', 'Cancelado'],
     'Em Progresso': ['Pendente Validação', 'Cancelado'],
-    'Pendente Validação': ['Concluído', 'Validação Expirada', 'Cancelado'],
-    'Validação Expirada': ['Pendente Validação', 'Concluído', 'Cancelado'],
-    'Reagendamento Solicitado': ['Agendado', 'Cancelado'],
+    'Pendente Validação': ['Concluído', 'Cancelado'],
     'Recusada Fornecedor': ['Pendente Aceitação', 'Cancelado'],
     'Concluído': ['Cancelado'],
     'Cancelado': ['Pendente Resposta Inicial', 'Pendente Aceitação']
@@ -93,8 +90,7 @@ export function getStatusBadgeClass(status: string, hexColor?: string): string {
     return generateBadgeClass(hexColor);
   }
 
-  // Fallback to hardcoded classes for backwards compatibility
-  // These will be replaced when the component gets the actual data from the database
+  // UPDATED: Fallback classes for the 8 essential statuses
   switch(status) {
     case 'Pendente Resposta Inicial':
       return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
@@ -102,8 +98,6 @@ export function getStatusBadgeClass(status: string, hexColor?: string): string {
       return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     case 'Recusada Fornecedor':
       return 'bg-red-500/20 text-red-300 border-red-500/30';
-    case 'Pendente Agendamento':
-      return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
     case 'Agendado':
       return 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
     case 'Em Progresso':
@@ -112,10 +106,6 @@ export function getStatusBadgeClass(status: string, hexColor?: string): string {
       return 'bg-teal-500/20 text-teal-300 border-teal-500/30';
     case 'Concluído':
       return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-    case 'Reagendamento Solicitado':
-      return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-    case 'Validação Expirada':
-      return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
     case 'Cancelado':
       return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
     default:
@@ -125,7 +115,6 @@ export function getStatusBadgeClass(status: string, hexColor?: string): string {
 
 /**
  * Convert hex color to Tailwind-like utility classes
- * Now properly typed to fix the TypeScript error
  */
 function generateBadgeClass(hexColor: string): string {
   // Create rgba for transparent background
@@ -134,13 +123,14 @@ function generateBadgeClass(hexColor: string): string {
 
 /**
  * Get visual status groupings for filtering
+ * UPDATED: Simplified groupings for the 8 essential statuses
  */
 export function getStatusDisplayGroups() {
   return [
     { label: 'Todos', value: null },
-    { label: 'Pendentes', value: ['Pendente Resposta Inicial', 'Pendente Aceitação', 'Pendente Agendamento'] },
+    { label: 'Pendentes', value: ['Pendente Resposta Inicial', 'Pendente Aceitação'] },
     { label: 'Em Progresso', value: ['Agendado', 'Em Progresso', 'Pendente Validação'] },
     { label: 'Concluídos', value: ['Concluído'] },
-    { label: 'Problemáticos', value: ['Recusada Fornecedor', 'Validação Expirada', 'Reagendamento Solicitado', 'Cancelado'] }
+    { label: 'Problemáticos', value: ['Recusada Fornecedor', 'Cancelado'] }
   ];
 }

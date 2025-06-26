@@ -1,3 +1,4 @@
+
 import { Database } from '@/integrations/supabase/types';
 
 // Define a more explicit ValidStatus type with properly typed fields
@@ -12,18 +13,15 @@ export type ValidStatus = {
   created_at?: string | null;
 };
 
-// Define the exact status values as a union type based on the database
+// UPDATED: Define the exact status values for the 8 essential statuses
 export type AssistanceStatusValue = 
   | 'Pendente Resposta Inicial'
   | 'Pendente Aceitação'
   | 'Recusada Fornecedor'
-  | 'Pendente Agendamento'
   | 'Agendado'
   | 'Em Progresso'
   | 'Pendente Validação'
   | 'Concluído'
-  | 'Reagendamento Solicitado'
-  | 'Validação Expirada'
   | 'Cancelado';
 
 // Use the specific union type instead of generic string
@@ -37,6 +35,7 @@ export interface DeleteAssistanceResult {
   assistance_id?: number;
   deleted_activity_logs?: number;
 }
+
 // Função para validar e tipar o resultado do Supabase RPC
 export function validateDeleteAssistanceResult(
   data: unknown
