@@ -69,9 +69,11 @@ export default function BasicInfoSection({
               <SelectValue placeholder="Selecione um status" />
             </SelectTrigger>
             <SelectContent className="select-content">
-              {statuses.map((s) => (
-                <SelectItem key={s.status_value} value={s.status_value || ''} className="text-white hover:bg-white/10">
-                  {s.label_pt || s.status_value || ''}
+              {statuses
+                .filter((s) => s.status_value && s.status_value.trim() !== '') // Filter out empty values
+                .map((s) => (
+                <SelectItem key={s.status_value} value={s.status_value} className="text-white hover:bg-white/10">
+                  {s.label_pt || s.status_value}
                 </SelectItem>
               ))}
             </SelectContent>
