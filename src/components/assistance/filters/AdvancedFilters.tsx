@@ -1,24 +1,21 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building, Users, Calendar, Filter, X } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, X, FilterX } from 'lucide-react';
+import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 interface AdvancedFiltersProps {
   buildings: { id: number; name: string }[];
   suppliers: { id: number; name: string }[];
-  selectedBuilding: string | null;
-  selectedSupplier: string | null;
-  selectedStatus: string | null;
+  selectedBuilding?: string | null;
+  selectedSupplier?: string | null;
+  selectedStatus?: string | null;
   dateRange: { from: Date | null; to: Date | null };
   onBuildingChange: (buildingId: string | null) => void;
   onSupplierChange: (supplierId: string | null) => void;
@@ -26,6 +23,16 @@ interface AdvancedFiltersProps {
   onDateRangeChange: (range: { from: Date | null; to: Date | null }) => void;
   onClearAll: () => void;
 }
+
+const statusOptions = [
+  'Pendente Resposta Inicial',
+  'Aceite',
+  'Agendado',
+  'Em Progresso',
+  'Concluído',
+  'Cancelado',
+  'Rejeitado'
+];
 
 export default function AdvancedFilters({
   buildings,
@@ -40,56 +47,45 @@ export default function AdvancedFilters({
   onDateRangeChange,
   onClearAll
 }: AdvancedFiltersProps) {
-  const statuses = [
-    "Pendente Resposta Inicial",
-    "Agendado",
-    "Em Progresso",
-    "Concluído",
-    "Cancelado",
-  ];
-
   const hasActiveFilters = selectedBuilding || selectedSupplier || selectedStatus || dateRange.from || dateRange.to;
 
+  const handleDateSelect = (range: DateRange | undefined) => {
+    if (range) {
+      onDateRangeChange({
+        from: range.from || null,
+        to: range.to || null
+      });
+    } else {
+      onDateRangeChange({ from: null, to: null });
+    }
+  };
+
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-3">
+    <Card>
+      <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Filter className="h-5 w-5" />
-            Filtros Avançados
-          </CardTitle>
+          <CardTitle>Filtros Avançados</CardTitle>
           {hasActiveFilters && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onClearAll}
-              className="text-gray-400 hover:text-white"
-            >
-              <X className="h-4 w-4 mr-1" />
-              Limpar Tudo
+            <Button variant="outline" size="sm" onClick={onClearAll}>
+              <FilterX className="h-4 w-4 mr-2" />
+              Limpar Todos
             </Button>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Filtro por Edifício */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {/* Building Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <Building className="h-4 w-4" />
-              Edifício
-            </label>
-            <Select 
-              value={selectedBuilding || "all"} 
-              onValueChange={(value) => onBuildingChange(value === "all" ? null : value)}
-            >
+            <label className="text-sm font-medium">Edifício</label>
+            <Select value={selectedBuilding || ""} onValueChange={(value) => onBuildingChange(value || null)}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os edifícios" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os edifícios</SelectItem>
-                {buildings?.map((building) => (
-                  <SelectItem key={building.id} value={String(building.id)}>
+                <SelectItem value="">Todos os edifícios</SelectItem>
+                {buildings.map((building) => (
+                  <SelectItem key={building.id} value={building.id.toString()}>
                     {building.name}
                   </SelectItem>
                 ))}
@@ -97,23 +93,17 @@ export default function AdvancedFilters({
             </Select>
           </div>
 
-          {/* Filtro por Fornecedor */}
+          {/* Supplier Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Fornecedor
-            </label>
-            <Select 
-              value={selectedSupplier || "all"} 
-              onValueChange={(value) => onSupplierChange(value === "all" ? null : value)}
-            >
+            <label className="text-sm font-medium">Fornecedor</label>
+            <Select value={selectedSupplier || ""} onValueChange={(value) => onSupplierChange(value || null)}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os fornecedores" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os fornecedores</SelectItem>
-                {suppliers?.map((supplier) => (
-                  <SelectItem key={supplier.id} value={String(supplier.id)}>
+                <SelectItem value="">Todos os fornecedores</SelectItem>
+                {suppliers.map((supplier) => (
+                  <SelectItem key={supplier.id} value={supplier.id.toString()}>
                     {supplier.name}
                   </SelectItem>
                 ))}
@@ -121,19 +111,16 @@ export default function AdvancedFilters({
             </Select>
           </div>
 
-          {/* Filtro por Status */}
+          {/* Status Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Status</label>
-            <Select 
-              value={selectedStatus || "all"} 
-              onValueChange={(value) => onStatusChange(value === "all" ? null : value)}
-            >
+            <Select value={selectedStatus || ""} onValueChange={(value) => onStatusChange(value || null)}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                {statuses.map((status) => (
+                <SelectItem value="">Todos os status</SelectItem>
+                {statusOptions.map((status) => (
                   <SelectItem key={status} value={status}>
                     {status}
                   </SelectItem>
@@ -142,77 +129,80 @@ export default function AdvancedFilters({
             </Select>
           </div>
 
-          {/* Filtro por Data */}
+          {/* Date Range Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Período
-            </label>
-            <div className="flex gap-2">
-              <Input
-                type="date"
-                value={dateRange.from ? dateRange.from.toISOString().split('T')[0] : ''}
-                onChange={(e) => onDateRangeChange({
-                  from: e.target.value ? new Date(e.target.value) : null,
-                  to: dateRange.to
-                })}
-                className="text-sm"
-              />
-              <Input
-                type="date"
-                value={dateRange.to ? dateRange.to.toISOString().split('T')[0] : ''}
-                onChange={(e) => onDateRangeChange({
-                  from: dateRange.from,
-                  to: e.target.value ? new Date(e.target.value) : null
-                })}
-                className="text-sm"
-              />
-            </div>
+            <label className="text-sm font-medium">Período</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "dd/MM/yyyy")} - {format(dateRange.to, "dd/MM/yyyy")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "dd/MM/yyyy")
+                    )
+                  ) : (
+                    "Selecionar período"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange.from || undefined}
+                  selected={{
+                    from: dateRange.from || undefined,
+                    to: dateRange.to || undefined,
+                  }}
+                  onSelect={handleDateSelect}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
         {/* Active Filters Display */}
         {hasActiveFilters && (
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {selectedBuilding && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                <Building className="h-3 w-3" />
-                {buildings?.find(b => b.id === parseInt(selectedBuilding))?.name}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-4 w-4 p-0"
+                Edifício: {buildings.find(b => b.id.toString() === selectedBuilding)?.name}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
                   onClick={() => onBuildingChange(null)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+                />
               </Badge>
             )}
             {selectedSupplier && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {suppliers?.find(s => s.id === parseInt(selectedSupplier))?.name}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-4 w-4 p-0"
+                Fornecedor: {suppliers.find(s => s.id.toString() === selectedSupplier)?.name}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
                   onClick={() => onSupplierChange(null)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+                />
               </Badge>
             )}
             {selectedStatus && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                {selectedStatus}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-4 w-4 p-0"
+                Status: {selectedStatus}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
                   onClick={() => onStatusChange(null)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+                />
+              </Badge>
+            )}
+            {(dateRange.from || dateRange.to) && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Período: {dateRange.from ? format(dateRange.from, "dd/MM/yyyy") : "..."} - {dateRange.to ? format(dateRange.to, "dd/MM/yyyy") : "..."}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
+                  onClick={() => onDateRangeChange({ from: null, to: null })}
+                />
               </Badge>
             )}
           </div>

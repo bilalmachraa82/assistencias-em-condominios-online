@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Mail, FileText, Filter, Users, Building } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Download, FileText, Users, Building, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FollowUpActionsProps {
@@ -22,194 +23,81 @@ export default function FollowUpActions({
   selectedSupplier,
   selectedStatus
 }: FollowUpActionsProps) {
-  const [isExporting, setIsExporting] = useState(false);
+  const openAssistances = assistances.filter(a => 
+    !['Concluído', 'Cancelado'].includes(a.status)
+  );
 
-  // Generate CSV content
-  const generateCSV = (data: any[]) => {
+  const exportToCSV = (data: any[], filename: string) => {
+    if (data.length === 0) {
+      toast.error('Nenhum dado para exportar');
+      return;
+    }
+
     const headers = [
       'ID',
-      'Edifício',
-      'Fornecedor',
-      'Tipo de Intervenção',
+      'Tipo',
       'Descrição',
       'Status',
-      'Urgência',
+      'Edifício',
+      'Fornecedor',
       'Data Criação',
-      'Data Agendamento',
-      'Última Atualização'
+      'Data Agendamento'
     ];
 
     const csvContent = [
       headers.join(','),
       ...data.map(assistance => [
         assistance.id,
-        `"${assistance.buildings?.name || 'N/A'}"`,
-        `"${assistance.suppliers?.name || 'N/A'}"`,
-        `"${assistance.intervention_types?.name || 'N/A'}"`,
-        `"${assistance.description?.replace(/"/g, '""') || 'N/A'}"`,
-        `"${assistance.status}"`,
         `"${assistance.type}"`,
-        new Date(assistance.created_at).toLocaleDateString('pt-PT'),
-        assistance.scheduled_datetime ? new Date(assistance.scheduled_datetime).toLocaleDateString('pt-PT') : 'N/A',
-        new Date(assistance.updated_at).toLocaleDateString('pt-PT')
+        `"${assistance.description?.replace(/"/g, '""') || ''}"`,
+        `"${assistance.status}"`,
+        `"${assistance.buildings?.name || ''}"`,
+        `"${assistance.suppliers?.name || ''}"`,
+        assistance.created_at ? new Date(assistance.created_at).toLocaleDateString('pt-PT') : '',
+        assistance.scheduled_datetime ? new Date(assistance.scheduled_datetime).toLocaleDateString('pt-PT') : ''
       ].join(','))
     ].join('\n');
 
-    return csvContent;
-  };
-
-  // Export to CSV
-  const handleExportCSV = async () => {
-    setIsExporting(true);
-    try {
-      const csvContent = generateCSV(assistances);
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      
-      if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        
-        // Generate filename with filters
-        let filename = 'assistencias';
-        if (selectedBuilding) {
-          const building = buildings?.find(b => b.id === parseInt(selectedBuilding));
-          filename += `_${building?.name?.replace(/\s+/g, '_')}`;
-        }
-        if (selectedSupplier) {
-          const supplier = suppliers?.find(s => s.id === parseInt(selectedSupplier));
-          filename += `_${supplier?.name?.replace(/\s+/g, '_')}`;
-        }
-        if (selectedStatus) {
-          filename += `_${selectedStatus.replace(/\s+/g, '_')}`;
-        }
-        filename += `_${new Date().toISOString().split('T')[0]}.csv`;
-        
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast.success(`Exportadas ${assistances.length} assistências para CSV`);
-      }
-    } catch (error) {
-      console.error('Erro ao exportar CSV:', error);
-      toast.error('Erro ao exportar dados');
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  // Export only open assistances
-  const handleExportOpenOnly = async () => {
-    const openAssistances = assistances.filter(a => 
-      !['Concluído', 'Cancelado'].includes(a.status)
-    );
-    
-    if (openAssistances.length === 0) {
-      toast.info('Não há assistências em aberto para exportar');
-      return;
-    }
-
-    setIsExporting(true);
-    try {
-      const csvContent = generateCSV(openAssistances);
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      
-      if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `assistencias_em_aberto_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast.success(`Exportadas ${openAssistances.length} assistências em aberto`);
-      }
-    } catch (error) {
-      console.error('Erro ao exportar CSV:', error);
-      toast.error('Erro ao exportar dados');
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  // Generate follow-up report
-  const generateFollowUpReport = () => {
-    const openAssistances = assistances.filter(a => 
-      !['Concluído', 'Cancelado'].includes(a.status)
-    );
-    
-    const urgentAssistances = openAssistances.filter(a => 
-      a.type === 'Urgente' || a.type === 'Emergência'
-    );
-
-    const overdueAssistances = openAssistances.filter(a => {
-      if (a.scheduled_datetime) {
-        return new Date(a.scheduled_datetime) < new Date();
-      }
-      return false;
-    });
-
-    let report = `RELATÓRIO DE FOLLOW-UP - ${new Date().toLocaleDateString('pt-PT')}\n\n`;
-    
-    if (selectedBuilding) {
-      const building = buildings?.find(b => b.id === parseInt(selectedBuilding));
-      report += `EDIFÍCIO: ${building?.name}\n\n`;
-    }
-    
-    if (selectedSupplier) {
-      const supplier = suppliers?.find(s => s.id === parseInt(selectedSupplier));
-      report += `FORNECEDOR: ${supplier?.name}\n\n`;
-    }
-
-    report += `RESUMO:\n`;
-    report += `- Total de assistências: ${assistances.length}\n`;
-    report += `- Assistências em aberto: ${openAssistances.length}\n`;
-    report += `- Assistências urgentes: ${urgentAssistances.length}\n`;
-    report += `- Assistências em atraso: ${overdueAssistances.length}\n\n`;
-
-    if (urgentAssistances.length > 0) {
-      report += `ASSISTÊNCIAS URGENTES:\n`;
-      urgentAssistances.forEach(a => {
-        report += `- #${a.id}: ${a.buildings?.name} - ${a.status} (${a.type})\n`;
-      });
-      report += `\n`;
-    }
-
-    if (overdueAssistances.length > 0) {
-      report += `ASSISTÊNCIAS EM ATRASO:\n`;
-      overdueAssistances.forEach(a => {
-        report += `- #${a.id}: ${a.buildings?.name} - Agendado para ${new Date(a.scheduled_datetime).toLocaleDateString('pt-PT')}\n`;
-      });
-    }
-
-    return report;
-  };
-
-  const handleGenerateReport = () => {
-    const report = generateFollowUpReport();
-    const blob = new Blob([report], { type: 'text/plain;charset=utf-8;' });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
     
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `relatorio_followup_${new Date().toISOString().split('T')[0]}.txt`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast.success('Relatório de follow-up gerado com sucesso');
-    }
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(`Exportado ${data.length} registos para ${filename}.csv`);
+  };
+
+  const handleExportAll = () => {
+    exportToCSV(assistances, 'assistencias_filtradas');
+  };
+
+  const handleExportOpen = () => {
+    exportToCSV(openAssistances, 'assistencias_em_aberto');
+  };
+
+  const generateFollowUpReport = () => {
+    const buildingName = selectedBuilding ? 
+      buildings.find(b => b.id.toString() === selectedBuilding)?.name : 'Todos os Edifícios';
+    const supplierName = selectedSupplier ? 
+      suppliers.find(s => s.id.toString() === selectedSupplier)?.name : 'Todos os Fornecedores';
+
+    const reportData = assistances.map(assistance => ({
+      ...assistance,
+      follow_up_priority: !['Concluído', 'Cancelado'].includes(assistance.status) ? 'Alta' : 'Baixa',
+      days_since_creation: Math.floor((new Date().getTime() - new Date(assistance.created_at).getTime()) / (1000 * 60 * 60 * 24))
+    }));
+
+    exportToCSV(reportData, `relatorio_followup_${buildingName.replace(/\s+/g, '_')}_${supplierName.replace(/\s+/g, '_')}`);
   };
 
   return (
-    <Card className="mb-6">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
@@ -217,60 +105,78 @@ export default function FollowUpActions({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-3">
-          <Button 
-            onClick={handleExportCSV}
-            disabled={isExporting || assistances.length === 0}
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Exportar Seleção ({assistances.length})
-          </Button>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Export Filtered Data */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Download className="h-4 w-4 text-blue-400" />
+              <span className="font-medium">Exportar Filtrados</span>
+            </div>
+            <div className="space-y-2">
+              <Badge variant="outline" className="w-full justify-center">
+                {assistances.length} assistências
+              </Badge>
+              <Button 
+                onClick={handleExportAll}
+                className="w-full"
+                variant="outline"
+                disabled={assistances.length === 0}
+              >
+                Exportar CSV
+              </Button>
+            </div>
+          </div>
 
-          <Button 
-            onClick={handleExportOpenOnly}
-            disabled={isExporting}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Filter className="h-4 w-4" />
-            Exportar Apenas Em Aberto
-          </Button>
+          {/* Export Open Assistances */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-orange-400" />
+              <span className="font-medium">Apenas Em Aberto</span>
+            </div>
+            <div className="space-y-2">
+              <Badge variant="destructive" className="w-full justify-center">
+                {openAssistances.length} em aberto
+              </Badge>
+              <Button 
+                onClick={handleExportOpen}
+                className="w-full"
+                variant="outline"
+                disabled={openAssistances.length === 0}
+              >
+                Exportar CSV
+              </Button>
+            </div>
+          </div>
 
-          <Button 
-            onClick={handleGenerateReport}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            Gerar Relatório Follow-up
-          </Button>
+          {/* Generate Follow-up Report */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-green-400" />
+              <span className="font-medium">Relatório Follow-up</span>
+            </div>
+            <div className="space-y-2">
+              <Badge variant="secondary" className="w-full justify-center text-xs">
+                Com prioridades
+              </Badge>
+              <Button 
+                onClick={generateFollowUpReport}
+                className="w-full"
+                disabled={assistances.length === 0}
+              >
+                Gerar Relatório
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Current filter summary */}
+        {/* Current Filter Summary */}
         <div className="mt-4 p-3 bg-gray-800/30 rounded-lg">
-          <p className="text-sm text-gray-400 mb-2">Filtros ativos:</p>
-          <div className="flex flex-wrap gap-2">
-            {selectedBuilding && (
-              <span className="flex items-center gap-1 text-sm bg-blue-600/20 text-blue-300 px-2 py-1 rounded">
-                <Building className="h-3 w-3" />
-                {buildings?.find(b => b.id === parseInt(selectedBuilding))?.name}
-              </span>
-            )}
-            {selectedSupplier && (
-              <span className="flex items-center gap-1 text-sm bg-green-600/20 text-green-300 px-2 py-1 rounded">
-                <Users className="h-3 w-3" />
-                {suppliers?.find(s => s.id === parseInt(selectedSupplier))?.name}
-              </span>
-            )}
-            {selectedStatus && (
-              <span className="text-sm bg-orange-600/20 text-orange-300 px-2 py-1 rounded">
-                {selectedStatus}
-              </span>
-            )}
-            {!selectedBuilding && !selectedSupplier && !selectedStatus && (
-              <span className="text-sm text-gray-400">Nenhum filtro ativo - exibindo todas as assistências</span>
-            )}
+          <h4 className="font-medium mb-2">Filtros Ativos:</h4>
+          <div className="space-y-1 text-sm text-gray-300">
+            <p>• Edifício: {selectedBuilding ? buildings.find(b => b.id.toString() === selectedBuilding)?.name : 'Todos'}</p>
+            <p>• Fornecedor: {selectedSupplier ? suppliers.find(s => s.id.toString() === selectedSupplier)?.name : 'Todos'}</p>
+            <p>• Status: {selectedStatus || 'Todos'}</p>
+            <p>• Total: {assistances.length} assistências | Em aberto: {openAssistances.length}</p>
           </div>
         </div>
       </CardContent>
