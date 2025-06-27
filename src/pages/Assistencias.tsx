@@ -1,14 +1,18 @@
-
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Custom components
-import AssistanceFilter from '@/components/assistance/AssistanceFilter';
+// Enhanced components
+import AdvancedFilters from '@/components/assistance/filters/AdvancedFilters';
+import FollowUpStats from '@/components/assistance/analytics/FollowUpStats';
+import FollowUpActions from '@/components/assistance/actions/FollowUpActions';
+
+// Existing components  
 import AssistanceDetails from '@/components/assistance/AssistanceDetails';
 import AssistanceList from '@/components/assistance/AssistanceList';
 import NewAssistanceButton from '@/components/assistance/NewAssistanceButton';
-import useAssistanceData from '@/components/assistance/useAssistanceData';
+import useEnhancedAssistanceData from '@/components/assistance/useEnhancedAssistanceData';
 import { formatDate } from '@/utils/DateTimeUtils';
 import { Pagination } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,17 +23,22 @@ export default function Assistencias() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState('list');
   
-  // Use custom hook to fetch and filter data
+  // Use enhanced hook for better filtering and analytics
   const {
+    assistances,
     buildings,
+    suppliers,
     paginatedAssistances,
+    filteredAssistances,
     isAssistancesLoading,
     isBuildingsLoading,
+    isSuppliersLoading,
     refetchAssistances,
     pagination,
     filters
-  } = useAssistanceData(sortOrder);
+  } = useEnhancedAssistanceData(sortOrder);
 
   // Handle assistance view
   const handleViewAssistance = async (assistance: any) => {
@@ -49,7 +58,7 @@ export default function Assistencias() {
       if (error) {
         console.error('❌ Error fetching fresh assistance data:', error);
         toast.error('Erro ao buscar dados atualizados da assistência');
-        setSelectedAssistance(assistance); // Fallback to the provided assistance
+        setSelectedAssistance(assistance);
       } else {
         console.log('✅ Fresh assistance data fetched successfully');
         setSelectedAssistance(freshAssistance);
@@ -67,13 +76,12 @@ export default function Assistencias() {
     setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
   };
 
-  // Create a wrapper function to handle the Promise<void> return type
+  // Enhanced refresh function
   const handleRefetchAssistances = useCallback(async (): Promise<void> => {
     try {
       console.log('🔄 Refetching assistances data...');
       await refetchAssistances();
       
-      // If an assistance is currently selected, refresh its data too
       if (selectedAssistance && isViewDialogOpen) {
         console.log(`🔄 Refreshing selected assistance #${selectedAssistance.id}`);
         const { data: freshAssistance, error } = await supabase
@@ -100,15 +108,14 @@ export default function Assistencias() {
     }
   }, [refetchAssistances, selectedAssistance, isViewDialogOpen]);
 
-  // Simplified and robust assistance deletion
+  // Enhanced delete function with better error handling
   const handleDeleteAssistance = async (assistance: any) => {
-    if (isDeleting) return; // Prevent multiple simultaneous deletions
+    if (isDeleting) return;
     
     setIsDeleting(true);
     console.log(`🗑️ Starting deletion process for assistance #${assistance.id}`);
     
     try {
-      // Call the corrected SQL function
       const { data: result, error: rpcError } = await supabase
         .rpc('delete_assistance_safely', { p_assistance_id: assistance.id });
 
@@ -120,7 +127,6 @@ export default function Assistencias() {
 
       console.log('📋 Deletion result:', result);
       
-      // Use the validation function to ensure proper typing
       const validatedResult = validateDeleteAssistanceResult(result);
 
       if (!validatedResult.success) {
@@ -129,17 +135,14 @@ export default function Assistencias() {
         return;
       }
 
-      // Success - show confirmation and update UI
       console.log(`✅ Assistance #${assistance.id} deleted successfully`);
       toast.success(`Assistência #${assistance.id} eliminada com sucesso!`);
       
-      // Close dialog if the deleted assistance was being viewed
       if (selectedAssistance && selectedAssistance.id === assistance.id) {
         setIsViewDialogOpen(false);
         setSelectedAssistance(null);
       }
       
-      // Refresh the list
       await handleRefetchAssistances();
       
     } catch (error) {
@@ -154,7 +157,6 @@ export default function Assistencias() {
   const handleDialogClose = useCallback(async () => {
     console.log('🚪 Closing assistance dialog and refreshing data');
     setIsViewDialogOpen(false);
-    // Refresh data when dialog is closed to ensure list is updated
     await handleRefetchAssistances();
   }, [handleRefetchAssistances]);
 
@@ -182,43 +184,94 @@ export default function Assistencias() {
           onAssistanceUpdate={handleRefetchAssistances}
         />
 
-        <AssistanceFilter
-          searchQuery={filters.searchQuery}
-          onSearchChange={filters.setSearchQuery}
-          buildingFilter={filters.buildingFilter}
-          onBuildingFilterChange={filters.setBuildingFilter}
-          statusFilter={filters.statusFilter}
-          onStatusFilterChange={filters.setStatusFilter}
-          typeFilter={filters.typeFilter}
-          onTypeFilterChange={filters.setTypeFilter}
-          buildings={buildings || []}
-          isBuildingsLoading={isBuildingsLoading}
-        />
-
-        <AssistanceList 
-          isLoading={isAssistancesLoading || isDeleting}
-          assistances={paginatedAssistances || []}
-          onSortOrderChange={toggleSortOrder}
-          sortOrder={sortOrder}
-          onViewAssistance={handleViewAssistance}
-          onDeleteAssistance={handleDeleteAssistance}
-          formatDate={formatDate}
-        />
-
-        {/* Pagination controls */}
-        {!isAssistancesLoading && pagination.totalItems > 0 && (
-          <div className="mt-6">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              pageSize={pagination.pageSize}
-              totalItems={pagination.totalItems}
-              onPageChange={pagination.goToPage}
-              onPageSizeChange={pagination.setPageSize}
-              pageSizeOptions={[10, 20, 50, 100]}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="list">Lista Detalhada</TabsTrigger>
+            <TabsTrigger value="analytics">Resumo & Análise</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="list" className="space-y-6">
+            <AdvancedFilters
+              buildings={buildings || []}
+              suppliers={suppliers || []}
+              selectedBuilding={filters.buildingFilter}
+              selectedSupplier={filters.supplierFilter}
+              selectedStatus={filters.statusFilter}
+              dateRange={filters.dateRange}
+              onBuildingChange={filters.setBuildingFilter}
+              onSupplierChange={filters.setSupplierFilter}
+              onStatusChange={filters.setStatusFilter}
+              onDateRangeChange={filters.setDateRange}
+              onClearAll={filters.clearAllFilters}
             />
-          </div>
-        )}
+
+            <FollowUpActions
+              assistances={filteredAssistances || []}
+              buildings={buildings || []}
+              suppliers={suppliers || []}
+              selectedBuilding={filters.buildingFilter}
+              selectedSupplier={filters.supplierFilter}
+              selectedStatus={filters.statusFilter}
+            />
+
+            <AssistanceList 
+              isLoading={isAssistancesLoading || isDeleting}
+              assistances={paginatedAssistances || []}
+              onSortOrderChange={toggleSortOrder}
+              sortOrder={sortOrder}
+              onViewAssistance={handleViewAssistance}
+              onDeleteAssistance={handleDeleteAssistance}
+              formatDate={formatDate}
+            />
+
+            {!isAssistancesLoading && pagination.totalItems > 0 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  pageSize={pagination.pageSize}
+                  totalItems={pagination.totalItems}
+                  onPageChange={pagination.goToPage}
+                  onPageSizeChange={pagination.setPageSize}
+                  pageSizeOptions={[10, 20, 50, 100]}
+                />
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="space-y-6">
+            <AdvancedFilters
+              buildings={buildings || []}
+              suppliers={suppliers || []}
+              selectedBuilding={filters.buildingFilter}
+              selectedSupplier={filters.supplierFilter}
+              selectedStatus={filters.statusFilter}
+              dateRange={filters.dateRange}
+              onBuildingChange={filters.setBuildingFilter}
+              onSupplierChange={filters.setSupplierFilter}
+              onStatusChange={filters.setStatusFilter}
+              onDateRangeChange={filters.setDateRange}
+              onClearAll={filters.clearAllFilters}
+            />
+
+            <FollowUpActions
+              assistances={filteredAssistances || []}
+              buildings={buildings || []}
+              suppliers={suppliers || []}
+              selectedBuilding={filters.buildingFilter}
+              selectedSupplier={filters.supplierFilter}
+              selectedStatus={filters.statusFilter}
+            />
+
+            <FollowUpStats
+              assistances={filteredAssistances || []}
+              buildings={buildings || []}
+              suppliers={suppliers || []}
+              selectedBuilding={filters.buildingFilter}
+              selectedSupplier={filters.supplierFilter}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
