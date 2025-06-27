@@ -5,7 +5,7 @@ import "./index.css";
 import Dashboard from "./pages/Dashboard";
 import Buildings from "./pages/Buildings";
 import Suppliers from "./pages/Suppliers";
-import AssistenciasDashboard from "./pages/AssistenciasDashboard";
+import Assistencias from "./pages/Assistencias";
 import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
 import NotFound from "./pages/NotFound";
 
@@ -22,7 +22,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/assistencias",
-    element: <AssistenciasDashboard />,
+    element: <Assistencias />,
   },
   {
     path: "/buildings",
