@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -209,7 +208,7 @@ export default function FollowUpActions({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-red-400" />
-              <span className="font-medium text-sm">Urgentes (>7 dias)</span>
+              <span className="font-medium text-sm">Urgentes ({'>'} 7 dias)</span>
             </div>
             <div className="space-y-2">
               <Badge variant="destructive" className="w-full justify-center">
