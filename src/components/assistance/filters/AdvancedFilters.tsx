@@ -60,6 +60,19 @@ export default function AdvancedFilters({
     }
   };
 
+  // Handler functions to convert between "all" and null values
+  const handleBuildingChange = (value: string) => {
+    onBuildingChange(value === "all" ? null : value);
+  };
+
+  const handleSupplierChange = (value: string) => {
+    onSupplierChange(value === "all" ? null : value);
+  };
+
+  const handleStatusChange = (value: string) => {
+    onStatusChange(value === "all" ? null : value);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -78,12 +91,12 @@ export default function AdvancedFilters({
           {/* Building Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Edifício</label>
-            <Select value={selectedBuilding || ""} onValueChange={(value) => onBuildingChange(value || null)}>
+            <Select value={selectedBuilding || "all"} onValueChange={handleBuildingChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os edifícios" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os edifícios</SelectItem>
+                <SelectItem value="all">Todos os edifícios</SelectItem>
                 {buildings.map((building) => (
                   <SelectItem key={building.id} value={building.id.toString()}>
                     {building.name}
@@ -96,12 +109,12 @@ export default function AdvancedFilters({
           {/* Supplier Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Fornecedor</label>
-            <Select value={selectedSupplier || ""} onValueChange={(value) => onSupplierChange(value || null)}>
+            <Select value={selectedSupplier || "all"} onValueChange={handleSupplierChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os fornecedores" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os fornecedores</SelectItem>
+                <SelectItem value="all">Todos os fornecedores</SelectItem>
                 {suppliers.map((supplier) => (
                   <SelectItem key={supplier.id} value={supplier.id.toString()}>
                     {supplier.name}
@@ -114,12 +127,12 @@ export default function AdvancedFilters({
           {/* Status Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Status</label>
-            <Select value={selectedStatus || ""} onValueChange={(value) => onStatusChange(value || null)}>
+            <Select value={selectedStatus || "all"} onValueChange={handleStatusChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="all">Todos os status</SelectItem>
                 {statusOptions.map((status) => (
                   <SelectItem key={status} value={status}>
                     {status}
