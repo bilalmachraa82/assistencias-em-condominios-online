@@ -205,15 +205,6 @@ export default function Assistencias() {
               onClearAll={filters.clearAllFilters}
             />
 
-            <FollowUpActions
-              assistances={filteredAssistances || []}
-              buildings={buildings || []}
-              suppliers={suppliers || []}
-              selectedBuilding={filters.buildingFilter}
-              selectedSupplier={filters.supplierFilter}
-              selectedStatus={filters.statusFilter}
-            />
-
             <AssistanceList 
               isLoading={isAssistancesLoading || isDeleting}
               assistances={paginatedAssistances || []}
@@ -254,6 +245,14 @@ export default function Assistencias() {
               onClearAll={filters.clearAllFilters}
             />
 
+            <FollowUpStats
+              assistances={filteredAssistances || []}
+              buildings={buildings || []}
+              suppliers={suppliers || []}
+              selectedBuilding={filters.buildingFilter}
+              selectedSupplier={filters.supplierFilter}
+            />
+
             <FollowUpActions
               assistances={filteredAssistances || []}
               buildings={buildings || []}
@@ -261,14 +260,6 @@ export default function Assistencias() {
               selectedBuilding={filters.buildingFilter}
               selectedSupplier={filters.supplierFilter}
               selectedStatus={filters.statusFilter}
-            />
-
-            <FollowUpStats
-              assistances={filteredAssistances || []}
-              buildings={buildings || []}
-              suppliers={suppliers || []}
-              selectedBuilding={filters.buildingFilter}
-              selectedSupplier={filters.supplierFilter}
             />
           </TabsContent>
         </Tabs>
