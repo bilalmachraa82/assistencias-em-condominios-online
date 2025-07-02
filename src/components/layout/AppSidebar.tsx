@@ -17,10 +17,10 @@ import {
   Home, 
   Building2, 
   Users, 
-  Wrench, 
-  BarChart3,
+  Wrench,
   Settings 
 } from 'lucide-react';
+import { Logo } from '@/components/ui/logo';
 
 const navigation = [
   {
@@ -72,10 +72,7 @@ export function AppSidebar() {
     <Sidebar className="bg-sidebar border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border px-6 py-4 bg-sidebar">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <BarChart3 className="h-4 w-4" />
-          </div>
-          <span className="text-lg font-semibold text-sidebar-foreground">Assistências</span>
+          <Logo size="md" />
         </div>
       </SidebarHeader>
       

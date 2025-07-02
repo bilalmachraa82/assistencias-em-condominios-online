@@ -137,7 +137,7 @@ serve(async (req) => {
     }
 
     const payload = {
-      from: 'LuvImg <onboarding@resend.dev>',
+      from: 'LuvImg - Administração de Condomínios <onboarding@resend.dev>',
       to: [assistance.suppliers.email],
       subject: emailSubject,
       html: emailContent,
@@ -223,7 +223,7 @@ function generateAcceptanceEmail(assistance: any, actionUrl: string): string {
     <body>
       <div class="container">
         <div class="header">
-          <img src="https://luvimg.com/img/luvimg-brand.svg" alt="LuvImg Logo" class="logo">
+          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/f89bb5b6-d346-4bcc-9d5f-46aeec0ea077.png" alt="LuvImg - Administração de Condomínios" class="logo">
           <h1>Nova Solicitação de Assistência</h1>
         </div>
         <div class="content">
@@ -256,7 +256,7 @@ function generateAcceptanceEmail(assistance: any, actionUrl: string): string {
         </div>
         <div class="footer">
           <p>Esta é uma mensagem automática, por favor não responda diretamente a este email.</p>
-          <p>© ${new Date().getFullYear()} LuvImg - Lda. | NIF 515920380</p>
+          <p>© ${new Date().getFullYear()} LuvImg - Administração de Condomínios | NIF 515920380</p>
           <p>Rua António Luís Gomes 28A, 2750-335 Cascais</p>
         </div>
       </div>
@@ -287,7 +287,7 @@ function generateSchedulingEmail(assistance: any, actionUrl: string): string {
     <body>
       <div class="container">
         <div class="header">
-          <img src="https://luvimg.com/img/luvimg-brand.svg" alt="LuvImg Logo" class="logo">
+          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/f89bb5b6-d346-4bcc-9d5f-46aeec0ea077.png" alt="LuvImg - Administração de Condomínios" class="logo">
           <h1>Agende a Assistência</h1>
         </div>
         <div class="content">
@@ -321,7 +321,7 @@ function generateSchedulingEmail(assistance: any, actionUrl: string): string {
         </div>
         <div class="footer">
           <p>Esta é uma mensagem automática, por favor não responda diretamente a este email.</p>
-          <p>© ${new Date().getFullYear()} LuvImg - Lda. | NIF 515920380</p>
+          <p>© ${new Date().getFullYear()} LuvImg - Administração de Condomínios | NIF 515920380</p>
           <p>Rua António Luís Gomes 28A, 2750-335 Cascais</p>
         </div>
       </div>
@@ -352,7 +352,7 @@ function generateValidationEmail(assistance: any, actionUrl: string): string {
     <body>
       <div class="container">
         <div class="header">
-          <img src="https://luvimg.com/img/luvimg-brand.svg" alt="LuvImg Logo" class="logo">
+          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/f89bb5b6-d346-4bcc-9d5f-46aeec0ea077.png" alt="LuvImg - Administração de Condomínios" class="logo">
           <h1>Confirme a Conclusão do Serviço</h1>
         </div>
         <div class="content">
@@ -385,7 +385,7 @@ function generateValidationEmail(assistance: any, actionUrl: string): string {
         </div>
         <div class="footer">
           <p>Esta é uma mensagem automática, por favor não responda diretamente a este email.</p>
-          <p>© ${new Date().getFullYear()} LuvImg - Lda. | NIF 515920380</p>
+          <p>© ${new Date().getFullYear()} LuvImg - Administração de Condomínios | NIF 515920380</p>
           <p>Rua António Luís Gomes 28A, 2750-335 Cascais</p>
         </div>
       </div>

@@ -2,6 +2,7 @@
 import React, { ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
+import { Logo } from '@/components/ui/logo';
 
 interface LayoutProps {
   children: ReactNode;
@@ -21,20 +22,21 @@ export default function SupplierActionLayout({
   statusBadge
 }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-teal-500 to-blue-700 flex items-center justify-center p-4">
       <Card className="max-w-4xl w-full shadow-xl bg-white">
-        <CardHeader className="bg-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-2xl text-gray-900">{title}</CardTitle>
-              {description && (
-                <CardDescription className="mt-2 text-gray-600">{description}</CardDescription>
-              )}
-            </div>
+        <CardHeader className="bg-white border-b">
+          <div className="flex items-center justify-between mb-4">
+            <Logo size="lg" />
             {statusBadge && (
               <div>
                 {statusBadge}
               </div>
+            )}
+          </div>
+          <div>
+            <CardTitle className="text-2xl text-gray-900">{title}</CardTitle>
+            {description && (
+              <CardDescription className="mt-2 text-gray-600">{description}</CardDescription>
             )}
           </div>
         </CardHeader>
