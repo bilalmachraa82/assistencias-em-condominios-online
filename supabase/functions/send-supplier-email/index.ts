@@ -223,7 +223,7 @@ function generateAcceptanceEmail(assistance: any, actionUrl: string): string {
     <body>
       <div class="container">
         <div class="header">
-          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/f89bb5b6-d346-4bcc-9d5f-46aeec0ea077.png" alt="LuvImg - Administração de Condomínios" class="logo">
+          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/eac78bb8-18da-4bc9-b0a7-8e5f0203380c.png" alt="LuvImg - Administração de Condomínios" class="logo">
           <h1>Nova Solicitação de Assistência</h1>
         </div>
         <div class="content">
@@ -287,7 +287,7 @@ function generateSchedulingEmail(assistance: any, actionUrl: string): string {
     <body>
       <div class="container">
         <div class="header">
-          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/f89bb5b6-d346-4bcc-9d5f-46aeec0ea077.png" alt="LuvImg - Administração de Condomínios" class="logo">
+          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/eac78bb8-18da-4bc9-b0a7-8e5f0203380c.png" alt="LuvImg - Administração de Condomínios" class="logo">
           <h1>Agende a Assistência</h1>
         </div>
         <div class="content">
@@ -352,7 +352,7 @@ function generateValidationEmail(assistance: any, actionUrl: string): string {
     <body>
       <div class="container">
         <div class="header">
-          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/f89bb5b6-d346-4bcc-9d5f-46aeec0ea077.png" alt="LuvImg - Administração de Condomínios" class="logo">
+          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/eac78bb8-18da-4bc9-b0a7-8e5f0203380c.png" alt="LuvImg - Administração de Condomínios" class="logo">
           <h1>Confirme a Conclusão do Serviço</h1>
         </div>
         <div class="content">
