@@ -160,7 +160,7 @@ serve(async (req) => {
     // Get token field for this action
     const tokenField = tokenFieldMap[action];
 
-    // First, get the assistance to verify it exists and check current status
+    // First, get the assistance ID to verify token access
     const { data: assistance, error: assistanceError } = await supabase
       .from('assistances')
       .select('id, status, supplier_id')
@@ -200,43 +200,45 @@ serve(async (req) => {
     
     console.log(`Setting status from "${assistance.status}" to "${newStatus}"`);
     
-    // Update assistance using the RPC function for consistent handling
+    // Use the secure update function that validates tokens and updates status
     try {
       const extraData = getExtraUpdateData(action, data);
       console.log('Extra update data:', extraData);
       
-      // Use the RPC function for status updates
-      const { error: updateError } = await supabase.rpc('update_assistance_status', {
+      // Use the new secure function for token-based updates
+      const { data: updateResult, error: updateError } = await supabase.rpc('update_assistance_by_token', {
         p_assistance_id: assistance.id,
+        p_token: token,
         p_new_status: newStatus,
-        p_scheduled_datetime: extraData.scheduled_datetime || null
+        p_scheduled_datetime: extraData.scheduled_datetime || null,
+        p_rejection_reason: extraData.rejection_reason || null,
+        p_reschedule_reason: extraData.reschedule_reason || null
       });
         
       if (updateError) {
-        console.error('Erro ao atualizar status via RPC:', updateError);
+        console.error('Erro ao atualizar status via token function:', updateError);
         return handleError(`Erro ao processar ação: ${updateError.message}`, updateError, 500);
       }
       
-      // Update additional fields if needed
-      if (Object.keys(extraData).length > 1 || (Object.keys(extraData).length === 1 && !extraData.scheduled_datetime)) {
-        const additionalUpdate: any = { updated_at: new Date().toISOString() };
-        
-        if (extraData.rejection_reason) additionalUpdate.rejection_reason = extraData.rejection_reason;
-        if (extraData.reschedule_reason) additionalUpdate.reschedule_reason = extraData.reschedule_reason;
-        if (extraData.validation_reminder_count !== undefined) additionalUpdate.validation_reminder_count = extraData.validation_reminder_count;
-        
-        const { error: additionalError } = await supabase
+      if (updateResult && !updateResult.success) {
+        console.error('Token function returned error:', updateResult.error);
+        return handleError(updateResult.error || 'Erro ao validar token', null, 403);
+      }
+      
+      // Handle validation reminder count for complete action
+      if (action === 'complete' && extraData.validation_reminder_count !== undefined) {
+        const { error: reminderError } = await supabase
           .from('assistances')
-          .update(additionalUpdate)
+          .update({ validation_reminder_count: extraData.validation_reminder_count })
           .eq('id', assistance.id);
           
-        if (additionalError) {
-          console.error('Erro ao atualizar campos adicionais:', additionalError);
-          // Don't fail the request for additional field errors
+        if (reminderError) {
+          console.error('Erro ao atualizar contador de lembretes:', reminderError);
+          // Don't fail the request for this
         }
       }
       
-      console.log('Assistance updated successfully');
+      console.log('Assistance updated successfully via secure token function');
       
     } catch (updateError) {
       console.error('Exception updating assistance:', updateError);

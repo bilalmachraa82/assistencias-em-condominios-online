@@ -393,6 +393,17 @@ export type Database = {
         Args: { p_assistance_id: number }
         Returns: Json
       }
+      update_assistance_by_token: {
+        Args: {
+          p_assistance_id: number
+          p_token: string
+          p_new_status: string
+          p_scheduled_datetime?: string
+          p_rejection_reason?: string
+          p_reschedule_reason?: string
+        }
+        Returns: Json
+      }
       update_assistance_status: {
         Args: {
           p_assistance_id: number
@@ -400,6 +411,10 @@ export type Database = {
           p_scheduled_datetime?: string
         }
         Returns: undefined
+      }
+      validate_supplier_token: {
+        Args: { token_value: string; assistance_id: number; token_type: string }
+        Returns: boolean
       }
     }
     Enums: {
