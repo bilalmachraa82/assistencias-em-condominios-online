@@ -13,11 +13,22 @@ const sizeClasses = {
 };
 
 export function Logo({ className = '', size = 'md', variant = 'light' }: LogoProps) {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error('Logo failed to load:', e.currentTarget.src);
+    console.log('Attempting to reload logo...');
+    // Try to reload the image once
+    setTimeout(() => {
+      e.currentTarget.src = e.currentTarget.src + '?t=' + Date.now();
+    }, 1000);
+  };
+
   return (
     <img 
       src="/lovable-uploads/eac78bb8-18da-4bc9-b0a7-8e5f0203380c.png" 
       alt="LuvImg - Administração de Condomínios" 
       className={`${sizeClasses[size]} ${className}`}
+      onError={handleImageError}
+      onLoad={() => console.log('Logo loaded successfully')}
     />
   );
 }
