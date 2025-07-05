@@ -72,8 +72,14 @@ serve(async (req) => {
     }
     console.log('Assistance data fetched successfully:', assistance);
 
-    // Helper function to generate a simple token
-    const generateToken = () => Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    // Helper function to generate a cryptographically secure token
+    const generateToken = () => {
+      const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const length = 32;
+      const randomArray = new Uint8Array(length);
+      crypto.getRandomValues(randomArray);
+      return Array.from(randomArray, byte => chars[byte % chars.length]).join('');
+    };
 
     const tokenFields = {
       acceptance: 'acceptance_token',
