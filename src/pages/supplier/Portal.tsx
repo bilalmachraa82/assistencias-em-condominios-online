@@ -26,7 +26,10 @@ import { useAssistanceMessages } from '@/hooks/useAssistanceMessages';
 import { PHOTO_CATEGORIES } from '@/config/photoCategories';
 
 export default function Portal() {
-  const { token } = useParams<{ token: string }>();
+  const { token: rawToken } = useParams<{ token: string }>();
+  
+  // Decode the token in case it was URL encoded
+  const token = rawToken ? decodeURIComponent(rawToken) : undefined;
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,19 +39,30 @@ export default function Portal() {
   const { data: messages = [] } = useAssistanceMessages(assistance?.id);
 
   useEffect(() => {
+    console.log('🔍 Portal component mounted with token:', token);
+    console.log('🔍 Full URL pathname:', window.location.pathname);
+    console.log('🔍 Token length:', token?.length);
+    
     if (!token) {
+      console.error('❌ No token provided to Portal component');
       setError('Token de acesso não fornecido');
       setLoading(false);
       return;
     }
     
     const loadAssistance = async () => {
+      console.log('📤 Fetching assistance data with token:', token?.substring(0, 10) + '...');
+      
       // Use 'view' action to access portal with any valid token
       const result = await fetchAssistanceData('view' as any, token);
       
+      console.log('📨 Portal fetch result:', result);
+      
       if (!result?.success) {
+        console.error('❌ Failed to load assistance data:', result?.error);
         setError('Token inválido ou assistência não encontrada');
       } else {
+        console.log('✅ Successfully loaded assistance data:', result.data);
         setAssistance(result.data);
       }
       
