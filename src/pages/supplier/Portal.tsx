@@ -42,11 +42,21 @@ export default function Portal() {
   useEffect(() => {
     console.log('🔍 Portal component mounted with token:', token);
     console.log('🔍 Full URL pathname:', window.location.pathname);
+    console.log('🔍 Raw token from params:', rawToken);
+    console.log('🔍 Clean token after processing:', token);
     console.log('🔍 Token length:', token?.length);
     
     if (!token) {
       console.error('❌ No token provided to Portal component');
       setError('Token de acesso não fornecido');
+      setLoading(false);
+      return;
+    }
+
+    // Validate token format - should be at least 40 characters
+    if (token.length < 40) {
+      console.error('❌ Token too short:', token.length, 'characters');
+      setError('Token inválido - formato incorreto');
       setLoading(false);
       return;
     }
@@ -61,7 +71,11 @@ export default function Portal() {
       
       if (!result?.success) {
         console.error('❌ Failed to load assistance data:', result?.error);
-        setError('Token inválido ou assistência não encontrada');
+        if (result?.error?.includes('Invalid token')) {
+          setError('Token não encontrado na base de dados. Por favor, use o link mais recente do email.');
+        } else {
+          setError('Token inválido ou assistência não encontrada');
+        }
       } else {
         console.log('✅ Successfully loaded assistance data:', result.data);
         setAssistance(result.data);
@@ -71,7 +85,7 @@ export default function Portal() {
     };
     
     loadAssistance();
-  }, [token]);
+  }, [token, rawToken]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
