@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { generateToken } from '@/utils/TokenUtils';
 import { fetchValidStatuses } from '@/utils/StatusUtils';
 import { AssistanceStatusValue } from '@/types/assistance';
+import { DatabaseMonitor } from '@/utils/DatabaseMonitoring';
 
 export default async function useCreateAssistance(
   formData: any, 
@@ -74,7 +75,7 @@ export default async function useCreateAssistance(
       throw new Error('Nenhum dado retornado após inserção');
     }
 
-    // Log activity
+    // Log activity and test monitoring
     try {
       await supabase
         .from('activity_log')
@@ -83,9 +84,13 @@ export default async function useCreateAssistance(
           description: 'Assistência criada',
           actor: 'admin' 
         }]);
+      
+      // Test monitoring system after successful creation
+      setTimeout(() => DatabaseMonitor.testActivityLogging(), 1000);
     } catch (logError) {
       // Don't throw if activity log fails, just log it
       console.error('Error creating activity log:', logError);
+      toast.warning('Sistema de auditoria pode ter problemas');
     }
 
     toast.success('Assistência criada com sucesso!');
