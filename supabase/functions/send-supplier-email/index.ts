@@ -119,19 +119,19 @@ serve(async (req) => {
     switch(emailType) {
       case 'acceptance':
         emailSubject = `Nova Solicitação de Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${baseUrl}/supplier/portal?token=${assistance.acceptance_token}`;
+        supplierActionUrl = `${baseUrl}/supplier/portal/${assistance.acceptance_token}`;
         emailContent = generateAcceptanceEmail(assistance, supplierActionUrl);
         break;
-        
+
       case 'scheduling':
         emailSubject = `Agende a Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${baseUrl}/supplier/portal?token=${assistance.scheduling_token}`;
+        supplierActionUrl = `${baseUrl}/supplier/portal/${assistance.scheduling_token}`;
         emailContent = generateSchedulingEmail(assistance, supplierActionUrl);
         break;
-        
+
       case 'validation':
         emailSubject = `Confirme a Conclusão da Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${baseUrl}/supplier/portal?token=${assistance.validation_token}`;
+        supplierActionUrl = `${baseUrl}/supplier/portal/${assistance.validation_token}`;
         emailContent = generateValidationEmail(assistance, supplierActionUrl);
         break;
         

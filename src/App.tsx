@@ -52,7 +52,7 @@ const router = createBrowserRouter([
   },
   // Supplier public routes (no auth required)
   {
-    path: "/supplier/portal",
+    path: "/supplier/portal/:token",
     element: <Portal />,
   },
   {

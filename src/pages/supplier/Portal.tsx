@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,8 +26,7 @@ import { useAssistanceMessages } from '@/hooks/useAssistanceMessages';
 import { PHOTO_CATEGORIES } from '@/config/photoCategories';
 
 export default function Portal() {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const { token } = useParams<{ token: string }>();
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
