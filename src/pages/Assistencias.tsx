@@ -162,18 +162,38 @@ export default function Assistencias() {
 
   return (
     <DashboardLayout>
-      <div className="animate-fade-in-up">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 lg:mb-10 gap-4">
-          <div>
-            <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight">Assistências</h1>
-            <p className="text-[#cbd5e1] mt-2 text-lg">Gerencie suas solicitações de manutenção</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <NewAssistanceButton 
-              buildings={buildings || []}
-              isBuildingsLoading={isBuildingsLoading}
-              onAssistanceCreated={handleRefetchAssistances}
-            />
+      <div className="animate-fade-in-up space-y-8">
+        {/* Modern Header Section */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-vibrant opacity-5 blur-3xl" />
+          <div className="relative glass-card p-8">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+              <div className="space-y-3">
+                <h1 className="text-5xl lg:text-6xl font-bold gradient-text leading-tight">
+                  Assistências
+                </h1>
+                <p className="text-muted-foreground text-lg font-medium max-w-2xl">
+                  Gerencie suas solicitações de manutenção com tecnologia avançada
+                </p>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gradient-primary rounded-full animate-pulse-soft" />
+                    <span>Sistema em tempo real</span>
+                  </div>
+                  <div className="h-4 w-px bg-border" />
+                  <div className="flex items-center gap-2">
+                    <span>Total: {filteredAssistances?.length || 0}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <NewAssistanceButton 
+                  buildings={buildings || []}
+                  isBuildingsLoading={isBuildingsLoading}
+                  onAssistanceCreated={handleRefetchAssistances}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -184,85 +204,110 @@ export default function Assistencias() {
           onAssistanceUpdate={handleRefetchAssistances}
         />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="list">Lista Detalhada</TabsTrigger>
-            <TabsTrigger value="analytics">Resumo & Análise</TabsTrigger>
-          </TabsList>
+        {/* Modern Tabs with Glass Effect */}
+        <div className="glass-card p-2">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="bg-glass-bg border border-glass-border backdrop-blur-xl grid w-full grid-cols-2 p-1 rounded-xl">
+              <TabsTrigger 
+                value="list" 
+                className="rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-colored"
+              >
+                Lista Detalhada
+              </TabsTrigger>
+              <TabsTrigger 
+                value="analytics"
+                className="rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-colored"
+              >
+                Resumo & Análise
+              </TabsTrigger>
+            </TabsList>
           
-          <TabsContent value="list" className="space-y-6">
-            <AdvancedFilters
-              buildings={buildings || []}
-              suppliers={suppliers || []}
-              selectedBuilding={filters.buildingFilter}
-              selectedSupplier={filters.supplierFilter}
-              selectedStatus={filters.statusFilter}
-              dateRange={filters.dateRange}
-              onBuildingChange={filters.setBuildingFilter}
-              onSupplierChange={filters.setSupplierFilter}
-              onStatusChange={filters.setStatusFilter}
-              onDateRangeChange={filters.setDateRange}
-              onClearAll={filters.clearAllFilters}
-            />
-
-            <AssistanceList 
-              isLoading={isAssistancesLoading || isDeleting}
-              assistances={paginatedAssistances || []}
-              onSortOrderChange={toggleSortOrder}
-              sortOrder={sortOrder}
-              onViewAssistance={handleViewAssistance}
-              onDeleteAssistance={handleDeleteAssistance}
-              formatDate={formatDate}
-            />
-
-            {!isAssistancesLoading && pagination.totalItems > 0 && (
-              <div className="mt-6">
-                <Pagination
-                  currentPage={pagination.currentPage}
-                  totalPages={pagination.totalPages}
-                  pageSize={pagination.pageSize}
-                  totalItems={pagination.totalItems}
-                  onPageChange={pagination.goToPage}
-                  onPageSizeChange={pagination.setPageSize}
-                  pageSizeOptions={[10, 20, 50, 100]}
+            <TabsContent value="list" className="space-y-8 animate-fade-in">
+              <div className="glass-card p-6">
+                <AdvancedFilters
+                  buildings={buildings || []}
+                  suppliers={suppliers || []}
+                  selectedBuilding={filters.buildingFilter}
+                  selectedSupplier={filters.supplierFilter}
+                  selectedStatus={filters.statusFilter}
+                  dateRange={filters.dateRange}
+                  onBuildingChange={filters.setBuildingFilter}
+                  onSupplierChange={filters.setSupplierFilter}
+                  onStatusChange={filters.setStatusFilter}
+                  onDateRangeChange={filters.setDateRange}
+                  onClearAll={filters.clearAllFilters}
                 />
               </div>
-            )}
+
+              <div className="glass-card p-6">
+                <AssistanceList 
+                  isLoading={isAssistancesLoading || isDeleting}
+                  assistances={paginatedAssistances || []}
+                  onSortOrderChange={toggleSortOrder}
+                  sortOrder={sortOrder}
+                  onViewAssistance={handleViewAssistance}
+                  onDeleteAssistance={handleDeleteAssistance}
+                  formatDate={formatDate}
+                />
+              </div>
+
+              {!isAssistancesLoading && pagination.totalItems > 0 && (
+                <div className="glass-card p-6">
+                  <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    pageSize={pagination.pageSize}
+                    totalItems={pagination.totalItems}
+                    onPageChange={pagination.goToPage}
+                    onPageSizeChange={pagination.setPageSize}
+                    pageSizeOptions={[10, 20, 50, 100]}
+                  />
+                </div>
+              )}
           </TabsContent>
           
-          <TabsContent value="analytics" className="space-y-6">
-            <AdvancedFilters
-              buildings={buildings || []}
-              suppliers={suppliers || []}
-              selectedBuilding={filters.buildingFilter}
-              selectedSupplier={filters.supplierFilter}
-              selectedStatus={filters.statusFilter}
-              dateRange={filters.dateRange}
-              onBuildingChange={filters.setBuildingFilter}
-              onSupplierChange={filters.setSupplierFilter}
-              onStatusChange={filters.setStatusFilter}
-              onDateRangeChange={filters.setDateRange}
-              onClearAll={filters.clearAllFilters}
-            />
+            <TabsContent value="analytics" className="space-y-8 animate-fade-in">
+              <div className="glass-card p-6">
+                <AdvancedFilters
+                  buildings={buildings || []}
+                  suppliers={suppliers || []}
+                  selectedBuilding={filters.buildingFilter}
+                  selectedSupplier={filters.supplierFilter}
+                  selectedStatus={filters.statusFilter}
+                  dateRange={filters.dateRange}
+                  onBuildingChange={filters.setBuildingFilter}
+                  onSupplierChange={filters.setSupplierFilter}
+                  onStatusChange={filters.setStatusFilter}
+                  onDateRangeChange={filters.setDateRange}
+                  onClearAll={filters.clearAllFilters}
+                />
+              </div>
 
-            <FollowUpStats
-              assistances={filteredAssistances || []}
-              buildings={buildings || []}
-              suppliers={suppliers || []}
-              selectedBuilding={filters.buildingFilter}
-              selectedSupplier={filters.supplierFilter}
-            />
-
-            <FollowUpActions
-              assistances={filteredAssistances || []}
-              buildings={buildings || []}
-              suppliers={suppliers || []}
-              selectedBuilding={filters.buildingFilter}
-              selectedSupplier={filters.supplierFilter}
-              selectedStatus={filters.statusFilter}
-            />
-          </TabsContent>
-        </Tabs>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <div className="glass-card p-6">
+                  <FollowUpStats
+                    assistances={filteredAssistances || []}
+                    buildings={buildings || []}
+                    suppliers={suppliers || []}
+                    selectedBuilding={filters.buildingFilter}
+                    selectedSupplier={filters.supplierFilter}
+                  />
+                </div>
+                
+                <div className="glass-card p-6">
+                  <FollowUpActions
+                    assistances={filteredAssistances || []}
+                    buildings={buildings || []}
+                    suppliers={suppliers || []}
+                    selectedBuilding={filters.buildingFilter}
+                    selectedSupplier={filters.supplierFilter}
+                    selectedStatus={filters.statusFilter}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </DashboardLayout>
   );
