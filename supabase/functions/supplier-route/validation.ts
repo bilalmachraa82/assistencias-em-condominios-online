@@ -7,9 +7,9 @@ export function validateToken(token: string): boolean {
   if (typeof token !== 'string') return false;
   
   // More flexible token validation - check basic format and security requirements
-  // Tokens should be at least 40 characters, contain only alphanumeric and hyphens
-  if (token.length < 40) {
-    console.log(`Token too short: ${token.length} characters`);
+  // Tokens should be at least 20 characters, contain only alphanumeric and hyphens
+  if (token.length < 20) {
+    console.log(`Token too short: ${token.length} characters (minimum 20 required)`);
     return false;
   }
   

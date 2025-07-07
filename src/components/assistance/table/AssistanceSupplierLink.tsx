@@ -14,18 +14,27 @@ export default function AssistanceSupplierLink({ assistance }: AssistanceSupplie
   const getSupplierLink = (assistance: any) => {
     const baseUrl = window.location.origin;
     
-    // Find the best token to use based on what's available
-    const token = assistance.acceptance_token || 
-                 assistance.scheduling_token || 
-                 assistance.validation_token || 
-                 assistance.interaction_token;
+    // Prioritize longer tokens first (better validation compatibility)
+    const tokens = [
+      assistance.interaction_token,
+      assistance.validation_token, 
+      assistance.scheduling_token,
+      assistance.acceptance_token
+    ].filter(t => t && t.length >= 20); // Only tokens with minimum length
+    
+    const token = tokens[0]; // Take the first valid token
     
     if (!token) {
-      console.error('No valid token found for assistance', assistance.id);
+      console.error('❌ No valid token found for assistance', assistance.id, {
+        acceptance_token: assistance.acceptance_token?.length || 0,
+        scheduling_token: assistance.scheduling_token?.length || 0,
+        validation_token: assistance.validation_token?.length || 0,
+        interaction_token: assistance.interaction_token?.length || 0
+      });
       return null;
     }
     
-    console.log('🔗 Generating portal link with token:', token);
+    console.log('🔗 Generating portal link with token:', token.substring(0, 10) + '...', `(${token.length} chars)`);
     return `${baseUrl}/supplier/portal/${token}`;
   };
   
