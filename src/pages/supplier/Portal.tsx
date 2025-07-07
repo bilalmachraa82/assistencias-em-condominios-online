@@ -28,8 +28,9 @@ import { PHOTO_CATEGORIES } from '@/config/photoCategories';
 export default function Portal() {
   const { token: rawToken } = useParams<{ token: string }>();
   
-  // Decode the token in case it was URL encoded
-  const token = rawToken ? decodeURIComponent(rawToken) : undefined;
+  // Decode the token in case it was URL encoded and clean any route parameter artifacts
+  const cleanToken = rawToken ? decodeURIComponent(rawToken) : undefined;
+  const token = cleanToken?.startsWith(':') ? cleanToken.replace(/^:token?/, '') : cleanToken;
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
