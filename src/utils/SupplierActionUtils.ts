@@ -65,7 +65,7 @@ export async function submitSupplierAction(
  * Fetch assistance data for a given action and token
  */
 export async function fetchAssistanceData(
-  action: 'accept' | 'schedule' | 'validate',
+  action: 'accept' | 'schedule' | 'validate' | 'view',
   token: string
 ) {
   try {

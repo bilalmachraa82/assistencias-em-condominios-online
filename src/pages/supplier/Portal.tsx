@@ -43,14 +43,8 @@ export default function Portal() {
     }
     
     const loadAssistance = async () => {
-      // Try different token types to find the assistance
-      const actions: ('accept' | 'schedule' | 'validate')[] = ['accept', 'schedule', 'validate'];
-      let result = null;
-      
-      for (const action of actions) {
-        result = await fetchAssistanceData(action, token);
-        if (result.success) break;
-      }
+      // Use 'view' action to access portal with any valid token
+      const result = await fetchAssistanceData('view' as any, token);
       
       if (!result?.success) {
         setError('Token inválido ou assistência não encontrada');

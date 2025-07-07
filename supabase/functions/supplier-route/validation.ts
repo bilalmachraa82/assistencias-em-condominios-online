@@ -1,5 +1,5 @@
 export function validateAction(action: string): boolean {
-  const validActions = ['accept', 'schedule', 'validate'];
+  const validActions = ['accept', 'schedule', 'validate', 'view', 'portal'];
   return validActions.includes(action);
 }
 
