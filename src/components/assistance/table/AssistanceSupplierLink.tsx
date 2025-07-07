@@ -10,23 +10,23 @@ interface AssistanceSupplierLinkProps {
 }
 
 export default function AssistanceSupplierLink({ assistance }: AssistanceSupplierLinkProps) {
-  // Get appropriate link for current status
+  // Get appropriate link for current status - always use portal route
   const getSupplierLink = (assistance: any) => {
     const baseUrl = window.location.origin;
     
-    switch(assistance.status) {
-      case 'Pendente Aceitação':
-        return assistance.acceptance_token ? 
-          `${baseUrl}/supplier/accept?token=${assistance.acceptance_token}` : null;
-      case 'Pendente Agendamento':
-        return assistance.scheduling_token ?
-          `${baseUrl}/supplier/schedule?token=${assistance.scheduling_token}` : null;
-      case 'Agendado':
-        return assistance.validation_token ?
-          `${baseUrl}/supplier/complete?token=${assistance.validation_token}` : null;
-      default:
-        return null;
+    // Find the best token to use based on what's available
+    const token = assistance.acceptance_token || 
+                 assistance.scheduling_token || 
+                 assistance.validation_token || 
+                 assistance.interaction_token;
+    
+    if (!token) {
+      console.error('No valid token found for assistance', assistance.id);
+      return null;
     }
+    
+    console.log('🔗 Generating portal link with token:', token);
+    return `${baseUrl}/supplier/portal/${token}`;
   };
   
   // Copy link to clipboard
