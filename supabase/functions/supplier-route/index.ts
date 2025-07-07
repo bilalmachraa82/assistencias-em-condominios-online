@@ -43,9 +43,25 @@ function validateAction(action: string): boolean {
 
 function validateToken(token: string): boolean {
   if (typeof token !== 'string') return false;
-  // Enhanced token validation - proper format check
-  const tokenPattern = /^[a-zA-Z0-9]+-[a-zA-Z0-9]{22}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{8}-[a-zA-Z0-9]{10}$/;
-  return tokenPattern.test(token);
+  
+  // More flexible token validation - check basic format and security requirements
+  // Tokens should be at least 40 characters, contain only alphanumeric and hyphens
+  if (token.length < 40) {
+    console.log(`Token too short: ${token.length} characters`);
+    return false;
+  }
+  
+  // Allow alphanumeric characters and hyphens only (security check)
+  const safePattern = /^[a-zA-Z0-9\-]+$/;
+  const isValid = safePattern.test(token);
+  
+  if (!isValid) {
+    console.log(`Token contains invalid characters: ${token.substring(0, 10)}...`);
+  } else {
+    console.log(`Token validation passed: ${token.substring(0, 10)}... (${token.length} chars)`);
+  }
+  
+  return isValid;
 }
 
 // Rate limiting function
