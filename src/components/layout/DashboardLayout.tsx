@@ -6,6 +6,7 @@ import RealtimeNotifications from "@/components/dashboard/RealtimeNotifications"
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -32,6 +33,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </span>
                 )}
               </div>
+              <ThemeToggle />
               <Button 
                 variant="outline" 
                 size="sm" 
