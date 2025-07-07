@@ -26,19 +26,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Check admin role when session changes
+        // Check admin role when session changes - enhanced security
         if (session?.user) {
+          // Use server-side role validation to prevent JWT manipulation
           setTimeout(async () => {
             try {
-              const { data: roles, error } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', session.user.id)
-                .eq('role', 'admin')
-                .single();
+              const { data: roleResult, error } = await supabase
+                .rpc('get_user_role', { user_id: session.user.id });
               
-              setIsAdmin(!error && roles?.role === 'admin');
+              setIsAdmin(!error && roleResult === 'admin');
             } catch (err) {
+              console.error('Role check error:', err);
               setIsAdmin(false);
             }
           }, 0);

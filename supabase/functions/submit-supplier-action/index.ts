@@ -35,21 +35,35 @@ function handleError(message: string, details: any = null, status = 500) {
   }, status);
 }
 
-// Input validation functions
+// Enhanced input validation functions
 function validateAction(action: string): boolean {
   const validActions = ['accept', 'reject', 'schedule', 'reschedule', 'complete'];
-  return validActions.includes(action);
+  return typeof action === 'string' && validActions.includes(action.toLowerCase());
 }
 
 function validateToken(token: string): boolean {
-  return typeof token === 'string' && token.length >= 10 && /^[a-zA-Z0-9-_]+$/.test(token);
+  if (typeof token !== 'string') return false;
+  // Enhanced token validation - proper format check
+  const tokenPattern = /^[a-zA-Z0-9]+-[a-zA-Z0-9]{22}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{8}-[a-zA-Z0-9]{10}$/;
+  return tokenPattern.test(token);
 }
 
 function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
-    return input.trim().slice(0, 1000); // Limit length and trim
+    // Remove HTML tags and scripts, limit length
+    return input
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<[^>]*>/g, '')
+      .trim()
+      .slice(0, 1000);
   }
   return input;
+}
+
+function validateDateTime(dateTimeString: string): boolean {
+  if (!dateTimeString) return false;
+  const date = new Date(dateTimeString);
+  return date instanceof Date && !isNaN(date.getTime()) && date > new Date();
 }
 
 // Rate limiting function
@@ -144,17 +158,36 @@ serve(async (req) => {
 
     console.log('Processing action:', action, 'with token:', token?.substring(0, 10) + '...');
 
-    // Input validation
+    // Enhanced input validation
     if (!token || !action) {
       return handleError('Missing required parameters: token and action', null, 400);
     }
     
     if (!validateAction(action)) {
+      await supabase.rpc('audit_security_event', {
+        event_type: 'INVALID_ACTION_ATTEMPT',
+        resource_type: 'edge_function',
+        resource_id: 0,
+        client_ip: clientIP,
+        details: { action, token_prefix: token?.substring(0, 10) }
+      });
       return handleError('Invalid action type', null, 400);
     }
     
     if (!validateToken(token)) {
+      await supabase.rpc('audit_security_event', {
+        event_type: 'INVALID_TOKEN_FORMAT',
+        resource_type: 'edge_function', 
+        resource_id: 0,
+        client_ip: clientIP,
+        details: { action, token_length: token?.length }
+      });
       return handleError('Invalid token format', null, 400);
+    }
+
+    // Validate datetime if provided
+    if (data?.datetime && !validateDateTime(data.datetime)) {
+      return handleError('Invalid datetime format or date in the past', null, 400);
     }
 
     // Get token field for this action

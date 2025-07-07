@@ -42,7 +42,10 @@ function validateAction(action: string): boolean {
 }
 
 function validateToken(token: string): boolean {
-  return typeof token === 'string' && token.length >= 10 && /^[a-zA-Z0-9-_]+$/.test(token);
+  if (typeof token !== 'string') return false;
+  // Enhanced token validation - proper format check
+  const tokenPattern = /^[a-zA-Z0-9]+-[a-zA-Z0-9]{22}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{8}-[a-zA-Z0-9]{10}$/;
+  return tokenPattern.test(token);
 }
 
 // Rate limiting function

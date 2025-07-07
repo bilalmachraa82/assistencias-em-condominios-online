@@ -409,6 +409,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      audit_security_event: {
+        Args: {
+          event_type: string
+          resource_type: string
+          resource_id: number
+          client_ip?: string
+          user_agent?: string
+          details?: Json
+        }
+        Returns: undefined
+      }
       audit_sensitive_operation: {
         Args: {
           operation_type: string
@@ -451,6 +462,14 @@ export type Database = {
       }
       validate_supplier_token: {
         Args: { token_value: string; assistance_id: number; token_type: string }
+        Returns: boolean
+      }
+      validate_token_access: {
+        Args: {
+          assistance_id: number
+          provided_token: string
+          token_type: string
+        }
         Returns: boolean
       }
     }

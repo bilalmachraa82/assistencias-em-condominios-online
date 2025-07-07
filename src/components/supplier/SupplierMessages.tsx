@@ -25,12 +25,21 @@ export default function SupplierMessages({ assistanceId, supplierName }: Supplie
   const handleSend = () => {
     if (!message.trim()) return;
     
+    // Enhanced input sanitization
+    const sanitizedMessage = message
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<[^>]*>/g, '')
+      .trim()
+      .slice(0, 1000);
+    
+    if (!sanitizedMessage) return;
+    
     sendMessage(
       {
         assistance_id: assistanceId,
         sender_role: "supplier",
         sender_name: supplierName,
-        message: message.trim(),
+        message: sanitizedMessage,
       },
       {
         onSuccess: () => {
@@ -91,11 +100,12 @@ export default function SupplierMessages({ assistanceId, supplierName }: Supplie
       <div className="flex gap-2">
         <Input
           value={message}
-          onChange={e => setMessage(e.target.value)}
+          onChange={e => setMessage(e.target.value.slice(0, 1000))} // Limit input length
           placeholder="Escreva uma mensagem..."
           onKeyDown={e => (e.key === "Enter" ? handleSend() : undefined)}
           disabled={isSending}
           className="text-sm"
+          maxLength={1000}
         />
         <Button 
           onClick={handleSend} 
