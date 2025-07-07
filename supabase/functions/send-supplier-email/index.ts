@@ -119,19 +119,19 @@ serve(async (req) => {
     switch(emailType) {
       case 'acceptance':
         emailSubject = `Nova Solicitação de Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${baseUrl}/supplier/accept?token=${assistance.acceptance_token}`;
+        supplierActionUrl = `${baseUrl}/supplier/portal?token=${assistance.acceptance_token}`;
         emailContent = generateAcceptanceEmail(assistance, supplierActionUrl);
         break;
         
       case 'scheduling':
         emailSubject = `Agende a Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${baseUrl}/supplier/schedule?token=${assistance.scheduling_token}`;
+        supplierActionUrl = `${baseUrl}/supplier/portal?token=${assistance.scheduling_token}`;
         emailContent = generateSchedulingEmail(assistance, supplierActionUrl);
         break;
         
       case 'validation':
         emailSubject = `Confirme a Conclusão da Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${baseUrl}/supplier/complete?token=${assistance.validation_token}`;
+        supplierActionUrl = `${baseUrl}/supplier/portal?token=${assistance.validation_token}`;
         emailContent = generateValidationEmail(assistance, supplierActionUrl);
         break;
         
@@ -244,11 +244,19 @@ function generateAcceptanceEmail(assistance: any, actionUrl: string): string {
             <p><strong>Descrição:</strong> ${assistance.description}</p>
           </div>
           
-          <p>Por favor, clique no botão abaixo para aceitar ou recusar esta solicitação:</p>
+          <p>Para gerir esta assistência, aceda ao seu portal personalizado:</p>
           <div style="text-align: center;">
-            <a href="${actionUrl}" class="button">Responder à Solicitação</a>
+            <a href="${actionUrl}" class="button">ACEDER AO PORTAL DO FORNECEDOR</a>
           </div>
-          <p>Este link é válido apenas para esta solicitação específica.</p>
+          <div style="background-color: #f8fafc; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #10B981;">
+            <p style="margin: 0; font-size: 14px; color: #475569;">
+              <strong>🚀 Portal completo com:</strong><br>
+              • Comunicação em tempo real com o administrador<br>
+              • Upload de fotos organizadas por categoria<br>
+              • Timeline completa da assistência<br>
+              • Todas as ações necessárias num só local
+            </p>
+          </div>
           
           <div class="contact-info">
             <p><strong>Precisa de ajuda?</strong> Entre em contato:</p>
@@ -309,11 +317,19 @@ function generateSchedulingEmail(assistance: any, actionUrl: string): string {
             <p><strong>Descrição:</strong> ${assistance.description}</p>
           </div>
           
-          <p>Por favor, clique no botão abaixo para agendar a sua visita:</p>
+          <p>Para gerir esta assistência, aceda ao seu portal personalizado:</p>
           <div style="text-align: center;">
-            <a href="${actionUrl}" class="button">Agendar Assistência</a>
+            <a href="${actionUrl}" class="button">ACEDER AO PORTAL DO FORNECEDOR</a>
           </div>
-          <p>Este link é válido apenas para esta solicitação específica.</p>
+          <div style="background-color: #f8fafc; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #3B82F6;">
+            <p style="margin: 0; font-size: 14px; color: #475569;">
+              <strong>📅 No portal pode:</strong><br>
+              • Confirmar ou reagendar a assistência<br>
+              • Comunicar em tempo real com notificações<br>
+              • Enviar fotos do progresso do trabalho<br>
+              • Ver timeline completa e histórico
+            </p>
+          </div>
           
           <div class="contact-info">
             <p><strong>Precisa de ajuda?</strong> Entre em contato:</p>
@@ -373,11 +389,19 @@ function generateValidationEmail(assistance: any, actionUrl: string): string {
             <p><strong>Descrição:</strong> ${assistance.description}</p>
           </div>
           
-          <p>Por favor, clique no botão abaixo para confirmar a conclusão e enviar uma foto do serviço realizado:</p>
+          <p>Para finalizar esta assistência, aceda ao seu portal personalizado:</p>
           <div style="text-align: center;">
-            <a href="${actionUrl}" class="button">Confirmar Conclusão</a>
+            <a href="${actionUrl}" class="button">ACEDER AO PORTAL DO FORNECEDOR</a>
           </div>
-          <p>Este link é válido apenas para esta solicitação específica.</p>
+          <div style="background-color: #f8fafc; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #059669;">
+            <p style="margin: 0; font-size: 14px; color: #475569;">
+              <strong>✅ Para finalizar:</strong><br>
+              • Confirme a conclusão do trabalho<br>
+              • Envie fotos do resultado final<br>
+              • Adicione notas finais se necessário<br>
+              • Mantenha comunicação ativa até ao fecho
+            </p>
+          </div>
           
           <div class="contact-info">
             <p><strong>Precisa de ajuda?</strong> Entre em contato:</p>

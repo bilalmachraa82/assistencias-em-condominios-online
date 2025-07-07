@@ -21,6 +21,7 @@ import AcceptRequest from "./pages/supplier/AcceptRequest";
 import ScheduleRequest from "./pages/supplier/ScheduleRequest";
 import CompleteRequest from "./pages/supplier/CompleteRequest";
 import Confirmation from "./pages/supplier/Confirmation";
+import Portal from "./pages/supplier/Portal";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,10 @@ const router = createBrowserRouter([
     element: <AuthGuard><ConfiguracaoServicos /></AuthGuard>,
   },
   // Supplier public routes (no auth required)
+  {
+    path: "/supplier/portal",
+    element: <Portal />,
+  },
   {
     path: "/supplier/accept/:token",
     element: <AcceptRequest />,
