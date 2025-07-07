@@ -15,11 +15,8 @@ const sizeClasses = {
 export function Logo({ className = '', size = 'md', variant = 'light' }: LogoProps) {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.error('Logo failed to load:', e.currentTarget.src);
-    console.log('Attempting to reload logo...');
-    // Try to reload the image once
-    setTimeout(() => {
-      e.currentTarget.src = e.currentTarget.src + '?t=' + Date.now();
-    }, 1000);
+    // Set a fallback or hide the image on error
+    e.currentTarget.style.display = 'none';
   };
 
   return (

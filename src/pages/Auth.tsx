@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { Logo } from '@/components/ui/logo';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -109,6 +110,9 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" />
+          </div>
           <CardTitle className="text-2xl font-bold">Sistema de Gestão</CardTitle>
           <CardDescription>Acesso para administradores</CardDescription>
         </CardHeader>
