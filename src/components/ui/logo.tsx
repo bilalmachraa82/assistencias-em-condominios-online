@@ -21,8 +21,8 @@ export function Logo({ className = '', size = 'md', variant = 'light' }: LogoPro
 
   return (
     <img 
-      src="/lovable-uploads/eac78bb8-18da-4bc9-b0a7-8e5f0203380c.png" 
-      alt="LuvImg - Administração de Condomínios" 
+      src="/lovable-uploads/42db5c3a-d970-4146-a940-7967cb8ae563.png" 
+      alt="Luv.img - Administração de Condomínios" 
       className={`${sizeClasses[size]} ${className}`}
       onError={handleImageError}
       onLoad={() => console.log('Logo loaded successfully')}
