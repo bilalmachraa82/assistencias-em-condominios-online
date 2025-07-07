@@ -1,5 +1,11 @@
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster as Sonner } from "sonner";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 import "./index.css";
 import Dashboard from "./pages/Dashboard";
@@ -8,6 +14,7 @@ import Suppliers from "./pages/Suppliers";
 import Assistencias from "./pages/Assistencias";
 import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 
 // Supplier public pages
 import AcceptRequest from "./pages/supplier/AcceptRequest";
@@ -15,42 +22,48 @@ import ScheduleRequest from "./pages/supplier/ScheduleRequest";
 import CompleteRequest from "./pages/supplier/CompleteRequest";
 import Confirmation from "./pages/supplier/Confirmation";
 
+const queryClient = new QueryClient();
+
 const router = createBrowserRouter([
   {
+    path: "/auth",
+    element: <Auth />,
+  },
+  {
     path: "/",
-    element: <Dashboard />,
+    element: <AuthGuard><Dashboard /></AuthGuard>,
   },
   {
     path: "/assistencias",
-    element: <Assistencias />,
+    element: <AuthGuard><Assistencias /></AuthGuard>,
   },
   {
     path: "/buildings",
-    element: <Buildings />,
+    element: <AuthGuard><Buildings /></AuthGuard>,
   },
   {
     path: "/suppliers",
-    element: <Suppliers />,
+    element: <AuthGuard><Suppliers /></AuthGuard>,
   },
   {
     path: "/configuracao-servicos",
-    element: <ConfiguracaoServicos />,
+    element: <AuthGuard><ConfiguracaoServicos /></AuthGuard>,
   },
-  // Supplier public routes
+  // Supplier public routes (no auth required)
   {
-    path: "/supplier/accept",
+    path: "/supplier/accept/:token",
     element: <AcceptRequest />,
   },
   {
-    path: "/supplier/schedule",
+    path: "/supplier/schedule/:token",
     element: <ScheduleRequest />,
   },
   {
-    path: "/supplier/complete",
+    path: "/supplier/complete/:token",
     element: <CompleteRequest />,
   },
   {
-    path: "/supplier/confirmation",
+    path: "/supplier/confirmation/:type",
     element: <Confirmation />,
   },
   // Catch-all route for 404 pages
@@ -61,5 +74,14 @@ const router = createBrowserRouter([
 ]);
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+        
+        <Sonner />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 }
