@@ -211,70 +211,161 @@ serve(async (req) => {
 function generateAcceptanceEmail(assistance: any, actionUrl: string): string {
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="pt">
     <head>
-      <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .header { background-color: #6347ED; color: white; padding: 25px; text-align: center; }
-        .logo { display: block; margin: 0 auto 15px; max-height: 50px; }
-        .content { padding: 30px; background-color: #ffffff; }
-        .footer { padding: 20px; text-align: center; background-color: #f7f7f9; font-size: 12px; color: #6b7280; }
-        .button { display: inline-block; background-color: #1EAEDB; color: white; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; margin: 25px 0; border: none; }
-        .details { margin: 25px 0; padding: 20px; background-color: #f7f7f9; border-left: 4px solid #6347ED; border-radius: 4px; }
-        h1 { margin: 0; font-size: 24px; }
-        .contact-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
-        .social-links a { display: inline-block; margin: 0 10px; }
-      </style>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Nova Solicitação de Assistência - Luv.img</title>
     </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/42db5c3a-d970-4146-a940-7967cb8ae563.png" alt="Luv.img - Administração de Condomínios" class="logo">
-          <h1>Nova Solicitação de Assistência</h1>
-        </div>
-        <div class="content">
-          <p>Olá <strong>${assistance.suppliers.name}</strong>,</p>
-          <p>Você recebeu uma nova solicitação de assistência técnica para o edifício <strong>${assistance.buildings.name}</strong>.</p>
-          
-          <div class="details">
-            <p><strong>Tipo:</strong> ${assistance.type}</p>
-            <p><strong>Categoria:</strong> ${assistance.intervention_types.name}</p>
-            <p><strong>Localização:</strong> ${assistance.buildings.address}</p>
-            <p><strong>Descrição:</strong> ${assistance.description}</p>
-          </div>
-          
-          <p>Para gerir esta assistência, aceda ao seu portal personalizado:</p>
-          <div style="text-align: center;">
-            <a href="${actionUrl}" class="button">ACEDER AO PORTAL DO FORNECEDOR</a>
-          </div>
-          <div style="background-color: #f8fafc; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #10B981;">
-            <p style="margin: 0; font-size: 14px; color: #475569;">
-              <strong>🚀 Portal completo com:</strong><br>
-              • Comunicação em tempo real com o administrador<br>
-              • Upload de fotos organizadas por categoria<br>
-              • Timeline completa da assistência<br>
-              • Todas as ações necessárias num só local
-            </p>
-          </div>
-          
-          <div class="contact-info">
-            <p><strong>Precisa de ajuda?</strong> Entre em contato:</p>
-            <p>Email: info@luvimg.com</p>
-            <p>Telefone: +351 964 233 777</p>
-            <div class="social-links">
-              <a href="https://www.facebook.com/LuvImg">Facebook</a>
-              <a href="https://www.instagram.com/luv.img">Instagram</a>
-              <a href="https://www.linkedin.com/company/luvimg">LinkedIn</a>
-            </div>
-          </div>
-        </div>
-        <div class="footer">
-          <p>Esta é uma mensagem automática, por favor não responda diretamente a este email.</p>
-          <p>© ${new Date().getFullYear()} LuvImg - Administração de Condomínios | NIF 515920380</p>
-          <p>Rua António Luís Gomes 28A, 2750-335 Cascais</p>
-        </div>
-      </div>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f5f5f5;">
+        
+        <!-- Container Principal -->
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5;">
+            <tr>
+                <td align="center" style="padding: 40px 20px;">
+                    
+                    <!-- Email Container -->
+                    <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        
+                        <!-- Header -->
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #4a9b9e 0%, #3a7b7e 100%); padding: 30px 40px; border-radius: 8px 8px 0 0;">
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center">
+                                            <!-- Logo -->
+                                            <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/42db5c3a-d970-4146-a940-7967cb8ae563.png" alt="Luv.img" style="height: 50px; margin-bottom: 10px;">
+                                            <h1 style="color: #ffffff; font-size: 24px; margin: 0; font-weight: 300;">Nova Solicitação de Assistência</h1>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- Conteúdo Principal -->
+                        <tr>
+                            <td style="padding: 40px;">
+                                
+                                <!-- Saudação -->
+                                <p style="color: #333333; font-size: 16px; line-height: 1.5; margin: 0 0 30px 0;">
+                                    Olá <strong>${assistance.suppliers.name}</strong>,
+                                </p>
+                                
+                                <p style="color: #666666; font-size: 15px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Recebeu uma nova solicitação de assistência técnica para o edifício <strong>${assistance.buildings.name}</strong>.
+                                </p>
+                                
+                                <!-- Detalhes da Solicitação -->
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafb; border-radius: 6px; padding: 25px; margin-bottom: 30px;">
+                                    <tr>
+                                        <td>
+                                            <h2 style="color: #3a7b7e; font-size: 18px; margin: 0 0 20px 0; font-weight: 500;">Detalhes da Solicitação</h2>
+                                            
+                                            <table width="100%" border="0" cellspacing="0" cellpadding="8">
+                                                <tr>
+                                                    <td width="35%" style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Tipo:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px;">${assistance.type}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Categoria:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px;">${assistance.intervention_types.name}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Localização:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px;">${assistance.buildings.address}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Descrição:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px; line-height: 1.5;">${assistance.description}</td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <p style="color: #666666; font-size: 15px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Para gerir esta assistência, aceda ao seu portal personalizado:
+                                </p>
+                                
+                                <!-- Botão CTA -->
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center" style="padding: 0 0 30px 0;">
+                                            <a href="${actionUrl}" style="display: inline-block; padding: 14px 40px; background-color: #4a9b9e; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500;">
+                                                ACEDER AO PORTAL DO FORNECEDOR
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <!-- Funcionalidades do Portal -->
+                                <div style="background-color: #f8fafb; border-left: 4px solid #4a9b9e; padding: 20px; margin-bottom: 30px; border-radius: 0 6px 6px 0;">
+                                    <p style="color: #333333; font-size: 14px; margin: 0 0 10px 0; font-weight: 500;">
+                                        <strong>Portal completo com:</strong>
+                                    </p>
+                                    <ul style="color: #666666; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
+                                        <li>Comunicação em tempo real com o administrador</li>
+                                        <li>Upload de fotos organizadas por categoria</li>
+                                        <li>Timeline completa da assistência</li>
+                                        <li>Todas as ações necessárias num só local</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Informação de Contacto -->
+                                <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0 0 5px 0;">
+                                    <strong>Precisa de ajuda?</strong> Entre em contacto:
+                                </p>
+                                <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Email: <a href="mailto:info@luvimg.com" style="color: #4a9b9e; text-decoration: none;">info@luvimg.com</a><br>
+                                    Telefone: <a href="tel:+351964233777" style="color: #4a9b9e; text-decoration: none;">+351 964 233 777</a>
+                                </p>
+                                
+                            </td>
+                        </tr>
+                        
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color: #f8fafb; padding: 30px 40px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e5e5;">
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center">
+                                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0 0 10px 0;">
+                                                Esta é uma mensagem automática, por favor não responda diretamente a este email.
+                                            </p>
+                                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0 0 15px 0;">
+                                                © ${new Date().getFullYear()} Luv.img - Administração de Condomínios | NIF: 516800960
+                                            </p>
+                                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0;">
+                                                Rua António Luís Gomes 25A, 2790-356 Cascais
+                                            </p>
+                                            
+                                            <!-- Links Sociais -->
+                                            <table border="0" cellspacing="0" cellpadding="0" style="margin-top: 20px;">
+                                                <tr>
+                                                    <td style="padding: 0 10px;">
+                                                        <a href="https://www.facebook.com/LuvImg" style="color: #4a9b9e; text-decoration: none; font-size: 12px;">Facebook</a>
+                                                    </td>
+                                                    <td style="padding: 0 10px; border-left: 1px solid #cccccc;">
+                                                        <a href="https://www.instagram.com/luv.img" style="color: #4a9b9e; text-decoration: none; font-size: 12px;">Instagram</a>
+                                                    </td>
+                                                    <td style="padding: 0 10px; border-left: 1px solid #cccccc;">
+                                                        <a href="https://www.linkedin.com/company/luvimg" style="color: #4a9b9e; text-decoration: none; font-size: 12px;">LinkedIn</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                    </table>
+                    <!-- Fim Email Container -->
+                    
+                </td>
+            </tr>
+        </table>
+        
     </body>
     </html>
   `;
@@ -283,71 +374,161 @@ function generateAcceptanceEmail(assistance: any, actionUrl: string): string {
 function generateSchedulingEmail(assistance: any, actionUrl: string): string {
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="pt">
     <head>
-      <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .header { background-color: #6347ED; color: white; padding: 25px; text-align: center; }
-        .logo { display: block; margin: 0 auto 15px; max-height: 50px; }
-        .content { padding: 30px; background-color: #ffffff; }
-        .footer { padding: 20px; text-align: center; background-color: #f7f7f9; font-size: 12px; color: #6b7280; }
-        .button { display: inline-block; background-color: #1EAEDB; color: white; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; margin: 25px 0; border: none; }
-        .details { margin: 25px 0; padding: 20px; background-color: #f7f7f9; border-left: 4px solid #6347ED; border-radius: 4px; }
-        h1 { margin: 0; font-size: 24px; }
-        .contact-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
-        .social-links a { display: inline-block; margin: 0 10px; }
-      </style>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Agende a Assistência - Luv.img</title>
     </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/42db5c3a-d970-4146-a940-7967cb8ae563.png" alt="Luv.img - Administração de Condomínios" class="logo">
-          <h1>Agende a Assistência</h1>
-        </div>
-        <div class="content">
-          <p>Olá <strong>${assistance.suppliers.name}</strong>,</p>
-          <p>Obrigado por aceitar a solicitação de assistência para o edifício <strong>${assistance.buildings.name}</strong>.</p>
-          <p>O próximo passo é agendar uma data e hora para a realização do serviço.</p>
-          
-          <div class="details">
-            <p><strong>Tipo:</strong> ${assistance.type}</p>
-            <p><strong>Categoria:</strong> ${assistance.intervention_types.name}</p>
-            <p><strong>Localização:</strong> ${assistance.buildings.address}</p>
-            <p><strong>Descrição:</strong> ${assistance.description}</p>
-          </div>
-          
-          <p>Para gerir esta assistência, aceda ao seu portal personalizado:</p>
-          <div style="text-align: center;">
-            <a href="${actionUrl}" class="button">ACEDER AO PORTAL DO FORNECEDOR</a>
-          </div>
-          <div style="background-color: #f8fafc; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #3B82F6;">
-            <p style="margin: 0; font-size: 14px; color: #475569;">
-              <strong>📅 No portal pode:</strong><br>
-              • Confirmar ou reagendar a assistência<br>
-              • Comunicar em tempo real com notificações<br>
-              • Enviar fotos do progresso do trabalho<br>
-              • Ver timeline completa e histórico
-            </p>
-          </div>
-          
-          <div class="contact-info">
-            <p><strong>Precisa de ajuda?</strong> Entre em contato:</p>
-            <p>Email: info@luvimg.com</p>
-            <p>Telefone: +351 964 233 777</p>
-            <div class="social-links">
-              <a href="https://www.facebook.com/LuvImg">Facebook</a>
-              <a href="https://www.instagram.com/luv.img">Instagram</a>
-              <a href="https://www.linkedin.com/company/luvimg">LinkedIn</a>
-            </div>
-          </div>
-        </div>
-        <div class="footer">
-          <p>Esta é uma mensagem automática, por favor não responda diretamente a este email.</p>
-          <p>© ${new Date().getFullYear()} LuvImg - Administração de Condomínios | NIF 515920380</p>
-          <p>Rua António Luís Gomes 28A, 2750-335 Cascais</p>
-        </div>
-      </div>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f5f5f5;">
+        
+        <!-- Container Principal -->
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5;">
+            <tr>
+                <td align="center" style="padding: 40px 20px;">
+                    
+                    <!-- Email Container -->
+                    <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        
+                        <!-- Header -->
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #4a9b9e 0%, #3a7b7e 100%); padding: 30px 40px; border-radius: 8px 8px 0 0;">
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center">
+                                            <!-- Logo -->
+                                            <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/42db5c3a-d970-4146-a940-7967cb8ae563.png" alt="Luv.img" style="height: 50px; margin-bottom: 10px;">
+                                            <h1 style="color: #ffffff; font-size: 24px; margin: 0; font-weight: 300;">Agende a Assistência</h1>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- Conteúdo Principal -->
+                        <tr>
+                            <td style="padding: 40px;">
+                                
+                                <!-- Saudação -->
+                                <p style="color: #333333; font-size: 16px; line-height: 1.5; margin: 0 0 30px 0;">
+                                    Olá <strong>${assistance.suppliers.name}</strong>,
+                                </p>
+                                
+                                <p style="color: #666666; font-size: 15px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Obrigado por aceitar a solicitação de assistência para o edifício <strong>${assistance.buildings.name}</strong>. O próximo passo é agendar uma data e hora para a realização do serviço.
+                                </p>
+                                
+                                <!-- Detalhes da Solicitação -->
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafb; border-radius: 6px; padding: 25px; margin-bottom: 30px;">
+                                    <tr>
+                                        <td>
+                                            <h2 style="color: #3a7b7e; font-size: 18px; margin: 0 0 20px 0; font-weight: 500;">Detalhes da Assistência</h2>
+                                            
+                                            <table width="100%" border="0" cellspacing="0" cellpadding="8">
+                                                <tr>
+                                                    <td width="35%" style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Tipo:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px;">${assistance.type}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Categoria:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px;">${assistance.intervention_types.name}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Localização:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px;">${assistance.buildings.address}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Descrição:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px; line-height: 1.5;">${assistance.description}</td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <p style="color: #666666; font-size: 15px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Para gerir esta assistência, aceda ao seu portal personalizado:
+                                </p>
+                                
+                                <!-- Botão CTA -->
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center" style="padding: 0 0 30px 0;">
+                                            <a href="${actionUrl}" style="display: inline-block; padding: 14px 40px; background-color: #4a9b9e; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500;">
+                                                ACEDER AO PORTAL DO FORNECEDOR
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <!-- Funcionalidades do Portal -->
+                                <div style="background-color: #f8fafb; border-left: 4px solid #3B82F6; padding: 20px; margin-bottom: 30px; border-radius: 0 6px 6px 0;">
+                                    <p style="color: #333333; font-size: 14px; margin: 0 0 10px 0; font-weight: 500;">
+                                        <strong>📅 No portal pode:</strong>
+                                    </p>
+                                    <ul style="color: #666666; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
+                                        <li>Confirmar ou reagendar a assistência</li>
+                                        <li>Comunicar em tempo real com notificações</li>
+                                        <li>Enviar fotos do progresso do trabalho</li>
+                                        <li>Ver timeline completa e histórico</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Informação de Contacto -->
+                                <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0 0 5px 0;">
+                                    <strong>Precisa de ajuda?</strong> Entre em contacto:
+                                </p>
+                                <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Email: <a href="mailto:info@luvimg.com" style="color: #4a9b9e; text-decoration: none;">info@luvimg.com</a><br>
+                                    Telefone: <a href="tel:+351964233777" style="color: #4a9b9e; text-decoration: none;">+351 964 233 777</a>
+                                </p>
+                                
+                            </td>
+                        </tr>
+                        
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color: #f8fafb; padding: 30px 40px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e5e5;">
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center">
+                                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0 0 10px 0;">
+                                                Esta é uma mensagem automática, por favor não responda diretamente a este email.
+                                            </p>
+                                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0 0 15px 0;">
+                                                © ${new Date().getFullYear()} Luv.img - Administração de Condomínios | NIF: 516800960
+                                            </p>
+                                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0;">
+                                                Rua António Luís Gomes 25A, 2790-356 Cascais
+                                            </p>
+                                            
+                                            <!-- Links Sociais -->
+                                            <table border="0" cellspacing="0" cellpadding="0" style="margin-top: 20px;">
+                                                <tr>
+                                                    <td style="padding: 0 10px;">
+                                                        <a href="https://www.facebook.com/LuvImg" style="color: #4a9b9e; text-decoration: none; font-size: 12px;">Facebook</a>
+                                                    </td>
+                                                    <td style="padding: 0 10px; border-left: 1px solid #cccccc;">
+                                                        <a href="https://www.instagram.com/luv.img" style="color: #4a9b9e; text-decoration: none; font-size: 12px;">Instagram</a>
+                                                    </td>
+                                                    <td style="padding: 0 10px; border-left: 1px solid #cccccc;">
+                                                        <a href="https://www.linkedin.com/company/luvimg" style="color: #4a9b9e; text-decoration: none; font-size: 12px;">LinkedIn</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                    </table>
+                    <!-- Fim Email Container -->
+                    
+                </td>
+            </tr>
+        </table>
+        
     </body>
     </html>
   `;
@@ -356,70 +537,161 @@ function generateSchedulingEmail(assistance: any, actionUrl: string): string {
 function generateValidationEmail(assistance: any, actionUrl: string): string {
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="pt">
     <head>
-      <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .header { background-color: #6347ED; color: white; padding: 25px; text-align: center; }
-        .logo { display: block; margin: 0 auto 15px; max-height: 50px; }
-        .content { padding: 30px; background-color: #ffffff; }
-        .footer { padding: 20px; text-align: center; background-color: #f7f7f9; font-size: 12px; color: #6b7280; }
-        .button { display: inline-block; background-color: #1EAEDB; color: white; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; margin: 25px 0; border: none; }
-        .details { margin: 25px 0; padding: 20px; background-color: #f7f7f9; border-left: 4px solid #6347ED; border-radius: 4px; }
-        h1 { margin: 0; font-size: 24px; }
-        .contact-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
-        .social-links a { display: inline-block; margin: 0 10px; }
-      </style>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Confirme a Conclusão do Serviço - Luv.img</title>
     </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/42db5c3a-d970-4146-a940-7967cb8ae563.png" alt="Luv.img - Administração de Condomínios" class="logo">
-          <h1>Confirme a Conclusão do Serviço</h1>
-        </div>
-        <div class="content">
-          <p>Olá <strong>${assistance.suppliers.name}</strong>,</p>
-          <p>Após realizar o serviço agendado para o edifício <strong>${assistance.buildings.name}</strong>, precisamos que confirme a sua conclusão.</p>
-          
-          <div class="details">
-            <p><strong>Tipo:</strong> ${assistance.type}</p>
-            <p><strong>Categoria:</strong> ${assistance.intervention_types.name}</p>
-            <p><strong>Localização:</strong> ${assistance.buildings.address}</p>
-            <p><strong>Descrição:</strong> ${assistance.description}</p>
-          </div>
-          
-          <p>Para finalizar esta assistência, aceda ao seu portal personalizado:</p>
-          <div style="text-align: center;">
-            <a href="${actionUrl}" class="button">ACEDER AO PORTAL DO FORNECEDOR</a>
-          </div>
-          <div style="background-color: #f8fafc; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #059669;">
-            <p style="margin: 0; font-size: 14px; color: #475569;">
-              <strong>✅ Para finalizar:</strong><br>
-              • Confirme a conclusão do trabalho<br>
-              • Envie fotos do resultado final<br>
-              • Adicione notas finais se necessário<br>
-              • Mantenha comunicação ativa até ao fecho
-            </p>
-          </div>
-          
-          <div class="contact-info">
-            <p><strong>Precisa de ajuda?</strong> Entre em contato:</p>
-            <p>Email: info@luvimg.com</p>
-            <p>Telefone: +351 964 233 777</p>
-            <div class="social-links">
-              <a href="https://www.facebook.com/LuvImg">Facebook</a>
-              <a href="https://www.instagram.com/luv.img">Instagram</a>
-              <a href="https://www.linkedin.com/company/luvimg">LinkedIn</a>
-            </div>
-          </div>
-        </div>
-        <div class="footer">
-          <p>Esta é uma mensagem automática, por favor não responda diretamente a este email.</p>
-          <p>© ${new Date().getFullYear()} LuvImg - Administração de Condomínios | NIF 515920380</p>
-          <p>Rua António Luís Gomes 28A, 2750-335 Cascais</p>
-        </div>
-      </div>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f5f5f5;">
+        
+        <!-- Container Principal -->
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5;">
+            <tr>
+                <td align="center" style="padding: 40px 20px;">
+                    
+                    <!-- Email Container -->
+                    <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        
+                        <!-- Header -->
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #4a9b9e 0%, #3a7b7e 100%); padding: 30px 40px; border-radius: 8px 8px 0 0;">
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center">
+                                            <!-- Logo -->
+                                            <img src="https://assistencias-em-condominios-online.lovable.app/lovable-uploads/42db5c3a-d970-4146-a940-7967cb8ae563.png" alt="Luv.img" style="height: 50px; margin-bottom: 10px;">
+                                            <h1 style="color: #ffffff; font-size: 24px; margin: 0; font-weight: 300;">Confirme a Conclusão do Serviço</h1>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- Conteúdo Principal -->
+                        <tr>
+                            <td style="padding: 40px;">
+                                
+                                <!-- Saudação -->
+                                <p style="color: #333333; font-size: 16px; line-height: 1.5; margin: 0 0 30px 0;">
+                                    Olá <strong>${assistance.suppliers.name}</strong>,
+                                </p>
+                                
+                                <p style="color: #666666; font-size: 15px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Após realizar o serviço agendado para o edifício <strong>${assistance.buildings.name}</strong>, precisamos que confirme a sua conclusão.
+                                </p>
+                                
+                                <!-- Detalhes da Solicitação -->
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafb; border-radius: 6px; padding: 25px; margin-bottom: 30px;">
+                                    <tr>
+                                        <td>
+                                            <h2 style="color: #3a7b7e; font-size: 18px; margin: 0 0 20px 0; font-weight: 500;">Detalhes da Assistência</h2>
+                                            
+                                            <table width="100%" border="0" cellspacing="0" cellpadding="8">
+                                                <tr>
+                                                    <td width="35%" style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Tipo:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px;">${assistance.type}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Categoria:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px;">${assistance.intervention_types.name}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Localização:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px;">${assistance.buildings.address}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #666666; font-size: 14px; vertical-align: top;"><strong>Descrição:</strong></td>
+                                                    <td style="color: #333333; font-size: 14px; line-height: 1.5;">${assistance.description}</td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <p style="color: #666666; font-size: 15px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Para finalizar esta assistência, aceda ao seu portal personalizado:
+                                </p>
+                                
+                                <!-- Botão CTA -->
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center" style="padding: 0 0 30px 0;">
+                                            <a href="${actionUrl}" style="display: inline-block; padding: 14px 40px; background-color: #4a9b9e; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500;">
+                                                ACEDER AO PORTAL DO FORNECEDOR
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <!-- Funcionalidades do Portal -->
+                                <div style="background-color: #f8fafb; border-left: 4px solid #059669; padding: 20px; margin-bottom: 30px; border-radius: 0 6px 6px 0;">
+                                    <p style="color: #333333; font-size: 14px; margin: 0 0 10px 0; font-weight: 500;">
+                                        <strong>✅ Para finalizar:</strong>
+                                    </p>
+                                    <ul style="color: #666666; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
+                                        <li>Confirme a conclusão do trabalho</li>
+                                        <li>Envie fotos do resultado final</li>
+                                        <li>Adicione notas finais se necessário</li>
+                                        <li>Mantenha comunicação ativa até ao fecho</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Informação de Contacto -->
+                                <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0 0 5px 0;">
+                                    <strong>Precisa de ajuda?</strong> Entre em contacto:
+                                </p>
+                                <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0 0 30px 0;">
+                                    Email: <a href="mailto:info@luvimg.com" style="color: #4a9b9e; text-decoration: none;">info@luvimg.com</a><br>
+                                    Telefone: <a href="tel:+351964233777" style="color: #4a9b9e; text-decoration: none;">+351 964 233 777</a>
+                                </p>
+                                
+                            </td>
+                        </tr>
+                        
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color: #f8fafb; padding: 30px 40px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e5e5;">
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center">
+                                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0 0 10px 0;">
+                                                Esta é uma mensagem automática, por favor não responda diretamente a este email.
+                                            </p>
+                                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0 0 15px 0;">
+                                                © ${new Date().getFullYear()} Luv.img - Administração de Condomínios | NIF: 516800960
+                                            </p>
+                                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0;">
+                                                Rua António Luís Gomes 25A, 2790-356 Cascais
+                                            </p>
+                                            
+                                            <!-- Links Sociais -->
+                                            <table border="0" cellspacing="0" cellpadding="0" style="margin-top: 20px;">
+                                                <tr>
+                                                    <td style="padding: 0 10px;">
+                                                        <a href="https://www.facebook.com/LuvImg" style="color: #4a9b9e; text-decoration: none; font-size: 12px;">Facebook</a>
+                                                    </td>
+                                                    <td style="padding: 0 10px; border-left: 1px solid #cccccc;">
+                                                        <a href="https://www.instagram.com/luv.img" style="color: #4a9b9e; text-decoration: none; font-size: 12px;">Instagram</a>
+                                                    </td>
+                                                    <td style="padding: 0 10px; border-left: 1px solid #cccccc;">
+                                                        <a href="https://www.linkedin.com/company/luvimg" style="color: #4a9b9e; text-decoration: none; font-size: 12px;">LinkedIn</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                    </table>
+                    <!-- Fim Email Container -->
+                    
+                </td>
+            </tr>
+        </table>
+        
     </body>
     </html>
   `;
