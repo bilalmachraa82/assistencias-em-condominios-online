@@ -190,38 +190,41 @@ serve(async (req) => {
       return handleError('Invalid datetime format or date in the past', null, 400);
     }
 
-    // Get token field for this action
-    const tokenField = tokenFieldMap[action];
+    // Use secure validation function instead of direct database access
+    const { data: validationResult, error: validationError } = await supabase.rpc('validate_edge_function_access', {
+      p_token: token,
+      p_action: action
+    });
 
-    // First, get the assistance ID to verify token access
-    const { data: assistance, error: assistanceError } = await supabase
-      .from('assistances')
-      .select('id, status, supplier_id')
-      .eq(tokenField, token)
-      .single();
-
-    if (assistanceError) {
-      console.error('Erro ao buscar assistência:', assistanceError);
+    if (validationError || !validationResult?.success) {
+      console.error('Token validation failed:', validationError || validationResult);
       
-      // Audit failed access attempt
+      // Enhanced audit logging for failed access
       try {
-        await supabase.rpc('audit_sensitive_operation', {
-          operation_type: 'FAILED_TOKEN_ACCESS',
-          table_name: 'assistances',
-          record_id: 0,
-          details: { action, tokenField, error: assistanceError.message }
+        await supabase.rpc('audit_security_event', {
+          event_type: 'SUPPLIER_ACTION_TOKEN_VALIDATION_FAILED',
+          resource_type: 'assistances',
+          resource_id: 0,
+          client_ip: clientIP,
+          details: { 
+            action, 
+            error: validationError?.message || validationResult?.error,
+            error_code: validationResult?.code
+          }
         });
       } catch (auditError) {
         console.error('Audit logging failed:', auditError);
       }
       
       return createCorsResponse(
-        { error: 'Token inválido ou assistência não encontrada' },
+        { error: validationResult?.error || 'Token inválido ou assistência não encontrada' },
         404
       );
     }
 
-    console.log('Found assistance:', assistance);
+    const assistanceId = validationResult.assistance_id;
+    const currentStatus = validationResult.current_status;
+    console.log(`Token validated for assistance ID: ${assistanceId}, current status: ${currentStatus}`);
 
     // Determine the new status based on the action
     const determineStatus = statusTransitions[action] || (() => '');
@@ -231,7 +234,7 @@ serve(async (req) => {
       return handleError('Status não pôde ser determinado para esta ação', null, 400);
     }
     
-    console.log(`Setting status from "${assistance.status}" to "${newStatus}"`);
+    console.log(`Setting status from "${currentStatus}" to "${newStatus}"`);
     
     // Use the secure update function that validates tokens and updates status
     try {
@@ -240,7 +243,7 @@ serve(async (req) => {
       
       // Use the new secure function for token-based updates
       const { data: updateResult, error: updateError } = await supabase.rpc('update_assistance_by_token', {
-        p_assistance_id: assistance.id,
+        p_assistance_id: assistanceId,
         p_token: token,
         p_new_status: newStatus,
         p_scheduled_datetime: extraData.scheduled_datetime || null,
@@ -263,7 +266,7 @@ serve(async (req) => {
         const { error: reminderError } = await supabase
           .from('assistances')
           .update({ validation_reminder_count: extraData.validation_reminder_count })
-          .eq('id', assistance.id);
+          .eq('id', assistanceId);
           
         if (reminderError) {
           console.error('Erro ao atualizar contador de lembretes:', reminderError);
@@ -280,11 +283,12 @@ serve(async (req) => {
     
     // Audit successful operation
     try {
-      await supabase.rpc('audit_sensitive_operation', {
-        operation_type: 'SUPPLIER_ACTION',
-        table_name: 'assistances',
-        record_id: assistance.id,
-        details: { action, newStatus, clientIP }
+      await supabase.rpc('audit_security_event', {
+        event_type: 'SUPPLIER_ACTION_SUCCESS',
+        resource_type: 'assistances',
+        resource_id: assistanceId,
+        client_ip: clientIP,
+        details: { action, old_status: currentStatus, new_status: newStatus }
       });
     } catch (auditError) {
       console.error('Audit logging failed:', auditError);
@@ -297,7 +301,7 @@ serve(async (req) => {
         .insert([{
           description: `Fornecedor: Ação ${action} realizada. Status atualizado para ${newStatus}`,
           actor: 'supplier',
-          assistance_id: assistance.id
+          assistance_id: assistanceId
         }]);
     } catch (logError) {
       console.error('Erro ao registrar log de atividade:', logError);

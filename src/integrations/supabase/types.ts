@@ -460,6 +460,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      validate_edge_function_access: {
+        Args: { p_token: string; p_action: string }
+        Returns: Json
+      }
       validate_supplier_token: {
         Args: { token_value: string; assistance_id: number; token_type: string }
         Returns: boolean
@@ -469,6 +473,15 @@ export type Database = {
           assistance_id: number
           provided_token: string
           token_type: string
+        }
+        Returns: boolean
+      }
+      validate_token_with_audit: {
+        Args: {
+          assistance_id: number
+          provided_token: string
+          token_type: string
+          client_ip?: string
         }
         Returns: boolean
       }

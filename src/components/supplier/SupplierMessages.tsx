@@ -25,20 +25,48 @@ export default function SupplierMessages({ assistanceId, supplierName }: Supplie
   const handleSend = () => {
     if (!message.trim()) return;
     
-    // Enhanced input sanitization
+    // Enhanced input sanitization and validation
     const sanitizedMessage = message
+      // Remove script tags and their content
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      // Remove all HTML tags
       .replace(/<[^>]*>/g, '')
+      // Remove potential XSS patterns
+      .replace(/javascript:/gi, '')
+      .replace(/vbscript:/gi, '')
+      .replace(/on\w+\s*=/gi, '')
+      // Normalize whitespace
+      .replace(/\s+/g, ' ')
       .trim()
+      // Limit length for security
       .slice(0, 1000);
     
-    if (!sanitizedMessage) return;
+    // Additional validation
+    if (!sanitizedMessage || sanitizedMessage.length < 1) {
+      toast.error("Mensagem inválida ou vazia");
+      return;
+    }
+    
+    // Prevent injection patterns
+    const dangerousPatterns = [
+      /eval\s*\(/i,
+      /Function\s*\(/i,
+      /setTimeout\s*\(/i,
+      /setInterval\s*\(/i,
+      /%3cscript/i,
+      /&#x/i
+    ];
+    
+    if (dangerousPatterns.some(pattern => pattern.test(sanitizedMessage))) {
+      toast.error("Mensagem contém conteúdo não permitido");
+      return;
+    }
     
     sendMessage(
       {
         assistance_id: assistanceId,
         sender_role: "supplier",
-        sender_name: supplierName,
+        sender_name: supplierName.replace(/<[^>]*>/g, '').trim().slice(0, 100), // Sanitize supplier name too
         message: sanitizedMessage,
       },
       {
