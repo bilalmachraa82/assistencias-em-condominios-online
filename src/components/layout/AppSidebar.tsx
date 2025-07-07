@@ -72,7 +72,7 @@ export function AppSidebar() {
     <Sidebar className="bg-sidebar border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border px-6 py-4 bg-sidebar">
         <div className="flex items-center gap-3">
-          <Logo size="md" />
+          <Logo size="lg" />
         </div>
       </SidebarHeader>
       

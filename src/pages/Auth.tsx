@@ -111,7 +111,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Logo size="lg" />
+            <Logo size="xl" />
           </div>
           <CardTitle className="text-2xl font-bold">Sistema de Gestão</CardTitle>
           <CardDescription>Acesso para administradores</CardDescription>

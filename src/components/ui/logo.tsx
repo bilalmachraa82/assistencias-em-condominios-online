@@ -2,14 +2,15 @@ import React from 'react';
 
 interface LogoProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'light' | 'dark';
 }
 
 const sizeClasses = {
-  sm: 'h-6 w-auto',
-  md: 'h-8 w-auto',
-  lg: 'h-12 w-auto'
+  sm: 'h-8 w-auto',
+  md: 'h-12 w-auto',
+  lg: 'h-16 w-auto',
+  xl: 'h-20 w-auto'
 };
 
 export function Logo({ className = '', size = 'md', variant = 'light' }: LogoProps) {
