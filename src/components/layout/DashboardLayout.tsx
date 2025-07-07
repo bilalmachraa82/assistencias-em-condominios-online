@@ -17,36 +17,38 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-gradient-subtle">
         <AppSidebar />
         <main className="flex-1 flex flex-col">
-          <header className="flex items-center justify-between p-4 border-b border-border bg-card/50 backdrop-blur-xl shadow-sm">
+          <header className="flex items-center justify-between p-4 border-b border-border/50 bg-glass-bg backdrop-blur-xl shadow-soft">
             <SidebarTrigger />
             <div className="flex items-center gap-4">
               <RealtimeNotifications />
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <User className="h-4 w-4" />
-                <span>{user?.email}</span>
+                <span className="font-medium">{user?.email}</span>
                 {isAdmin && (
-                  <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
+                  <span className="bg-gradient-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium shadow-soft">
                     Admin
                   </span>
                 )}
               </div>
               <ThemeToggle />
               <Button 
-                variant="outline" 
+                variant="glass" 
                 size="sm" 
                 onClick={signOut}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 font-medium"
               >
                 <LogOut className="h-4 w-4" />
                 Logout
               </Button>
             </div>
           </header>
-          <div className="flex-1 p-6 bg-background">
-            {children}
+          <div className="flex-1 p-6 bg-transparent">
+            <div className="animate-fade-in-up">
+              {children}
+            </div>
           </div>
         </main>
       </div>

@@ -6,24 +6,27 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-blue-600 text-white hover:bg-blue-700",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-medium hover:-translate-y-0.5 active:translate-y-0",
         destructive:
-          "bg-red-600 text-white hover:bg-red-700",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft hover:shadow-medium hover:-translate-y-0.5 active:translate-y-0",
         outline:
-          "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-soft hover:shadow-medium hover:-translate-y-0.5 active:translate-y-0",
         secondary:
-          "bg-gray-200 text-gray-900 hover:bg-gray-300",
-        ghost: "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
-        link: "text-blue-600 underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft hover:shadow-medium hover:-translate-y-0.5 active:translate-y-0",
+        ghost: "hover:bg-accent hover:text-accent-foreground hover:-translate-y-0.5 active:translate-y-0",
+        link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
+        premium: "bg-gradient-primary text-primary-foreground hover:shadow-glow hover:-translate-y-1 active:translate-y-0 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700",
+        glass: "bg-glass-bg border border-glass-border backdrop-blur-xl hover:bg-glass-bg/80 hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
+        lg: "h-11 rounded-md px-8 text-base",
+        xl: "h-12 rounded-lg px-10 text-lg",
         icon: "h-10 w-10",
       },
     },
