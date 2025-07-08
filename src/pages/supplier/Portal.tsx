@@ -30,14 +30,14 @@ export default function Portal() {
   const { token: rawToken } = useParams<{ token: string }>();
   const [searchParams] = useSearchParams();
   
-  // Check if using new ID+hash system
-  const assistanceId = searchParams.get('id') || rawToken;
+  // Smart detection: Check if using new ID+hash system vs old token system
+  const assistanceId = searchParams.get('id') || (rawToken && !isNaN(Number(rawToken)) ? rawToken : null);
   const verifyParam = searchParams.get('verify');
   const usingNewSystem = verifyParam && assistanceId && !isNaN(Number(assistanceId));
   
-  // For old system, decode the token
+  // For old system, decode the token and clean it
   const cleanToken = rawToken ? decodeURIComponent(rawToken) : undefined;
-  const token = cleanToken?.startsWith(':') ? cleanToken.replace(/^:token?/, '') : cleanToken;
+  const token = usingNewSystem ? null : (cleanToken?.startsWith(':') ? cleanToken.replace(/^:token?/, '') : cleanToken);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,12 +52,22 @@ export default function Portal() {
     console.log('🔍 Assistance ID:', assistanceId);
     console.log('🔍 Token:', token?.substring(0, 10) + '...');
     
+    // Enhanced validation with better error messages
     if (!assistanceId && !token) {
       console.error('❌ No access credentials provided');
-      setError('Token ou ID de acesso não fornecido');
+      setError('Link de acesso inválido. Por favor, use o link enviado por email ou contacte o administrador.');
       setLoading(false);
       return;
     }
+    
+    // Log detection results for debugging
+    console.log('🔍 Token detection results:', {
+      rawToken: rawToken?.substring(0, 15) + '...',
+      assistanceId,
+      verifyParam: verifyParam?.substring(0, 8) + '...',
+      usingNewSystem,
+      tokenLength: token?.length
+    });
     
     const loadAssistance = async () => {
       if (usingNewSystem) {
