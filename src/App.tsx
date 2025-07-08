@@ -57,7 +57,15 @@ const router = createBrowserRouter([
     element: <Portal />,
   },
   {
+    path: "/supplier/portal/:id",
+    element: <Portal />,
+  },
+  {
     path: "/supplier/accept/:token",
+    element: <AcceptRequest />,
+  },
+  {
+    path: "/supplier/accept/:id", 
     element: <AcceptRequest />,
   },
   {
@@ -65,7 +73,15 @@ const router = createBrowserRouter([
     element: <ScheduleRequest />,
   },
   {
+    path: "/supplier/schedule/:id",
+    element: <ScheduleRequest />,
+  },
+  {
     path: "/supplier/complete/:token",
+    element: <CompleteRequest />,
+  },
+  {
+    path: "/supplier/complete/:id",
     element: <CompleteRequest />,
   },
   {

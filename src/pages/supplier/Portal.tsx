@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,11 +24,18 @@ import { fetchAssistanceData, getTypeBadgeClass } from '@/utils/SupplierActionUt
 import { useAssistancePhotos } from '@/hooks/useAssistancePhotos';
 import { useAssistanceMessages } from '@/hooks/useAssistanceMessages';
 import { PHOTO_CATEGORIES } from '@/config/photoCategories';
+import { verifyHash } from '@/utils/HashUtils';
 
 export default function Portal() {
   const { token: rawToken } = useParams<{ token: string }>();
+  const [searchParams] = useSearchParams();
   
-  // Decode the token in case it was URL encoded and clean any route parameter artifacts
+  // Check if using new ID+hash system
+  const assistanceId = searchParams.get('id') || rawToken;
+  const verifyParam = searchParams.get('verify');
+  const usingNewSystem = verifyParam && assistanceId && !isNaN(Number(assistanceId));
+  
+  // For old system, decode the token
   const cleanToken = rawToken ? decodeURIComponent(rawToken) : undefined;
   const token = cleanToken?.startsWith(':') ? cleanToken.replace(/^:token?/, '') : cleanToken;
   
@@ -40,52 +47,77 @@ export default function Portal() {
   const { data: messages = [] } = useAssistanceMessages(assistance?.id);
 
   useEffect(() => {
-    console.log('🔍 Portal component mounted with token:', token);
-    console.log('🔍 Full URL pathname:', window.location.pathname);
-    console.log('🔍 Raw token from params:', rawToken);
-    console.log('🔍 Clean token after processing:', token);
-    console.log('🔍 Token length:', token?.length);
+    console.log('🔍 Portal component mounted');
+    console.log('🔍 Using new system:', usingNewSystem);
+    console.log('🔍 Assistance ID:', assistanceId);
+    console.log('🔍 Token:', token?.substring(0, 10) + '...');
     
-    if (!token) {
-      console.error('❌ No token provided to Portal component');
-      setError('Token de acesso não fornecido');
-      setLoading(false);
-      return;
-    }
-
-    // Validate token format - should be at least 40 characters
-    if (token.length < 40) {
-      console.error('❌ Token too short:', token.length, 'characters');
-      setError('Token inválido - formato incorreto');
+    if (!assistanceId && !token) {
+      console.error('❌ No access credentials provided');
+      setError('Token ou ID de acesso não fornecido');
       setLoading(false);
       return;
     }
     
     const loadAssistance = async () => {
-      console.log('📤 Fetching assistance data with token:', token?.substring(0, 10) + '...');
-      
-      // Use 'view' action to access portal with any valid token
-      const result = await fetchAssistanceData('view' as any, token);
-      
-      console.log('📨 Portal fetch result:', result);
-      
-      if (!result?.success) {
-        console.error('❌ Failed to load assistance data:', result?.error);
-        if (result?.error?.includes('Invalid token')) {
-          setError('Token não encontrado na base de dados. Por favor, use o link mais recente do email.');
-        } else {
-          setError('Token inválido ou assistência não encontrada');
+      if (usingNewSystem) {
+        // New system: validate hash first
+        const idNum = Number(assistanceId);
+        if (!verifyHash(idNum, verifyParam)) {
+          setError('Link de acesso inválido');
+          setLoading(false);
+          return;
+        }
+        
+        try {
+          console.log('📤 Fetching assistance data with new system - ID:', idNum);
+          const response = await fetch(
+            `https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=view&id=${idNum}&verify=${verifyParam}`
+          );
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            setError(errorData.error || 'Erro ao carregar assistência');
+            setLoading(false);
+            return;
+          }
+          
+          const result = await response.json();
+          console.log('✅ Successfully loaded assistance data:', result.data);
+          setAssistance(result.data);
+        } catch (error) {
+          console.error('❌ Network error:', error);
+          setError('Erro de conexão');
         }
       } else {
-        console.log('✅ Successfully loaded assistance data:', result.data);
-        setAssistance(result.data);
+        // Old system: validate token format and use existing function
+        if (!token || token.length < 40) {
+          setError('Token inválido - formato incorreto');
+          setLoading(false);
+          return;
+        }
+        
+        console.log('📤 Fetching assistance data with old system - token:', token?.substring(0, 10) + '...');
+        const result = await fetchAssistanceData('view' as any, token);
+        
+        if (!result?.success) {
+          console.error('❌ Failed to load assistance data:', result?.error);
+          if (result?.error?.includes('Invalid token')) {
+            setError('Token não encontrado na base de dados. Por favor, use o link mais recente do email.');
+          } else {
+            setError('Token inválido ou assistência não encontrada');
+          }
+        } else {
+          console.log('✅ Successfully loaded assistance data:', result.data);
+          setAssistance(result.data);
+        }
       }
       
       setLoading(false);
     };
     
     loadAssistance();
-  }, [token, rawToken]);
+  }, [token, assistanceId, verifyParam, usingNewSystem]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -302,18 +334,18 @@ export default function Portal() {
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="actions" className="p-6">
-                    {assistance && token && (
-                      <PortalActions 
-                        assistance={assistance}
-                        token={token}
-                        onActionCompleted={() => {
-                          // Reload page to get updated assistance data
-                          window.location.reload();
-                        }}
-                      />
-                    )}
-                  </TabsContent>
+                   <TabsContent value="actions" className="p-6">
+                     {assistance && (assistanceId || token) && (
+                       <PortalActions 
+                         assistance={assistance}
+                         token={usingNewSystem ? `${assistanceId}?verify=${verifyParam}` : token}
+                         onActionCompleted={() => {
+                           // Reload page to get updated assistance data
+                           window.location.reload();
+                         }}
+                       />
+                     )}
+                   </TabsContent>
                   
                   <TabsContent value="messages" className="p-6">
                     {assistance && (

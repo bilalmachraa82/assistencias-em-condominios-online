@@ -4,38 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Copy } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from 'sonner';
+import { generateSupplierUrl } from '@/utils/HashUtils';
 
 interface AssistanceSupplierLinkProps {
   assistance: any;
 }
 
 export default function AssistanceSupplierLink({ assistance }: AssistanceSupplierLinkProps) {
-  // Get appropriate link for current status - always use portal route
+  // Get appropriate link for current status - use new simplified system
   const getSupplierLink = (assistance: any) => {
-    const baseUrl = window.location.origin;
-    
-    // Prioritize longer tokens first (better validation compatibility)
-    const tokens = [
-      assistance.interaction_token,
-      assistance.validation_token, 
-      assistance.scheduling_token,
-      assistance.acceptance_token
-    ].filter(t => t && t.length >= 20); // Only tokens with minimum length
-    
-    const token = tokens[0]; // Take the first valid token
-    
-    if (!token) {
-      console.error('❌ No valid token found for assistance', assistance.id, {
-        acceptance_token: assistance.acceptance_token?.length || 0,
-        scheduling_token: assistance.scheduling_token?.length || 0,
-        validation_token: assistance.validation_token?.length || 0,
-        interaction_token: assistance.interaction_token?.length || 0
-      });
+    try {
+      // Use new hash-based system - much more reliable
+      const newUrl = generateSupplierUrl(assistance.id, 'portal');
+      console.log('🔗 Generating new-style portal link for assistance:', assistance.id);
+      return newUrl;
+    } catch (error) {
+      console.error('❌ Error generating supplier link for assistance', assistance.id, error);
       return null;
     }
-    
-    console.log('🔗 Generating portal link with token:', token.substring(0, 10) + '...', `(${token.length} chars)`);
-    return `${baseUrl}/supplier/portal/${token}`;
   };
   
   // Copy link to clipboard

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
@@ -10,11 +10,18 @@ import { toast } from 'sonner';
 import SupplierActionLayout from '@/components/supplier/SupplierActionLayout';
 import SupplierMessages from '@/components/supplier/SupplierMessages';
 import { submitSupplierAction, fetchAssistanceData, getTypeBadgeClass } from '@/utils/SupplierActionUtils';
+import { verifyHash } from '@/utils/HashUtils';
 
 export default function AcceptRequest() {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const { token: paramToken } = useParams();
   const navigate = useNavigate();
+  
+  // Support both old (query param) and new (URL param + hash) systems
+  const assistanceId = searchParams.get('id') || paramToken;
+  const verifyParam = searchParams.get('verify');
+  const token = searchParams.get('token') || paramToken;
+  const usingNewSystem = verifyParam && assistanceId && !isNaN(Number(assistanceId));
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -27,29 +34,61 @@ export default function AcceptRequest() {
   const [rejectionReason, setRejectionReason] = useState('');
 
   useEffect(() => {
-    if (!token) {
-      setError('Token de acesso não fornecido');
+    if (!assistanceId && !token) {
+      setError('Token ou ID de acesso não fornecido');
       setLoading(false);
       return;
     }
     
     const loadAssistance = async () => {
-      console.log('🔄 Loading assistance data with token:', token);
-      const result = await fetchAssistanceData('accept', token);
-      
-      if (!result.success) {
-        console.error('❌ Failed to load assistance:', result.error);
-        setError(result.error || 'Erro ao carregar os detalhes da assistência');
+      if (usingNewSystem) {
+        // New system: validate hash first
+        const idNum = Number(assistanceId);
+        if (!verifyHash(idNum, verifyParam)) {
+          setError('Link de acesso inválido');
+          setLoading(false);
+          return;
+        }
+        
+        try {
+          console.log('🔄 Loading assistance data with new system - ID:', idNum);
+          const response = await fetch(
+            `https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=accept&id=${idNum}&verify=${verifyParam}`
+          );
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            setError(errorData.error || 'Erro ao carregar assistência');
+            setLoading(false);
+            return;
+          }
+          
+          const result = await response.json();
+          console.log('✅ Assistance loaded successfully:', result.data);
+          setAssistance(result.data);
+        } catch (error) {
+          console.error('❌ Network error:', error);
+          setError('Erro de conexão');
+        }
       } else {
-        console.log('✅ Assistance loaded successfully:', result.data);
-        setAssistance(result.data);
+        // Old system
+        console.log('🔄 Loading assistance data with old system - token:', token);
+        const result = await fetchAssistanceData('accept', token);
+        
+        if (!result.success) {
+          console.error('❌ Failed to load assistance:', result.error);
+          setError(result.error || 'Erro ao carregar os detalhes da assistência');
+        } else {
+          console.log('✅ Assistance loaded successfully:', result.data);
+          setAssistance(result.data);
+        }
       }
       
       setLoading(false);
     };
     
     loadAssistance();
-  }, [token]);
+  }, [token, assistanceId, verifyParam, usingNewSystem]);
 
   const handleAccept = async () => {
     console.log('🔄 Starting acceptance process...');
@@ -57,8 +96,9 @@ export default function AcceptRequest() {
     console.log('Selected date:', selectedDate);
     console.log('Selected time:', selectedTime);
     
-    if (!token) {
-      toast.error('Token inválido');
+    const credentials = usingNewSystem ? `${assistanceId}?verify=${verifyParam}` : token;
+    if (!credentials) {
+      toast.error('Credenciais de acesso inválidas');
       return;
     }
     
@@ -80,7 +120,7 @@ export default function AcceptRequest() {
     }
     
     console.log('📤 Submitting acceptance...');
-    const result = await submitSupplierAction('accept', token, data);
+    const result = await submitSupplierAction('accept', credentials, data);
     
     if (result.success) {
       const message = acceptWithSchedule 
@@ -102,15 +142,16 @@ export default function AcceptRequest() {
       return;
     }
     
-    if (!token) {
-      toast.error('Token inválido');
+    const credentials = usingNewSystem ? `${assistanceId}?verify=${verifyParam}` : token;
+    if (!credentials) {
+      toast.error('Credenciais de acesso inválidas');
       return;
     }
     
     setSubmitting(true);
     
     console.log('📤 Submitting rejection...');
-    const result = await submitSupplierAction('reject', token, {
+    const result = await submitSupplierAction('reject', credentials, {
       reason: rejectionReason
     });
     

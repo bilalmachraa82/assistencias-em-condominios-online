@@ -8,6 +8,18 @@ import { handleError } from './error-handling.ts';
 import { auditSecurityEvent } from './audit.ts';
 import { fetchAssistanceData } from './assistance-data.ts';
 
+// Simple hash function (matches frontend implementation)
+function generateSimpleHash(assistanceId: number, salt: string = 'secure-salt-2024'): string {
+  const data = `${assistanceId}-${salt}`;
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    const char = data.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0');
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -40,24 +52,30 @@ serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
     const token = url.searchParams.get('token');
+    const assistanceId = url.searchParams.get('id');
+    const verifyHash = url.searchParams.get('verify');
 
-    console.log(`Processing ${action} request with token: ${token?.substring(0, 10)}... from IP: ${clientIP}`);
+    console.log(`Processing ${action} request with token: ${token?.substring(0, 10)}... or ID: ${assistanceId} from IP: ${clientIP}`);
 
-    // Enhanced input validation
-    if (!token || typeof token !== 'string') {
+    // Enhanced input validation - support both old token system and new ID+hash system
+    const usingNewSystem = assistanceId && verifyHash;
+    const usingOldSystem = token && typeof token === 'string';
+    
+    if (!usingNewSystem && !usingOldSystem) {
       await auditSecurityEvent(
         supabase,
-        'MISSING_TOKEN',
+        'MISSING_CREDENTIALS',
         'edge_function',
         0,
         clientIP,
         userAgent,
-        { action, token_provided: !!token }
+        { action, token_provided: !!token, id_provided: !!assistanceId, hash_provided: !!verifyHash }
       );
-      return createCorsResponse({ error: 'Token não fornecido ou inválido' }, 400);
+      return createCorsResponse({ error: 'Token ou credenciais de acesso não fornecidas' }, 400);
     }
 
-    if (!validateToken(token)) {
+    // Validate old token system if being used
+    if (usingOldSystem && !validateToken(token)) {
       await auditSecurityEvent(
         supabase,
         'INVALID_TOKEN_FORMAT',
@@ -83,41 +101,69 @@ serve(async (req) => {
       return createCorsResponse({ error: 'Ação inválida' }, 400);
     }
 
-    // Use secure validation function
-    const { data: validationResult, error: validationError } = await supabase.rpc('validate_edge_function_access', {
-      p_token: token,
-      p_action: action || 'view'
-    });
+    let finalAssistanceId: number;
 
-    if (validationError || !validationResult?.success) {
-      console.error('Token validation failed:', validationError || validationResult);
-      
-      await auditSecurityEvent(
-        supabase,
-        'TOKEN_VALIDATION_FAILED',
-        'assistances',
-        0,
-        clientIP,
-        userAgent,
-        { 
-          action, 
-          error: validationError?.message || validationResult?.error,
-          error_code: validationResult?.code
-        }
-      );
-      
-      return handleError(
-        validationResult?.error || 'Token inválido ou assistência não encontrada', 
-        validationError, 
-        404
-      );
+    if (usingNewSystem) {
+      // New system: validate ID + hash
+      const idNum = parseInt(assistanceId);
+      if (isNaN(idNum)) {
+        return createCorsResponse({ error: 'ID de assistência inválido' }, 400);
+      }
+
+      // Simple hash verification (same algorithm as frontend)
+      const expectedHash = generateSimpleHash(idNum, 'secure-salt-2024');
+      if (expectedHash !== verifyHash) {
+        await auditSecurityEvent(
+          supabase,
+          'HASH_VALIDATION_FAILED',
+          'assistances',
+          idNum,
+          clientIP,
+          userAgent,
+          { action, provided_hash: verifyHash.substring(0, 8) }
+        );
+        return createCorsResponse({ error: 'Hash de verificação inválido' }, 400);
+      }
+
+      finalAssistanceId = idNum;
+      console.log(`Hash validated successfully for assistance ID: ${finalAssistanceId}`);
+    } else {
+      // Old system: use existing token validation
+      const { data: validationResult, error: validationError } = await supabase.rpc('validate_edge_function_access', {
+        p_token: token,
+        p_action: action || 'view'
+      });
+
+      if (validationError || !validationResult?.success) {
+        console.error('Token validation failed:', validationError || validationResult);
+        
+        await auditSecurityEvent(
+          supabase,
+          'TOKEN_VALIDATION_FAILED',
+          'assistances',
+          0,
+          clientIP,
+          userAgent,
+          { 
+            action, 
+            error: validationError?.message || validationResult?.error,
+            error_code: validationResult?.code
+          }
+        );
+        
+        return handleError(
+          validationResult?.error || 'Token inválido ou assistência não encontrada', 
+          validationError, 
+          404
+        );
+      }
+
+      finalAssistanceId = validationResult.assistance_id;
+      console.log(`Token validated successfully for assistance ID: ${finalAssistanceId}`);
     }
-
-    const assistanceId = validationResult.assistance_id;
-    console.log(`Token validated successfully for assistance ID: ${assistanceId}`);
     
     // Get assistance data with enhanced security
-    const assistance = await fetchAssistanceData(supabase, assistanceId, clientIP, userAgent);
+    const assistance = await fetchAssistanceData(supabase, finalAssistanceId, clientIP, userAgent);
 
     // Audit successful access
     await auditSecurityEvent(
