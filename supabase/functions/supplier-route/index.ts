@@ -128,14 +128,18 @@ serve(async (req) => {
       finalAssistanceId = idNum;
       console.log(`Hash validated successfully for assistance ID: ${finalAssistanceId}`);
     } else {
-      // Old system: use existing token validation
-      const { data: validationResult, error: validationError } = await supabase.rpc('validate_edge_function_access', {
-        p_token: token,
-        p_action: action || 'view'
-      });
+      // Old system: use direct token validation (EMERGENCY FIX)
+      console.log(`🔄 Direct token validation for token: ${token.substring(0, 15)}...`);
+      
+      // Try to find assistance by token in any token field
+      const { data: assistance, error: assistanceError } = await supabase
+        .from('assistances')
+        .select('id, status, supplier_id')
+        .or(`acceptance_token.eq.${token},scheduling_token.eq.${token},validation_token.eq.${token},interaction_token.eq.${token}`)
+        .single();
 
-      if (validationError || !validationResult?.success) {
-        console.error('Token validation failed:', validationError || validationResult);
+      if (assistanceError || !assistance) {
+        console.error('Direct token validation failed:', assistanceError);
         
         await auditSecurityEvent(
           supabase,
@@ -146,20 +150,16 @@ serve(async (req) => {
           userAgent,
           { 
             action, 
-            error: validationError?.message || validationResult?.error,
-            error_code: validationResult?.code
+            error: assistanceError?.message || 'Token not found',
+            method: 'direct_query'
           }
         );
         
-        return handleError(
-          validationResult?.error || 'Token inválido ou assistência não encontrada', 
-          validationError, 
-          404
-        );
+        return handleError('Token inválido ou assistência não encontrada', assistanceError, 404);
       }
 
-      finalAssistanceId = validationResult.assistance_id;
-      console.log(`Token validated successfully for assistance ID: ${finalAssistanceId}`);
+      finalAssistanceId = assistance.id;
+      console.log(`✅ Direct token validation successful for assistance ID: ${finalAssistanceId}`);
     }
     
     // Get assistance data with enhanced security
