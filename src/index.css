@@ -52,9 +52,9 @@
     --shadow-glow: 0 0 20px hsl(var(--primary) / 0.3);
     --shadow-colored: 0 10px 30px -5px hsl(var(--primary) / 0.2);
     
-    /* Glass effect variables */
-    --glass-bg: hsl(var(--background) / 0.8);
-    --glass-border: hsl(var(--border) / 0.2);
+    /* Glass effect variables - improved contrast for light mode */
+    --glass-bg: hsl(var(--background) / 0.95);
+    --glass-border: hsl(var(--border) / 0.4);
   }
 
   .dark {
