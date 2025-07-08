@@ -52,24 +52,7 @@ const router = createBrowserRouter([
     element: <AuthGuard><ConfiguracaoServicos /></AuthGuard>,
   },
   // Supplier public routes (no auth required) - Ordered by specificity
-  // Fallback routes without parameters (must be first)
-  {
-    path: "/supplier/portal",
-    element: <Portal />,
-  },
-  {
-    path: "/supplier/complete",
-    element: <CompleteRequest />,
-  },
-  {
-    path: "/supplier/accept", 
-    element: <AcceptRequest />,
-  },
-  {
-    path: "/supplier/schedule",
-    element: <ScheduleRequest />,
-  },
-  // Routes with parameters (more specific patterns first)
+  // Routes with parameters (must be first)
   {
     path: "/supplier/portal/:token",
     element: <Portal />,
@@ -85,6 +68,23 @@ const router = createBrowserRouter([
   {
     path: "/supplier/complete/:token",
     element: <CompleteRequest />,
+  },
+  // Fallback routes without parameters (must be last)
+  {
+    path: "/supplier/portal",
+    element: <Portal />,
+  },
+  {
+    path: "/supplier/complete",
+    element: <CompleteRequest />,
+  },
+  {
+    path: "/supplier/accept", 
+    element: <AcceptRequest />,
+  },
+  {
+    path: "/supplier/schedule",
+    element: <ScheduleRequest />,
   },
   {
     path: "/supplier/confirmation/:type",
