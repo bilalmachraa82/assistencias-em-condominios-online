@@ -30,14 +30,11 @@ export default function Portal() {
   const { token: rawToken } = useParams<{ token: string }>();
   const [searchParams] = useSearchParams();
   
-  // Smart detection: Check if using new ID+hash system vs old token system
-  const assistanceId = searchParams.get('id') || (rawToken && !isNaN(Number(rawToken)) ? rawToken : null);
+  // Support query parameter token (working format) and legacy URL param
+  const token = searchParams.get('token') || rawToken;
+  const assistanceId = searchParams.get('id');
   const verifyParam = searchParams.get('verify');
   const usingNewSystem = verifyParam && assistanceId && !isNaN(Number(assistanceId));
-  
-  // For old system, decode the token and clean it
-  const cleanToken = rawToken ? decodeURIComponent(rawToken) : undefined;
-  const token = usingNewSystem ? null : (cleanToken?.startsWith(':') ? cleanToken.replace(/^:token?/, '') : cleanToken);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

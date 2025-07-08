@@ -84,33 +84,27 @@ serve(async (req) => {
       return Array.from(randomArray, byte => chars[byte % chars.length]).join('');
     };
 
-    const tokenFields = {
-      acceptance: 'acceptance_token',
-      scheduling: 'scheduling_token',
-      validation: 'validation_token'
-    };
-    
-    const tokenField = tokenFields[emailType];
-    let token = assistance[tokenField];
+    // Use only interaction_token for all email types (simplified system)
+    let token = assistance.interaction_token;
 
     if (!token) {
-      console.log(`Token for ${emailType} not found for assistance ${assistanceId}. Generating a new one.`);
+      console.log(`Interaction token not found for assistance ${assistanceId}. Generating a new one.`);
       token = generateToken();
       const { error: updateError } = await supabase
         .from('assistances')
-        .update({ [tokenField]: token })
+        .update({ interaction_token: token })
         .eq('id', assistanceId);
       
       if (updateError) {
-        console.error(`Failed to save new ${emailType} token for assistance ${assistanceId}:`, updateError);
+        console.error(`Failed to save new interaction token for assistance ${assistanceId}:`, updateError);
         return new Response(
-          JSON.stringify({ error: `Falha ao gerar e salvar novo token de ${emailType}.` }),
+          JSON.stringify({ error: `Falha ao gerar e salvar novo token de interação.` }),
           { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
-      console.log(`New ${emailType} token generated and saved successfully.`);
+      console.log(`New interaction token generated and saved successfully.`);
       // Update assistance object with new token
-      assistance[tokenField] = token;
+      assistance.interaction_token = token;
     }
 
     let emailSubject = '';
@@ -119,22 +113,23 @@ serve(async (req) => {
     
     console.log('Using base URL for links:', baseUrl);
     
+    // Use interaction_token for all actions and portal URL with query parameter
+    const token = assistance.interaction_token;
+    supplierActionUrl = `${baseUrl}/supplier/portal?token=${encodeURIComponent(token)}`;
+    
     switch(emailType) {
       case 'acceptance':
         emailSubject = `Nova Solicitação de Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${baseUrl}/supplier/portal/${encodeURIComponent(assistance.acceptance_token)}`;
         emailContent = generateAcceptanceEmail(assistance, supplierActionUrl);
         break;
 
       case 'scheduling':
         emailSubject = `Agende a Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${baseUrl}/supplier/portal/${encodeURIComponent(assistance.scheduling_token)}`;
         emailContent = generateSchedulingEmail(assistance, supplierActionUrl);
         break;
 
       case 'validation':
         emailSubject = `Confirme a Conclusão da Assistência - ${assistance.buildings.name}`;
-        supplierActionUrl = `${baseUrl}/supplier/portal/${encodeURIComponent(assistance.validation_token)}`;
         emailContent = generateValidationEmail(assistance, supplierActionUrl);
         break;
         

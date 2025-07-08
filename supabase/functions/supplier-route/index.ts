@@ -131,13 +131,13 @@ serve(async (req) => {
       // Old system: use direct token validation (EMERGENCY FIX)
       console.log(`🔄 Direct token validation for token: ${token.substring(0, 15)}... (length: ${token.length})`);
       
-      // Enhanced token validation with better error handling
+      // Enhanced token validation with simplified token system (primarily interaction_token)
       try {
-        // Try to find assistance by token in any token field
+        // Try to find assistance by token - prioritize interaction_token but support legacy tokens
         const { data: assistance, error: assistanceError } = await supabase
           .from('assistances')
           .select('id, status, supplier_id')
-          .or(`acceptance_token.eq.${token},scheduling_token.eq.${token},validation_token.eq.${token},interaction_token.eq.${token}`)
+          .or(`interaction_token.eq.${token},acceptance_token.eq.${token},scheduling_token.eq.${token},validation_token.eq.${token}`)
           .single();
 
         if (assistanceError || !assistance) {

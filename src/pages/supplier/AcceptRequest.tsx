@@ -17,10 +17,10 @@ export default function AcceptRequest() {
   const { token: paramToken } = useParams();
   const navigate = useNavigate();
   
-  // Support both old (query param) and new (URL param + hash) systems
-  const assistanceId = searchParams.get('id') || paramToken;
-  const verifyParam = searchParams.get('verify');
+  // Support query parameter token (working format) and legacy URL param
   const token = searchParams.get('token') || paramToken;
+  const assistanceId = searchParams.get('id');
+  const verifyParam = searchParams.get('verify');
   const usingNewSystem = verifyParam && assistanceId && !isNaN(Number(assistanceId));
   
   const [loading, setLoading] = useState(true);
