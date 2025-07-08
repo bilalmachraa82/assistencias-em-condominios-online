@@ -187,8 +187,8 @@ export default function AcceptRequest() {
               <Building className="h-4 w-4 mt-1 text-gray-500" />
               <div>
                 <div className="text-sm font-medium text-gray-900">Edifício</div>
-                <div className="text-sm text-gray-700">{assistance.buildings.name}</div>
-                <div className="text-xs text-gray-500">{assistance.buildings.address}</div>
+                <div className="text-sm text-gray-700">{assistance.buildings?.name || 'N/A'}</div>
+                <div className="text-xs text-gray-500">{assistance.buildings?.address || 'N/A'}</div>
               </div>
             </div>
             
@@ -196,7 +196,7 @@ export default function AcceptRequest() {
               <Wrench className="h-4 w-4 mt-1 text-gray-500" />
               <div>
                 <div className="text-sm font-medium text-gray-900">Tipo de Intervenção</div>
-                <div className="text-sm text-gray-700">{assistance.intervention_types.name}</div>
+                <div className="text-sm text-gray-700">{assistance.intervention_types?.name || 'N/A'}</div>
               </div>
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function AcceptRequest() {
             </h3>
             <SupplierMessages 
               assistanceId={assistance.id}
-              supplierName={assistance.suppliers.name}
+              supplierName={assistance.suppliers?.name || 'Fornecedor'}
             />
           </div>
 

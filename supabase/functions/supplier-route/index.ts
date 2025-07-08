@@ -186,9 +186,9 @@ serve(async (req) => {
         description: assistance.description,
         status: assistance.status,
         type: assistance.type,
-        building: assistance.buildings,
-        supplier: assistance.suppliers,
-        intervention_type: assistance.intervention_types
+        buildings: assistance.buildings,
+        suppliers: assistance.suppliers,
+        intervention_types: assistance.intervention_types
       }
     });
   } catch (error) {
