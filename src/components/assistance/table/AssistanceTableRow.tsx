@@ -48,15 +48,15 @@ export default function AssistanceTableRow({
   return (
     <TableRow 
       className={`${
-        isLateHighlighted || isLateItem ? 'bg-red-900/10 hover:bg-red-900/20' : 'hover:bg-white/5'
+        isLateHighlighted || isLateItem ? 'bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20' : 'hover:bg-muted/50'
       } cursor-pointer transition-colors`}
       onClick={() => handleRowClick(assistance)}
     >
-      <TableCell className="text-[#cbd5e1] font-medium">#{assistance.id}</TableCell>
-      <TableCell className="text-[#cbd5e1]">
+      <TableCell className="text-foreground font-medium">#{assistance.id}</TableCell>
+      <TableCell className="text-foreground">
         {assistance.buildings?.name || '-'}
       </TableCell>
-      <TableCell className="text-[#cbd5e1] hidden md:table-cell">
+      <TableCell className="text-foreground hidden md:table-cell">
         {assistance.suppliers?.name || '-'}
       </TableCell>
       <TableCell>
@@ -66,7 +66,7 @@ export default function AssistanceTableRow({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <AlertTriangle className="h-4 w-4 text-red-400" />
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Assistência em atraso</p>
@@ -78,14 +78,14 @@ export default function AssistanceTableRow({
       </TableCell>
       <TableCell className="hidden md:table-cell">
         <span className={`px-2 py-1 rounded-full text-xs ${
-          assistance.type === 'Normal' ? 'bg-green-500/20 text-green-300' :
-          assistance.type === 'Urgente' ? 'bg-orange-500/20 text-orange-300' :
-          'bg-red-500/20 text-red-300'
+          assistance.type === 'Normal' ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300' :
+          assistance.type === 'Urgente' ? 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300' :
+          'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300'
         }`}>
           {assistance.type}
         </span>
       </TableCell>
-      <TableCell className="text-[#8E9196] hidden sm:table-cell">
+      <TableCell className="text-muted-foreground hidden sm:table-cell">
         {formatDate(assistance.created_at)}
       </TableCell>
       <TableCell className="hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
