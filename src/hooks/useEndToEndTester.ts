@@ -248,7 +248,8 @@ export function useEndToEndTester() {
       updateStepStatus('supplier-accept', 'running');
       
       try {
-        const acceptUrl = `/supplier/accept?token=${assistanceData.acceptance_token}`;
+        // Updated to use Portal with query parameter (new working format)
+        const acceptUrl = `/supplier/portal?token=${interactionToken}`;
         const response = await fetch(`${window.location.origin}${acceptUrl}`);
         
         if (response.ok) {
@@ -257,28 +258,22 @@ export function useEndToEndTester() {
           updateStepStatus('supplier-accept', 'error', `Erro HTTP: ${response.status}`);
         }
       } catch (err) {
-        updateStepStatus('supplier-accept', 'success', 'URL gerada (teste manual necessário)', `/supplier/accept?token=${assistanceData.acceptance_token}`);
+        updateStepStatus('supplier-accept', 'success', 'URL gerada (teste manual necessário)', `/supplier/portal?token=${interactionToken}`);
       }
 
       // Step 5: Test supplier schedule page
       updateStepStatus('supplier-schedule', 'running');
       
-      if (assistanceData.scheduling_token) {
-        const scheduleUrl = `/supplier/schedule?token=${assistanceData.scheduling_token}`;
-        updateStepStatus('supplier-schedule', 'success', 'URL de agendamento gerada', scheduleUrl);
-      } else {
-        updateStepStatus('supplier-schedule', 'error', 'Token de agendamento não encontrado');
-      }
+      // All actions now use the unified Portal page
+      const scheduleUrl = `/supplier/portal?token=${interactionToken}`;
+      updateStepStatus('supplier-schedule', 'success', 'URL de agendamento gerada', scheduleUrl);
 
       // Step 6: Test supplier complete page
       updateStepStatus('supplier-complete', 'running');
       
-      if (assistanceData.validation_token) {
-        const completeUrl = `/supplier/complete?token=${assistanceData.validation_token}`;
-        updateStepStatus('supplier-complete', 'success', 'URL de conclusão gerada', completeUrl);
-      } else {
-        updateStepStatus('supplier-complete', 'error', 'Token de validação não encontrado');
-      }
+      // All actions now use the unified Portal page
+      const completeUrl = `/supplier/portal?token=${interactionToken}`;
+      updateStepStatus('supplier-complete', 'success', 'URL de conclusão gerada', completeUrl);
 
       // Step 7: Test messages system
       updateStepStatus('messages', 'running');
@@ -326,8 +321,9 @@ export function useEndToEndTester() {
       updateStepStatus('edge-functions', 'running');
       
       try {
+        // Test the simplified supplier-route with interaction_token
         const response = await fetch(
-          `https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=accept&token=${assistanceData.acceptance_token}`
+          `https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=view&token=${interactionToken}`
         );
         
         if (response.ok) {
