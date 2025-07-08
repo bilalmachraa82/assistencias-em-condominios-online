@@ -45,27 +45,25 @@ export default function AssistanceList({
           Nenhuma assistência encontrada com os filtros atuais.
         </div>
       ) : (
-        <div className="bg-[#1e293b]/30 overflow-hidden shadow border border-white/5 sm:rounded-lg">
-          <div className="overflow-x-auto">
-            <Table className="min-w-full divide-y divide-gray-700/30">
-              <AssistanceTableHeader 
-                sortOrder={sortOrder}
-                onSortOrderChange={onSortOrderChange}
-              />
-              <TableBody className="divide-y divide-gray-700/30">
-                {assistances.map((assistance) => (
-                  <AssistanceTableRow
-                    key={assistance.id}
-                    assistance={assistance}
-                    onViewAssistance={onViewAssistance}
-                    onDeleteAssistance={onDeleteAssistance}
-                    formatDate={formatDate}
-                    isLateHighlighted={isLateHighlighted}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+        <div className="rounded-md border">
+          <Table>
+            <AssistanceTableHeader 
+              sortOrder={sortOrder}
+              onSortOrderChange={onSortOrderChange}
+            />
+            <TableBody>
+              {assistances.map((assistance) => (
+                <AssistanceTableRow
+                  key={assistance.id}
+                  assistance={assistance}
+                  onViewAssistance={onViewAssistance}
+                  onDeleteAssistance={onDeleteAssistance}
+                  formatDate={formatDate}
+                  isLateHighlighted={isLateHighlighted}
+                />
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
