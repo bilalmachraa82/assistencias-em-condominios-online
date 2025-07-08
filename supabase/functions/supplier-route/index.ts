@@ -129,37 +129,49 @@ serve(async (req) => {
       console.log(`Hash validated successfully for assistance ID: ${finalAssistanceId}`);
     } else {
       // Old system: use direct token validation (EMERGENCY FIX)
-      console.log(`🔄 Direct token validation for token: ${token.substring(0, 15)}...`);
+      console.log(`🔄 Direct token validation for token: ${token.substring(0, 15)}... (length: ${token.length})`);
       
-      // Try to find assistance by token in any token field
-      const { data: assistance, error: assistanceError } = await supabase
-        .from('assistances')
-        .select('id, status, supplier_id')
-        .or(`acceptance_token.eq.${token},scheduling_token.eq.${token},validation_token.eq.${token},interaction_token.eq.${token}`)
-        .single();
+      // Enhanced token validation with better error handling
+      try {
+        // Try to find assistance by token in any token field
+        const { data: assistance, error: assistanceError } = await supabase
+          .from('assistances')
+          .select('id, status, supplier_id')
+          .or(`acceptance_token.eq.${token},scheduling_token.eq.${token},validation_token.eq.${token},interaction_token.eq.${token}`)
+          .single();
 
-      if (assistanceError || !assistance) {
-        console.error('Direct token validation failed:', assistanceError);
-        
-        await auditSecurityEvent(
-          supabase,
-          'TOKEN_VALIDATION_FAILED',
-          'assistances',
-          0,
-          clientIP,
-          userAgent,
-          { 
-            action, 
-            error: assistanceError?.message || 'Token not found',
-            method: 'direct_query'
-          }
-        );
-        
-        return handleError('Token inválido ou assistência não encontrada', assistanceError, 404);
+        if (assistanceError || !assistance) {
+          console.error('❌ Direct token validation failed:', {
+            error: assistanceError?.message,
+            tokenLength: token.length,
+            tokenStart: token.substring(0, 10),
+            tokenEnd: token.substring(token.length - 10)
+          });
+          
+          await auditSecurityEvent(
+            supabase,
+            'TOKEN_VALIDATION_FAILED',
+            'assistances',
+            0,
+            clientIP,
+            userAgent,
+            { 
+              action, 
+              error: assistanceError?.message || 'Token not found',
+              method: 'direct_query',
+              token_length: token.length
+            }
+          );
+          
+          return handleError('Token inválido ou assistência não encontrada', assistanceError, 404);
+        }
+
+        finalAssistanceId = assistance.id;
+        console.log(`✅ Direct token validation successful for assistance ID: ${finalAssistanceId}`);
+      } catch (tokenError) {
+        console.error('❌ Critical error in token validation:', tokenError);
+        return handleError('Erro crítico na validação do token', tokenError, 500);
       }
-
-      finalAssistanceId = assistance.id;
-      console.log(`✅ Direct token validation successful for assistance ID: ${finalAssistanceId}`);
     }
     
     // Get assistance data with enhanced security
