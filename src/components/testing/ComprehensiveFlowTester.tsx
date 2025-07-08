@@ -191,20 +191,31 @@ export default function ComprehensiveFlowTester() {
     // Test Accept Page
     updateTest('supplier-accept-page', { status: 'running' });
     try {
-      const acceptUrl = `/supplier/accept?token=${assistance.acceptance_token}`;
+      const acceptUrl = `/supplier/accept/${assistance.acceptance_token}`;
       const response = await fetch(`https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=accept&token=${assistance.acceptance_token}`);
+      
+      console.log('🔍 Testing accept page:', {
+        url: acceptUrl,
+        status: response.status,
+        token: assistance.acceptance_token,
+        tokenLength: assistance.acceptance_token?.length
+      });
       
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Accept page response:', data);
         updateTest('supplier-accept-page', {
           status: data.success ? 'success' : 'error',
-          details: data.success ? 'Página acessível e dados carregados' : 'Erro nos dados',
+          details: data.success ? 'Página acessível e dados carregados' : `Erro: ${data.error}`,
           url: acceptUrl
         });
       } else {
-        throw new Error(`HTTP ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Accept page error:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error: any) {
+      console.error('❌ Accept page test failed:', error);
       updateTest('supplier-accept-page', {
         status: 'error',
         details: error.message
