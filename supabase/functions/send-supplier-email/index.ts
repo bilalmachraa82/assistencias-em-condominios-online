@@ -119,8 +119,8 @@ serve(async (req) => {
     
     console.log('Using base URL for links:', baseUrl);
     
-    // Use interaction_token for all actions and portal URL with query parameter
-    supplierActionUrl = `${baseUrl}/supplier/portal?token=${encodeURIComponent(interactionToken)}`;
+    // Use interaction_token for all actions and portal URL with path parameter
+    supplierActionUrl = `${baseUrl}/supplier/portal/${encodeURIComponent(interactionToken)}`;
     
     switch(emailType) {
       case 'acceptance':

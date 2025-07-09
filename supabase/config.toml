@@ -1,1 +1,19 @@
 project_id = "vedzsbeirirjiozqflgq"
+
+[functions.send-supplier-email]
+verify_jwt = false
+
+[functions.supplier-route]
+verify_jwt = false
+
+[functions.submit-supplier-action]
+verify_jwt = false
+
+[functions.get-status-values]
+verify_jwt = false
+
+[functions.process-reminders]
+verify_jwt = false
+
+[functions.scheduled-reminders]
+verify_jwt = false
