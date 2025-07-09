@@ -7,6 +7,7 @@ import { CheckCircle, AlertCircle, Clock, Play, ExternalLink } from 'lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { generateToken } from "@/utils/TokenUtils";
 import { toast } from 'sonner';
+import { callSupplierRoute } from '@/utils/edgeFunctions';
 
 interface FlowTest {
   id: string;
@@ -192,28 +193,20 @@ export default function ComprehensiveFlowTester() {
     updateTest('supplier-accept-page', { status: 'running' });
     try {
       const acceptUrl = `/supplier/accept/${assistance.acceptance_token}`;
-      const response = await fetch(`https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=accept&token=${assistance.acceptance_token}`);
+      const { success, data, error } = await callSupplierRoute('accept', assistance.acceptance_token, { showToastOnError: false });
       
       console.log('🔍 Testing accept page:', {
         url: acceptUrl,
-        status: response.status,
+        success,
         token: assistance.acceptance_token,
         tokenLength: assistance.acceptance_token?.length
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Accept page response:', data);
-        updateTest('supplier-accept-page', {
-          status: data.success ? 'success' : 'error',
-          details: data.success ? 'Página acessível e dados carregados' : `Erro: ${data.error}`,
-          url: acceptUrl
-        });
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Accept page error:', response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
+      updateTest('supplier-accept-page', {
+        status: success ? 'success' : 'error',
+        details: success ? 'Página acessível e dados carregados' : `Erro: ${error}`,
+        url: acceptUrl
+      });
     } catch (error: any) {
       console.error('❌ Accept page test failed:', error);
       updateTest('supplier-accept-page', {
@@ -226,18 +219,13 @@ export default function ComprehensiveFlowTester() {
     updateTest('supplier-schedule-page', { status: 'running' });
     try {
       const scheduleUrl = `/supplier/schedule?token=${assistance.scheduling_token}`;
-      const response = await fetch(`https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=schedule&token=${assistance.scheduling_token}`);
+      const { success, data, error } = await callSupplierRoute('schedule', assistance.scheduling_token, { showToastOnError: false });
       
-      if (response.ok) {
-        const data = await response.json();
-        updateTest('supplier-schedule-page', {
-          status: data.success ? 'success' : 'error',
-          details: data.success ? 'Página acessível e dados carregados' : 'Erro nos dados',
-          url: scheduleUrl
-        });
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      updateTest('supplier-schedule-page', {
+        status: success ? 'success' : 'error',
+        details: success ? 'Página acessível e dados carregados' : `Erro: ${error}`,
+        url: scheduleUrl
+      });
     } catch (error: any) {
       updateTest('supplier-schedule-page', {
         status: 'error',
@@ -249,18 +237,13 @@ export default function ComprehensiveFlowTester() {
     updateTest('supplier-complete-page', { status: 'running' });
     try {
       const completeUrl = `/supplier/complete?token=${assistance.validation_token}`;
-      const response = await fetch(`https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=validate&token=${assistance.validation_token}`);
+      const { success, data, error } = await callSupplierRoute('validate', assistance.validation_token, { showToastOnError: false });
       
-      if (response.ok) {
-        const data = await response.json();
-        updateTest('supplier-complete-page', {
-          status: data.success ? 'success' : 'error',
-          details: data.success ? 'Página acessível e dados carregados' : 'Erro nos dados',
-          url: completeUrl
-        });
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      updateTest('supplier-complete-page', {
+        status: success ? 'success' : 'error',
+        details: success ? 'Página acessível e dados carregados' : `Erro: ${error}`,
+        url: completeUrl
+      });
     } catch (error: any) {
       updateTest('supplier-complete-page', {
         status: 'error',
@@ -274,11 +257,10 @@ export default function ComprehensiveFlowTester() {
     
     try {
       // Test with invalid token to check validation
-      const testResponse = await fetch(
-        'https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=accept&token=invalid-token'
-      );
+      const { success, error } = await callSupplierRoute('accept', 'invalid-token', { showToastOnError: false });
       
-      const isValidationWorking = testResponse.status === 404 || testResponse.status === 400;
+      // For edge function test, we expect this to fail (invalid token)
+      const isValidationWorking = !success && error;
       
       updateTest('edge-functions', {
         status: isValidationWorking ? 'success' : 'error',

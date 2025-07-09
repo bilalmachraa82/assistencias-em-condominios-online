@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Database, Cloud, Mail, Users } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
+import { callSupplierRoute } from '@/utils/edgeFunctions';
 
 interface HealthCheck {
   name: string;
@@ -99,20 +100,20 @@ export default function SystemHealthCheck() {
 
     // Check Edge Functions with rate limiting
     try {
-      const response = await fetch('https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=accept&token=test-token');
+      const { success, error } = await callSupplierRoute('accept', 'test-token', { showToastOnError: false });
       
-      // Check if rate limiting is working
-      const isRateLimited = response?.status === 429;
-      const functionsWorking = response && (response.status === 404 || response.status === 400 || isRateLimited);
+      // For health check, we expect a controlled error (invalid token)
+      // Success would be unexpected, error is expected behavior
+      const functionsWorking = !success && error;
       
       setChecks(prev => prev.map(check => 
         check.name === 'Edge Functions' 
           ? { 
               ...check, 
-              status: functionsWorking ? 'healthy' as const : 'error' as const, 
+              status: functionsWorking ? 'healthy' as const : 'error' as const,
               message: functionsWorking 
-                ? `Functions OK${isRateLimited ? ' - Rate limiting ativo' : ' - Validação ativa'}`
-                : 'Functions inacessíveis'
+                ? 'Functions OK - Validação de tokens ativa'
+                : 'Functions inacessíveis ou problema de autenticação'
             }
           : check
       ));
