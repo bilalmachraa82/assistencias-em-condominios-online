@@ -146,7 +146,7 @@ serve(async (req) => {
     }
 
     const payload = {
-      from: 'LuvImg - Administração de Condomínios <noreply@luvimg.com>',
+      from: 'LuvImg - Administração de Condomínios <geral@luvimg.com>',
       to: [assistance.suppliers.email],
       bcc: ['arquivo@luvimg.com'], // Archive all communications
       subject: emailSubject,
