@@ -8,15 +8,20 @@ import { generateValidationEmail } from "./_templates/validation-email.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
   console.log('Function "send-supplier-email" invoked.');
   console.log(`Request method: ${req.method}`);
-  // Handle CORS preflight requests
+  
+  // Handle CORS preflight requests with proper 200 status
   if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS request.');
-    return new Response(null, { headers: corsHeaders });
+    console.log('Handling OPTIONS request with proper CORS headers.');
+    return new Response(null, { 
+      status: 200, 
+      headers: corsHeaders 
+    });
   }
 
   try {
@@ -56,6 +61,7 @@ serve(async (req) => {
         description, 
         status, 
         type,
+        interaction_token,
         acceptance_token,
         scheduling_token,
         validation_token,
@@ -85,14 +91,14 @@ serve(async (req) => {
     };
 
     // Use only interaction_token for all email types (simplified system)
-    let token = assistance.interaction_token;
+    let interactionToken = assistance.interaction_token;
 
-    if (!token) {
+    if (!interactionToken) {
       console.log(`Interaction token not found for assistance ${assistanceId}. Generating a new one.`);
-      token = generateToken();
+      interactionToken = generateToken();
       const { error: updateError } = await supabase
         .from('assistances')
-        .update({ interaction_token: token })
+        .update({ interaction_token: interactionToken })
         .eq('id', assistanceId);
       
       if (updateError) {
@@ -104,7 +110,7 @@ serve(async (req) => {
       }
       console.log(`New interaction token generated and saved successfully.`);
       // Update assistance object with new token
-      assistance.interaction_token = token;
+      assistance.interaction_token = interactionToken;
     }
 
     let emailSubject = '';
@@ -114,8 +120,7 @@ serve(async (req) => {
     console.log('Using base URL for links:', baseUrl);
     
     // Use interaction_token for all actions and portal URL with query parameter
-    const token = assistance.interaction_token;
-    supplierActionUrl = `${baseUrl}/supplier/portal?token=${encodeURIComponent(token)}`;
+    supplierActionUrl = `${baseUrl}/supplier/portal?token=${encodeURIComponent(interactionToken)}`;
     
     switch(emailType) {
       case 'acceptance':
