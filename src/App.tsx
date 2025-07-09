@@ -69,7 +69,7 @@ const router = createBrowserRouter([
     path: "/supplier/complete/:token",
     element: <CompleteRequest />,
   },
-  // Fallback routes without parameters (must be last)
+  // Portal route now requires token via query parameter
   {
     path: "/supplier/portal",
     element: <Portal />,

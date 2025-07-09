@@ -30,23 +30,19 @@ export default function Portal() {
   const { token: rawToken } = useParams<{ token: string }>();
   const [searchParams] = useSearchParams();
   
-  // SOLUÇÃO DEFINITIVA: Suporte completo para ambos os formatos de URL
+  // CORREÇÃO DEFINITIVA: Detecção simples e clara de token
   const token = searchParams.get('token') || rawToken;
   const assistanceId = searchParams.get('id');
   const verifyParam = searchParams.get('verify');
   const usingNewSystem = verifyParam && assistanceId && !isNaN(Number(assistanceId));
   
-  // Debug detalhado - logs para diagnóstico completo
-  console.log('🔧 PORTAL DIAGNOSTIC LOGS:');
-  console.log('📍 Current URL:', window.location.href);
-  console.log('📍 URL Params token:', rawToken);
-  console.log('📍 Query Params token:', searchParams.get('token'));
-  console.log('📍 Final token selected:', token);
-  console.log('📍 Token length:', token?.length);
-  console.log('📍 All search params:', Object.fromEntries(searchParams.entries()));
-  console.log('📍 All URL params:', { rawToken });
-  console.log('🎯 Portal will use token:', token ? 'YES' : 'NO');
-  console.log('🎯 Using new system:', usingNewSystem);
+  // Logs de diagnóstico melhorados
+  console.log('🚀 PORTAL CORREÇÃO DEFINITIVA:');
+  console.log('📧 URL completa:', window.location.href);
+  console.log('🔑 Token encontrado:', token ? `SIM (${token.length} chars)` : 'NÃO');
+  console.log('📋 ID assistência:', assistanceId || 'N/A');
+  console.log('✅ Sistema novo:', usingNewSystem ? 'SIM' : 'NÃO');
+  console.log('🎯 Token válido para proceder:', (token && token.length > 10) ? 'SIM' : 'NÃO');
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,10 +57,17 @@ export default function Portal() {
     console.log('🔍 Assistance ID:', assistanceId);
     console.log('🔍 Token:', token?.substring(0, 10) + '...');
     
-    // Enhanced validation with better error messages
-    if (!assistanceId && !token) {
-      console.error('❌ No access credentials provided');
-      setError('Link de acesso inválido. Por favor, use o link enviado por email ou contacte o administrador.');
+    // Validação melhorada com mensagens mais claras
+    if (!token) {
+      console.error('❌ ERRO CRÍTICO: Nenhum token fornecido');
+      setError('🚫 Acesso negado: Este portal só funciona através dos links enviados por email. Por favor, verifique o seu email ou contacte o administrador.');
+      setLoading(false);
+      return;
+    }
+    
+    if (token.length < 10) {
+      console.error('❌ ERRO: Token inválido (muito curto)');
+      setError('🔑 Token de acesso inválido. Por favor, use o link mais recente do seu email.');
       setLoading(false);
       return;
     }
