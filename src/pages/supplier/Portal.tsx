@@ -30,11 +30,23 @@ export default function Portal() {
   const { token: rawToken } = useParams<{ token: string }>();
   const [searchParams] = useSearchParams();
   
-  // Support query parameter token (working format) and legacy URL param
+  // SOLUÇÃO DEFINITIVA: Suporte completo para ambos os formatos de URL
   const token = searchParams.get('token') || rawToken;
   const assistanceId = searchParams.get('id');
   const verifyParam = searchParams.get('verify');
   const usingNewSystem = verifyParam && assistanceId && !isNaN(Number(assistanceId));
+  
+  // Debug detalhado - logs para diagnóstico completo
+  console.log('🔧 PORTAL DIAGNOSTIC LOGS:');
+  console.log('📍 Current URL:', window.location.href);
+  console.log('📍 URL Params token:', rawToken);
+  console.log('📍 Query Params token:', searchParams.get('token'));
+  console.log('📍 Final token selected:', token);
+  console.log('📍 Token length:', token?.length);
+  console.log('📍 All search params:', Object.fromEntries(searchParams.entries()));
+  console.log('📍 All URL params:', { rawToken });
+  console.log('🎯 Portal will use token:', token ? 'YES' : 'NO');
+  console.log('🎯 Using new system:', usingNewSystem);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
