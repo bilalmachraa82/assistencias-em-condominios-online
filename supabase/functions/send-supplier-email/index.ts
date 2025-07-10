@@ -81,26 +81,25 @@ serve(async (req) => {
     }
     console.log('Assistance data fetched successfully:', assistance);
 
-    // CORREÇÃO DEFINITIVA: Função de geração de tokens compatível com TokenUtils.ts
-    const generateSecureToken = (prefix = '') => {
+    // CORREÇÃO DEFINITIVA: Função simplificada que funciona
+    const generateSecureToken = () => {
       const characters = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const segments = [22, 6, 6, 8, 10]; // Format: xxxx-xx-xx-xxx-xxxx (total 52 chars + hífens)
-      let token = prefix ? `${prefix}-` : '';
+      const segments = [22, 6, 6, 8, 10]; // Total: 52 caracteres + 4 hífens = 56 chars
+      let token = '';
       
-      // Use crypto.getRandomValues for cryptographically secure randomness
-      const randomArray = new Uint8Array(segments.reduce((sum, len) => sum + len, 0));
+      const randomArray = new Uint8Array(52); // Total characters needed
       crypto.getRandomValues(randomArray);
       
       let arrayIndex = 0;
-      segments.forEach((length, index) => {
-        for (let i = 0; i < length; i++) {
+      for (let segIndex = 0; segIndex < segments.length; segIndex++) {
+        for (let i = 0; i < segments[segIndex]; i++) {
           token += characters.charAt(randomArray[arrayIndex] % characters.length);
           arrayIndex++;
         }
-        if (index < segments.length - 1) {
+        if (segIndex < segments.length - 1) {
           token += '-';
         }
-      });
+      }
       
       return token;
     };
