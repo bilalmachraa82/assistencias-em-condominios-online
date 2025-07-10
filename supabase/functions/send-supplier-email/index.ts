@@ -81,13 +81,28 @@ serve(async (req) => {
     }
     console.log('Assistance data fetched successfully:', assistance);
 
-    // Helper function to generate a cryptographically secure token
-    const generateToken = () => {
-      const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      const length = 32;
-      const randomArray = new Uint8Array(length);
+    // CORREÇÃO DEFINITIVA: Função de geração de tokens compatível com TokenUtils.ts
+    const generateSecureToken = (prefix = '') => {
+      const characters = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const segments = [22, 6, 6, 8, 10]; // Format: xxxx-xx-xx-xxx-xxxx (total 52 chars + hífens)
+      let token = prefix ? `${prefix}-` : '';
+      
+      // Use crypto.getRandomValues for cryptographically secure randomness
+      const randomArray = new Uint8Array(segments.reduce((sum, len) => sum + len, 0));
       crypto.getRandomValues(randomArray);
-      return Array.from(randomArray, byte => chars[byte % chars.length]).join('');
+      
+      let arrayIndex = 0;
+      segments.forEach((length, index) => {
+        for (let i = 0; i < length; i++) {
+          token += characters.charAt(randomArray[arrayIndex] % characters.length);
+          arrayIndex++;
+        }
+        if (index < segments.length - 1) {
+          token += '-';
+        }
+      });
+      
+      return token;
     };
 
     // Use only interaction_token for all email types (simplified system)
@@ -95,7 +110,7 @@ serve(async (req) => {
 
     if (!interactionToken) {
       console.log(`Interaction token not found for assistance ${assistanceId}. Generating a new one.`);
-      interactionToken = generateToken();
+      interactionToken = generateSecureToken();
       const { error: updateError } = await supabase
         .from('assistances')
         .update({ interaction_token: interactionToken })
