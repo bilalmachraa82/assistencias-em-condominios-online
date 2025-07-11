@@ -133,8 +133,8 @@ serve(async (req) => {
     
     console.log('Using base URL for links:', baseUrl);
     
-    // CORREÇÃO DEFINITIVA: Nova rota que evita conflitos do React Router
-    supplierActionUrl = `${baseUrl}/portal/supplier?token=${encodeURIComponent(interactionToken)}`;
+    // CORREÇÃO DEFINITIVA: Rota simplificada que sempre funciona
+    supplierActionUrl = `${baseUrl}/supplier/portal?token=${encodeURIComponent(interactionToken)}`;
     
     switch(emailType) {
       case 'acceptance':

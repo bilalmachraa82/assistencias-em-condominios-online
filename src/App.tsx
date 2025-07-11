@@ -51,47 +51,10 @@ const router = createBrowserRouter([
     path: "/configuracao-servicos",
     element: <AuthGuard><ConfiguracaoServicos /></AuthGuard>,
   },
-  // NOVA ROTA PRINCIPAL DO PORTAL (evita conflitos internos do React Router)
+  // TODAS as rotas do supplier portal - usando uma única rota catch-all
   {
-    path: "/portal/supplier",
+    path: "/supplier/*",
     element: <Portal />,
-  },
-  // REDIRECIONAMENTOS AUTOMÁTICOS para URLs antigas
-  {
-    path: "/supplier/accept/:token",
-    element: <Portal />,
-  },
-  {
-    path: "/supplier/schedule/:token",
-    element: <Portal />,
-  },
-  {
-    path: "/supplier/complete/:token",
-    element: <Portal />,
-  },
-  {
-    path: "/supplier/portal/:token", 
-    element: <Portal />,
-  },
-  {
-    path: "/supplier/portal",
-    element: <Portal />,
-  },
-  {
-    path: "/supplier/complete",
-    element: <CompleteRequest />,
-  },
-  {
-    path: "/supplier/accept", 
-    element: <AcceptRequest />,
-  },
-  {
-    path: "/supplier/schedule",
-    element: <ScheduleRequest />,
-  },
-  {
-    path: "/supplier/confirmation/:type",
-    element: <Confirmation />,
   },
   // Catch-all route for 404 pages
   {
