@@ -52,24 +52,24 @@ const router = createBrowserRouter([
     element: <AuthGuard><ConfiguracaoServicos /></AuthGuard>,
   },
   // Supplier public routes (no auth required) - Ordered by specificity
-  // Routes with parameters (must be first)
+  // CORREÇÃO: Redirecionamentos automáticos para URLs antigas
   {
-    path: "/supplier/portal/:token",
+    path: "/supplier/accept/:token",
     element: <Portal />,
   },
   {
-    path: "/supplier/accept/:token",
-    element: <AcceptRequest />,
-  },
-  {
     path: "/supplier/schedule/:token",
-    element: <ScheduleRequest />,
+    element: <Portal />,
   },
   {
     path: "/supplier/complete/:token",
-    element: <CompleteRequest />,
+    element: <Portal />,
   },
-  // Portal route now requires token via query parameter
+  {
+    path: "/supplier/portal/:token", 
+    element: <Portal />,
+  },
+  // Portal route com token via query parameter (URL padrão)
   {
     path: "/supplier/portal",
     element: <Portal />,
