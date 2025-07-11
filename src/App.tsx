@@ -51,8 +51,12 @@ const router = createBrowserRouter([
     path: "/configuracao-servicos",
     element: <AuthGuard><ConfiguracaoServicos /></AuthGuard>,
   },
-  // Supplier public routes (no auth required) - Ordered by specificity
-  // CORREÇÃO: Redirecionamentos automáticos para URLs antigas
+  // NOVA ROTA PRINCIPAL DO PORTAL (evita conflitos internos do React Router)
+  {
+    path: "/portal/supplier",
+    element: <Portal />,
+  },
+  // REDIRECIONAMENTOS AUTOMÁTICOS para URLs antigas
   {
     path: "/supplier/accept/:token",
     element: <Portal />,
@@ -69,7 +73,6 @@ const router = createBrowserRouter([
     path: "/supplier/portal/:token", 
     element: <Portal />,
   },
-  // Portal route com token via query parameter (URL padrão)
   {
     path: "/supplier/portal",
     element: <Portal />,

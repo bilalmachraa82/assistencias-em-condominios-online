@@ -133,8 +133,8 @@ serve(async (req) => {
     
     console.log('Using base URL for links:', baseUrl);
     
-    // CORREÇÃO DEFINITIVA: URL padronizada para todos os tipos de email
-    supplierActionUrl = `${baseUrl}/supplier/portal?token=${encodeURIComponent(interactionToken)}`;
+    // CORREÇÃO DEFINITIVA: Nova rota que evita conflitos do React Router
+    supplierActionUrl = `${baseUrl}/portal/supplier?token=${encodeURIComponent(interactionToken)}`;
     
     switch(emailType) {
       case 'acceptance':
