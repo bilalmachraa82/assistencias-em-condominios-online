@@ -308,6 +308,44 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_magic_codes: {
+        Row: {
+          assistance_id: number
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          magic_code: string
+          used_at: string | null
+        }
+        Insert: {
+          assistance_id: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          magic_code: string
+          used_at?: string | null
+        }
+        Update: {
+          assistance_id?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          magic_code?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_assistance"
+            columns: ["assistance_id"]
+            isOneToOne: false
+            referencedRelation: "assistances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -437,6 +475,10 @@ export type Database = {
         Args: { p_assistance_id: number }
         Returns: Json
       }
+      generate_magic_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: string
@@ -462,6 +504,10 @@ export type Database = {
       }
       validate_edge_function_access: {
         Args: { p_token: string; p_action: string }
+        Returns: Json
+      }
+      validate_magic_code: {
+        Args: { input_code: string }
         Returns: Json
       }
       validate_supplier_token: {

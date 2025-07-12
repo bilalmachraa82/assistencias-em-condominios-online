@@ -22,7 +22,7 @@ import AcceptRequest from "./pages/supplier/AcceptRequest";
 import ScheduleRequest from "./pages/supplier/ScheduleRequest";
 import CompleteRequest from "./pages/supplier/CompleteRequest";
 import Confirmation from "./pages/supplier/Confirmation";
-import Portal from "./pages/supplier/Portal";
+import MagicLinkPortal from "./pages/supplier/MagicLinkPortal";
 
 const queryClient = new QueryClient();
 
@@ -51,10 +51,10 @@ const router = createBrowserRouter([
     path: "/configuracao-servicos",
     element: <AuthGuard><ConfiguracaoServicos /></AuthGuard>,
   },
-  // TODAS as rotas do supplier portal - usando uma única rota catch-all
+  // 🎯 NOVO SISTEMA: Magic Link Portal (padrão da indústria)
   {
-    path: "/supplier/*",
-    element: <Portal />,
+    path: "/supplier",
+    element: <MagicLinkPortal />,
   },
   // Catch-all route for 404 pages
   {

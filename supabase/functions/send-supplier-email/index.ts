@@ -133,8 +133,37 @@ serve(async (req) => {
     
     console.log('Using base URL for links:', baseUrl);
     
-    // CORREÇÃO DEFINITIVA: Rota simplificada que sempre funciona
-    supplierActionUrl = `${baseUrl}/supplier/portal?token=${encodeURIComponent(interactionToken)}`;
+    // ✨ NOVO SISTEMA: Magic Link (padrão da indústria)
+    console.log('🎯 Generating magic code for assistance:', assistanceId);
+    
+    // Gera magic code único
+    const { data: magicCodeData, error: magicError } = await supabase
+      .rpc('generate_magic_code');
+    
+    if (magicError) {
+      console.error('❌ Error generating magic code:', magicError);
+      throw new Error(`Erro ao gerar código de acesso: ${magicError.message}`);
+    }
+    
+    const magicCode = magicCodeData;
+    console.log('✅ Generated magic code:', magicCode);
+    
+    // Salva magic code na base de dados
+    const { error: saveError } = await supabase
+      .from('supplier_magic_codes')
+      .insert({
+        magic_code: magicCode,
+        assistance_id: assistanceId,
+        is_active: true
+      });
+    
+    if (saveError) {
+      console.error('❌ Error saving magic code:', saveError);
+      throw new Error(`Erro ao salvar código de acesso: ${saveError.message}`);
+    }
+    
+    // URL SIMPLES (padrão AppFolio): domain.com/supplier?magic=ABC123
+    supplierActionUrl = `${baseUrl}/supplier?magic=${magicCode}`;
     
     switch(emailType) {
       case 'acceptance':
