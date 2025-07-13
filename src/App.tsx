@@ -61,6 +61,9 @@ const router = createBrowserRouter([
 ]);
 
 export default function App() {
+  // Debug SPA routing
+  console.log('🎯 App initialized - SPA routing active');
+  
   return (
     <ThemeProvider
       attribute="class"
