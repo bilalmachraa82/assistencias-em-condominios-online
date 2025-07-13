@@ -46,7 +46,11 @@ export default function AccessPortal() {
   const [assistance, setAssistance] = useState<AssistanceData | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  console.log('🎯 AccessPortal mounted with code:', code);
+  // Enhanced debugging for routing issues
+  console.log('🎯 AccessPortal mounted');
+  console.log('📍 Current location:', window.location.href);
+  console.log('🔑 Magic code from URL:', code);
+  console.log('🛠️ Search params:', searchParams.toString());
 
   useEffect(() => {
     if (!code) {

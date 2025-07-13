@@ -21,6 +21,9 @@ import Auth from "./pages/Auth";
 import AccessPortal from "./pages/AccessPortal";
 import Confirmation from "./pages/supplier/Confirmation";
 
+// Diagnostic Tools
+import SPARoutingDiagnostic from "./components/testing/SPARoutingDiagnostic";
+
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
@@ -52,6 +55,11 @@ const router = createBrowserRouter([
   {
     path: "/access",
     element: <AccessPortal />,
+  },
+  // 🔧 DIAGNOSTIC SYSTEM: For troubleshooting routing issues
+  {
+    path: "/diagnostic",
+    element: <SPARoutingDiagnostic />,
   },
   // Catch-all route for 404 pages
   {
