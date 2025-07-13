@@ -71,6 +71,8 @@ const router = createBrowserRouter([
 export default function App() {
   // Debug SPA routing
   console.log('🎯 App initialized - SPA routing active');
+  console.log('🛣️ Current location:', window.location.pathname);
+  console.log('🔍 Available routes:', ['/auth', '/', '/assistencias', '/buildings', '/suppliers', '/configuracao-servicos', '/access', '/diagnostic']);
   
   return (
     <ThemeProvider
