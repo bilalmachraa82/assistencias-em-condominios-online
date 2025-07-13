@@ -17,12 +17,9 @@ import ConfiguracaoServicos from "./pages/ConfiguracaoServicos";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 
-// Supplier public pages
-import AcceptRequest from "./pages/supplier/AcceptRequest";
-import ScheduleRequest from "./pages/supplier/ScheduleRequest";
-import CompleteRequest from "./pages/supplier/CompleteRequest";
+// Access Portal
+import AccessPortal from "./pages/AccessPortal";
 import Confirmation from "./pages/supplier/Confirmation";
-import MagicLinkPortal from "./pages/supplier/MagicLinkPortal";
 
 const queryClient = new QueryClient();
 
@@ -51,10 +48,10 @@ const router = createBrowserRouter([
     path: "/configuracao-servicos",
     element: <AuthGuard><ConfiguracaoServicos /></AuthGuard>,
   },
-  // 🎯 NOVO SISTEMA: Magic Link Portal (padrão da indústria)
+  // ✨ MAGIC ACCESS SYSTEM: Clean and Simple (Industry Standard)
   {
-    path: "/supplier",
-    element: <MagicLinkPortal />,
+    path: "/access",
+    element: <AccessPortal />,
   },
   // Catch-all route for 404 pages
   {

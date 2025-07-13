@@ -162,8 +162,8 @@ serve(async (req) => {
       throw new Error(`Erro ao salvar código de acesso: ${saveError.message}`);
     }
     
-    // URL SIMPLES (padrão AppFolio): domain.com/supplier?magic=ABC123
-    supplierActionUrl = `${baseUrl}/supplier?magic=${magicCode}`;
+    // ✨ MAGIC ACCESS SYSTEM: Clean URL (Industry Standard)
+    supplierActionUrl = `${baseUrl}/access?code=${magicCode}`;
     
     switch(emailType) {
       case 'acceptance':
