@@ -21,7 +21,8 @@ import Auth from "./pages/Auth";
 import AccessPortal from "./pages/AccessPortal";
 import Confirmation from "./pages/supplier/Confirmation";
 
-// Diagnostic Tools
+// Health & Diagnostic Tools
+import HealthCheck from "./pages/HealthCheck";
 import SPARoutingDiagnostic from "./components/testing/SPARoutingDiagnostic";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,11 @@ const router = createBrowserRouter([
     path: "/access",
     element: <AccessPortal />,
   },
+  // 🏥 HEALTH CHECK: System status monitoring
+  {
+    path: "/health",
+    element: <HealthCheck />,
+  },
   // 🔧 DIAGNOSTIC SYSTEM: For troubleshooting routing issues
   {
     path: "/diagnostic",
@@ -69,10 +75,23 @@ const router = createBrowserRouter([
 ]);
 
 export default function App() {
-  // Debug SPA routing
+  // Enhanced SPA routing debug with deployment verification
   console.log('🎯 App initialized - SPA routing active');
   console.log('🛣️ Current location:', window.location.pathname);
-  console.log('🔍 Available routes:', ['/auth', '/', '/assistencias', '/buildings', '/suppliers', '/configuracao-servicos', '/access', '/diagnostic']);
+  console.log('🌐 Base URL:', window.location.origin);
+  console.log('🔍 Available routes:', ['/auth', '/', '/assistencias', '/buildings', '/suppliers', '/configuracao-servicos', '/access', '/health', '/diagnostic']);
+  console.log('📅 Build timestamp:', new Date().toISOString());
+  
+  // Route verification check
+  const currentPath = window.location.pathname;
+  const knownRoutes = ['/auth', '/', '/assistencias', '/buildings', '/suppliers', '/configuracao-servicos', '/access', '/health', '/diagnostic'];
+  const isKnownRoute = knownRoutes.some(route => currentPath === route || currentPath.startsWith(route));
+  
+  console.log('✅ Route verification:', { 
+    currentPath, 
+    isKnownRoute, 
+    matchedRoute: knownRoutes.find(route => currentPath === route || currentPath.startsWith(route)) 
+  });
   
   return (
     <ThemeProvider
