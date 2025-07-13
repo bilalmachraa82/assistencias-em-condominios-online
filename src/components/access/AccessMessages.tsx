@@ -84,11 +84,11 @@ export default function AccessMessages({ assistanceId, onUpdate }: AccessMessage
   };
 
   return (
-    <Card>
+    <Card className="glass-card h-fit">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          Mensagens
+          <MessageCircle className="h-5 w-5 text-primary" />
+          Comunicação
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -99,55 +99,63 @@ export default function AccessMessages({ assistanceId, onUpdate }: AccessMessage
         ) : (
           <div className="space-y-4">
             {/* Messages List */}
-            <div className="max-h-64 overflow-y-auto space-y-3">
+            <div className="max-h-80 overflow-y-auto space-y-3 p-3 bg-gradient-subtle rounded-lg border">
               {messages.length === 0 ? (
-                <p className="text-muted-foreground text-sm text-center py-4">
-                  Nenhuma mensagem ainda
-                </p>
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">Nenhuma mensagem ainda</p>
+                  <p className="text-xs mt-1">Inicie a conversa enviando uma mensagem</p>
+                </div>
               ) : (
                 messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`p-3 rounded-lg ${
+                    className={`p-4 rounded-lg shadow-soft transition-all hover:shadow-medium ${
                       message.sender_role === 'supplier' 
-                        ? 'bg-primary/10 ml-4' 
-                        : 'bg-muted mr-4'
+                        ? 'bg-primary/10 border-l-4 border-primary ml-6' 
+                        : 'bg-background border-l-4 border-muted mr-6'
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="font-medium text-sm">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-semibold text-sm text-foreground">
                         {message.sender_name}
+                        <span className="ml-2 text-xs text-muted-foreground font-normal">
+                          ({message.sender_role === 'supplier' ? 'Fornecedor' : 'Administrador'})
+                        </span>
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {format(new Date(message.created_at), 'dd/MM HH:mm', { locale: ptBR })}
                       </span>
                     </div>
-                    <p className="text-sm">{message.message}</p>
+                    <p className="text-sm text-foreground leading-relaxed">{message.message}</p>
                   </div>
                 ))
               )}
             </div>
 
             {/* Send Message Form */}
-            <div className="space-y-3 pt-3 border-t">
+            <div className="space-y-4 p-4 bg-gradient-subtle border rounded-lg">
+              <h4 className="font-medium text-foreground">Enviar Nova Mensagem</h4>
               <Input
-                placeholder="Seu nome"
+                placeholder="Seu nome completo"
                 value={senderName}
                 onChange={(e) => setSenderName(e.target.value)}
+                className="bg-background border-2 focus:border-primary transition-colors"
               />
               <Textarea
-                placeholder="Digite sua mensagem..."
+                placeholder="Digite sua mensagem aqui..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                rows={3}
+                rows={4}
+                className="bg-background border-2 focus:border-primary transition-colors resize-none"
               />
               <Button 
                 onClick={sendMessage}
                 disabled={sending || !newMessage.trim() || !senderName.trim()}
-                className="w-full"
+                className="w-full h-12 premium-button text-base"
               >
-                <Send className="h-4 w-4 mr-2" />
-                {sending ? 'Enviando...' : 'Enviar Mensagem'}
+                <Send className="h-5 w-5 mr-2" />
+                {sending ? 'Enviando Mensagem...' : 'Enviar Mensagem'}
               </Button>
             </div>
           </div>

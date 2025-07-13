@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Camera, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface Photo {
   id: number;
@@ -115,11 +117,11 @@ export default function AccessPhotos({ assistanceId, onUpdate }: AccessPhotosPro
   };
 
   return (
-    <Card>
+    <Card className="glass-card h-fit">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Camera className="h-5 w-5" />
-          Fotos
+          <Camera className="h-5 w-5 text-primary" />
+          Documentação Fotográfica
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -130,79 +132,95 @@ export default function AccessPhotos({ assistanceId, onUpdate }: AccessPhotosPro
         ) : (
           <div className="space-y-4">
             {/* Upload Form */}
-            <div className="space-y-3 p-3 border rounded-lg">
-              <Input
-                placeholder="Seu nome"
-                value={uploaderName}
-                onChange={(e) => setUploaderName(e.target.value)}
-              />
+            <div className="space-y-4 p-4 bg-gradient-subtle border rounded-lg">
+              <h4 className="font-medium text-foreground">Enviar Nova Foto</h4>
               
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PHOTO_CATEGORIES.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <div>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  disabled={uploading || !uploaderName.trim()}
-                  className="hidden"
-                  id="photo-upload"
-                />
-                <label htmlFor="photo-upload">
-                  <Button 
-                    variant="outline" 
-                    className="w-full cursor-pointer"
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Nome do Remetente</label>
+                  <Input
+                    placeholder="Seu nome completo"
+                    value={uploaderName}
+                    onChange={(e) => setUploaderName(e.target.value)}
+                    className="bg-background border-2 focus:border-primary transition-colors"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Categoria da Foto</label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="bg-background border-2 focus:border-primary transition-colors">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border-2">
+                      {PHOTO_CATEGORIES.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
                     disabled={uploading || !uploaderName.trim()}
-                    asChild
-                  >
-                    <span>
-                      {uploading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Upload className="h-4 w-4 mr-2" />
-                      )}
-                      {uploading ? 'Enviando...' : 'Selecionar Foto'}
-                    </span>
-                  </Button>
-                </label>
+                    className="hidden"
+                    id="photo-upload"
+                  />
+                  <label htmlFor="photo-upload">
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-12 cursor-pointer bg-background hover:bg-muted border-2 transition-colors text-base"
+                      disabled={uploading || !uploaderName.trim()}
+                      asChild
+                    >
+                      <span>
+                        {uploading ? (
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        ) : (
+                          <Upload className="h-5 w-5 mr-2" />
+                        )}
+                        {uploading ? 'Enviando Foto...' : 'Selecionar e Enviar Foto'}
+                      </span>
+                    </Button>
+                  </label>
+                </div>
               </div>
             </div>
 
             {/* Photos Grid */}
-            <div>
+            <div className="p-4 bg-gradient-subtle border rounded-lg">
+              <h4 className="font-medium text-foreground mb-4">Galeria de Fotos</h4>
               {photos.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <ImageIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>Nenhuma foto enviada ainda</p>
+                <div className="text-center py-12 text-muted-foreground">
+                  <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-sm">Nenhuma foto enviada ainda</p>
+                  <p className="text-xs mt-1">As fotos aparecerão aqui após o envio</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {photos.map((photo) => (
-                    <div key={photo.id} className="space-y-2">
-                      <div className="aspect-square bg-muted rounded-lg overflow-hidden">
+                    <div key={photo.id} className="group">
+                      <div className="aspect-square bg-muted rounded-lg overflow-hidden shadow-soft group-hover:shadow-medium transition-shadow">
                         <img
                           src={photo.photo_url}
                           alt={getCategoryLabel(photo.category)}
-                          className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                          className="w-full h-full object-cover cursor-pointer group-hover:scale-105 transition-transform duration-300"
                           onClick={() => window.open(photo.photo_url, '_blank')}
                         />
                       </div>
-                      <div className="text-xs">
-                        <p className="font-medium">{getCategoryLabel(photo.category)}</p>
+                      <div className="mt-2 p-2 bg-background rounded border">
+                        <p className="font-medium text-xs text-foreground">{getCategoryLabel(photo.category)}</p>
                         {photo.uploaded_by && (
-                          <p className="text-muted-foreground">por {photo.uploaded_by}</p>
+                          <p className="text-xs text-muted-foreground">por {photo.uploaded_by}</p>
                         )}
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(photo.uploaded_at), 'dd/MM HH:mm', { locale: ptBR })}
+                        </p>
                       </div>
                     </div>
                   ))}

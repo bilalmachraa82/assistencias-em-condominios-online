@@ -86,106 +86,148 @@ export default function AccessActions({ assistance, onUpdate }: AccessActionsPro
   const canComplete = status === 'Agendada';
 
   return (
-    <Card>
+    <Card className="glass-card">
       <CardHeader>
-        <CardTitle>Ações Disponíveis</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="h-5 w-5 text-primary" />
+          Ações Disponíveis
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {canAccept && (
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleAccept}
-              disabled={submitting}
-              className="flex-1"
-            >
-              <Check className="h-4 w-4 mr-2" />
-              Aceitar
-            </Button>
-            
-            <div className="flex-1 space-y-2">
-              <Textarea
-                placeholder="Motivo da rejeição (obrigatório)"
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                rows={2}
-              />
-              <Button 
-                variant="destructive"
-                onClick={handleReject}
-                disabled={submitting || !rejectionReason.trim()}
-                className="w-full"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Rejeitar
-              </Button>
+          <div className="space-y-4">
+            <div className="p-4 bg-gradient-subtle border rounded-lg">
+              <h4 className="font-medium mb-4 text-foreground">Resposta Inicial</h4>
+              <div className="grid gap-4">
+                <Button 
+                  onClick={handleAccept}
+                  disabled={submitting}
+                  className="premium-button h-12 text-base font-medium"
+                >
+                  <Check className="h-5 w-5 mr-2" />
+                  {submitting ? 'Processando...' : 'Aceitar Assistência'}
+                </Button>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    Motivo da Rejeição (obrigatório para rejeitar)
+                  </label>
+                  <Textarea
+                    placeholder="Descreva o motivo da rejeição da assistência..."
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    rows={3}
+                    className="bg-background border-2 focus:border-primary transition-colors"
+                  />
+                  <Button 
+                    variant="destructive"
+                    onClick={handleReject}
+                    disabled={submitting || !rejectionReason.trim()}
+                    className="w-full h-12 text-base"
+                  >
+                    <X className="h-5 w-5 mr-2" />
+                    {submitting ? 'Processando...' : 'Rejeitar Assistência'}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {canSchedule && (
-          <div className="space-y-3 p-4 border rounded-lg">
-            <h4 className="font-medium">Agendar Intervenção</h4>
+          <div className="p-4 bg-gradient-subtle border rounded-lg">
+            <h4 className="font-medium mb-4 text-foreground">
+              {status === 'Aceite' ? 'Agendar Intervenção' : 'Reagendar Intervenção'}
+            </h4>
             
-            <div className="grid md:grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Data</label>
+            <div className="grid lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Data da Intervenção</label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start h-12 bg-background border-2 hover:border-primary transition-colors"
+                    >
                       <CalendarIcon className="h-4 w-4 mr-2" />
                       {scheduledDate ? format(scheduledDate, 'PPP', { locale: ptBR }) : 'Selecionar data'}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={scheduledDate}
                       onSelect={setScheduledDate}
                       disabled={(date) => date < new Date()}
                       initialFocus
+                      className="pointer-events-auto bg-background border rounded-lg p-3"
                     />
                   </PopoverContent>
                 </Popover>
               </div>
               
-              <div>
-                <label className="text-sm font-medium mb-2 block">Hora</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Hora da Intervenção</label>
                 <Input
                   type="time"
                   value={scheduledTime}
                   onChange={(e) => setScheduledTime(e.target.value)}
+                  className="h-12 bg-background border-2 focus:border-primary transition-colors"
                 />
               </div>
             </div>
             
-            <Textarea
-              placeholder="Motivo do reagendamento (opcional)"
-              value={rescheduleReason}
-              onChange={(e) => setRescheduleReason(e.target.value)}
-              rows={2}
-            />
+            <div className="mt-4 space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Observações {status === 'Aceite' ? '(opcional)' : 'do Reagendamento (opcional)'}
+              </label>
+              <Textarea
+                placeholder={status === 'Aceite' 
+                  ? "Observações sobre o agendamento..." 
+                  : "Motivo do reagendamento..."}
+                value={rescheduleReason}
+                onChange={(e) => setRescheduleReason(e.target.value)}
+                rows={3}
+                className="bg-background border-2 focus:border-primary transition-colors"
+              />
+            </div>
             
             <Button 
               onClick={handleSchedule}
               disabled={submitting || !scheduledDate}
-              className="w-full"
+              className="w-full mt-4 h-12 premium-button text-base"
             >
-              <Clock className="h-4 w-4 mr-2" />
-              {status === 'Aceite' ? 'Agendar' : 'Reagendar'}
+              <Clock className="h-5 w-5 mr-2" />
+              {submitting ? 'Processando...' : (status === 'Aceite' ? 'Confirmar Agendamento' : 'Confirmar Reagendamento')}
             </Button>
           </div>
         )}
 
         {canComplete && (
-          <Button 
-            onClick={handleComplete}
-            disabled={submitting}
-            className="w-full"
-            variant="outline"
-          >
-            <Check className="h-4 w-4 mr-2" />
-            Marcar como Concluída
-          </Button>
+          <div className="p-4 bg-gradient-subtle border rounded-lg">
+            <h4 className="font-medium mb-3 text-foreground">Finalizar Assistência</h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              Marque como concluída apenas após finalizar todos os trabalhos e enviar as fotos necessárias.
+            </p>
+            <Button 
+              onClick={handleComplete}
+              disabled={submitting}
+              className="w-full h-12 bg-success hover:bg-success/90 text-success-foreground text-base"
+            >
+              <Check className="h-5 w-5 mr-2" />
+              {submitting ? 'Processando...' : 'Marcar como Concluída'}
+            </Button>
+          </div>
+        )}
+
+        {!canAccept && !canSchedule && !canComplete && (
+          <div className="p-6 text-center bg-gradient-subtle border rounded-lg">
+            <Check className="h-8 w-8 text-success mx-auto mb-3" />
+            <h4 className="font-medium text-foreground mb-2">Estado Atual</h4>
+            <p className="text-sm text-muted-foreground">
+              Nenhuma ação pendente no momento. O estado atual da assistência é "{assistance.status}".
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>
