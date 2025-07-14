@@ -102,7 +102,7 @@ export default function ComprehensiveFlowTester() {
     try {
       // Test basic connectivity
       const { count: assistanceCount, error: assistanceError } = await supabase
-        .from('assistances')
+        .from('service_requests')
         .select('*', { count: 'exact', head: true });
 
       if (assistanceError) throw assistanceError;
@@ -110,8 +110,8 @@ export default function ComprehensiveFlowTester() {
       // Test essential tables
       const [buildings, suppliers, interventionTypes] = await Promise.all([
         supabase.from('buildings').select('id').eq('is_active', true).limit(1),
-        supabase.from('suppliers').select('id').eq('is_active', true).limit(1),
-        supabase.from('intervention_types').select('id').limit(1)
+        supabase.from('contractors').select('id').eq('is_active', true).limit(1),
+        supabase.from('service_categories').select('id').limit(1)
       ]);
 
       const hasData = buildings.data?.length && suppliers.data?.length && interventionTypes.data?.length;
@@ -140,8 +140,8 @@ export default function ComprehensiveFlowTester() {
       // Get first available building and supplier
       const [buildingResult, supplierResult, interventionResult] = await Promise.all([
         supabase.from('buildings').select('id, name').eq('is_active', true).limit(1).single(),
-        supabase.from('suppliers').select('id, name').eq('is_active', true).limit(1).single(),
-        supabase.from('intervention_types').select('id, name').limit(1).single()
+        supabase.from('contractors').select('id, name').eq('is_active', true).limit(1).single(),
+        supabase.from('service_categories').select('id, name').limit(1).single()
       ]);
 
       if (buildingResult.error || supplierResult.error || interventionResult.error) {
@@ -150,27 +150,26 @@ export default function ComprehensiveFlowTester() {
 
       // Create test assistance
       const { data: assistance, error: createError } = await supabase
-        .from('assistances')
+        .from('service_requests')
         .insert({
           building_id: buildingResult.data.id,
-          supplier_id: supplierResult.data.id,
-          intervention_type_id: interventionResult.data.id,
-          type: 'Normal',
+          contractor_id: supplierResult.data.id,
+          category_id: interventionResult.data.id,
+          title: 'Teste automático',
           description: 'Teste automático completo - ' + new Date().toLocaleString(),
-          status: 'Pendente Resposta Inicial',
-          interaction_token: generateToken('int'),
-          acceptance_token: generateToken('acc'),
-          scheduling_token: generateToken('sch'),
-          validation_token: generateToken('val')
+          status: 'submitted',
+          access_token: generateToken('acc'),
+          request_number: 'TEST-' + Date.now(),
+          organization_id: 'b8f1c2e0-4b3a-4d5f-8c7e-9d0a1b2c3d4e'
         })
-        .select('id, acceptance_token, scheduling_token, validation_token')
+        .select('id, access_token')
         .single();
 
       if (createError || !assistance) {
         throw new Error('Falha ao criar assistência: ' + createError?.message);
       }
 
-      setTestAssistanceId(assistance.id);
+      setTestAssistanceId(Number(assistance.id));
       updateTest('create-assistance', {
         status: 'success',
         details: `Assistência ${assistance.id} criada com todos os tokens`
@@ -282,12 +281,14 @@ export default function ComprehensiveFlowTester() {
     if (testAssistanceId) {
       try {
         const { error } = await supabase
-          .from('assistance_messages')
+          .from('service_communications')
           .insert({
-            assistance_id: testAssistanceId,
-            sender_role: 'admin',
-            sender_name: 'Sistema de Teste',
-            message: 'Mensagem de teste'
+            service_request_id: testAssistanceId.toString(),
+            author_role: 'admin',
+            author_name: 'Sistema de Teste',
+            message: 'Mensagem de teste',
+            message_type: 'comment',
+            metadata: {}
           });
 
         updateTest('messaging-system', {
@@ -298,10 +299,10 @@ export default function ComprehensiveFlowTester() {
         // Clean up test message
         if (!error) {
           await supabase
-            .from('assistance_messages')
+            .from('service_communications')
             .delete()
-            .eq('assistance_id', testAssistanceId)
-            .eq('sender_name', 'Sistema de Teste');
+            .eq('service_request_id', testAssistanceId.toString())
+            .eq('author_name', 'Sistema de Teste');
         }
       } catch (error: any) {
         updateTest('messaging-system', {
@@ -320,7 +321,7 @@ export default function ComprehensiveFlowTester() {
     updateTest('photo-upload', { status: 'running' });
     try {
       const { error } = await supabase
-        .from('assistance_photos')
+        .from('service_attachments')
         .select('id')
         .limit(1);
 
@@ -378,9 +379,10 @@ export default function ComprehensiveFlowTester() {
     if (!testAssistanceId) return;
     
     try {
-      await supabase.rpc('delete_assistance_safely', { 
-        p_assistance_id: testAssistanceId 
-      });
+      await supabase
+        .from('service_requests')
+        .delete()
+        .eq('id', testAssistanceId.toString());
       
       setTestAssistanceId(null);
       toast.success('Dados de teste limpos');

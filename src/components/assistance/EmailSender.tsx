@@ -86,11 +86,11 @@ export default function EmailSender({ assistanceId, assistanceStatus, disabled =
       // Generate a new token using the centralized utility function
       const token = generateToken();
       
-      // Update the assistance with the new token
+      // Update the service request with the new token
       const { data, error } = await supabase
-        .from('assistances')
+        .from('service_requests')
         .update({ [tokenField]: token })
-        .eq('id', assistanceId)
+        .eq('id', assistanceId.toString())
         .select();
       
       if (error) {

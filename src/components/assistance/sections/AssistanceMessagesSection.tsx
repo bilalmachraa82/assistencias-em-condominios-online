@@ -14,7 +14,7 @@ type AssistanceMessagesSectionProps = {
 export default function AssistanceMessagesSection({ assistanceId, currentUser }: AssistanceMessagesSectionProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  const { data: messages, isLoading, error } = useAssistanceMessages(assistanceId);
+  const { data: messages, isLoading, error } = useAssistanceMessages(assistanceId.toString());
   const { mutate: sendMessage, isPending: isSending } = useSendAssistanceMessage();
 
   const [message, setMessage] = useState("");
@@ -23,10 +23,15 @@ export default function AssistanceMessagesSection({ assistanceId, currentUser }:
     if (!message.trim()) return;
     sendMessage(
       {
-        assistance_id: assistanceId,
-        sender_role: currentUser.role,
-        sender_name: currentUser.name,
+        service_request_id: assistanceId.toString(),
+        author_role: currentUser.role,
+        author_name: currentUser.name,
         message: message.trim(),
+        message_type: "comment",
+        metadata: {},
+        is_internal: false,
+        is_visible_to_contractor: true,
+        is_visible_to_tenant: true,
       },
       {
         onSuccess: () => {
@@ -52,21 +57,21 @@ export default function AssistanceMessagesSection({ assistanceId, currentUser }:
           <div className="text-xs text-gray-400">A carregar mensagens...</div>
         ) : error ? (
           <div className="text-xs text-red-400">Erro ao carregar mensagens.</div>
-        ) : messages && messages.length > 0 ? (
+        ) : messages && Array.isArray(messages) && messages.length > 0 ? (
           <ul className="space-y-2">
             {messages.map(msg => (
               <li
                 key={msg.id}
                 className={`flex flex-col ${
-                  msg.sender_role === currentUser.role ? "items-end" : "items-start"
+                  msg.author_role === currentUser.role ? "items-end" : "items-start"
                 }`}
               >
                 <div className={`px-3 py-1 rounded text-xs ${
-                  msg.sender_role === "admin" ? "bg-indigo-600 text-white" : "bg-teal-600 text-white"
+                  msg.author_role === "admin" ? "bg-indigo-600 text-white" : "bg-teal-600 text-white"
                 }`}>
                   <div className="font-semibold">
-                    {msg.sender_name}
-                    <span className="ml-1 text-[0.7em] text-gray-200/60">({msg.sender_role})</span>
+                    {msg.author_name}
+                    <span className="ml-1 text-[0.7em] text-gray-200/60">({msg.author_role})</span>
                   </div>
                   <div className="whitespace-pre-wrap mt-1">{msg.message}</div>
                 </div>

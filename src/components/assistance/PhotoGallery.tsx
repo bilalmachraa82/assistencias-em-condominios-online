@@ -21,11 +21,11 @@ const CATEGORY_COLORS = {
 };
 
 export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGalleryProps) {
-  const { data: photos = [], isLoading, refetch } = useAssistancePhotos(assistanceId);
+  const { data: photos = [], isLoading, refetch } = useAssistancePhotos(assistanceId.toString());
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
-  const [deletingPhoto, setDeletingPhoto] = useState<number | null>(null);
+  const [deletingPhoto, setDeletingPhoto] = useState<string | null>(null);
 
-  const handleDeletePhoto = async (photoId: number, photoUrl: string) => {
+  const handleDeletePhoto = async (photoId: string, photoUrl: string) => {
     if (!isAdmin) return;
     
     setDeletingPhoto(photoId);
@@ -47,9 +47,9 @@ export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGal
       
       // Delete from database
       const { error: dbError } = await supabase
-        .from('assistance_photos')
+        .from('service_attachments')
         .delete()
-        .eq('id', photoId);
+        .eq('id', photoId.toString());
         
       if (dbError) throw dbError;
       
@@ -138,10 +138,10 @@ export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGal
                     <div key={photo.id} className="relative group">
                       <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                         <img
-                          src={photo.photo_url}
+                          src={photo.file_path}
                           alt={`Foto ${category}`}
                           className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
-                          onClick={() => setSelectedPhoto(photo.photo_url)}
+                          onClick={() => setSelectedPhoto(photo.file_path)}
                           loading="lazy"
                         />
                       </div>
@@ -152,7 +152,7 @@ export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGal
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0 bg-white bg-opacity-90 hover:bg-opacity-100"
-                            onClick={() => setSelectedPhoto(photo.photo_url)}
+                            onClick={() => setSelectedPhoto(photo.file_path)}
                           >
                             <Eye className="h-4 w-4 text-gray-700" />
                           </Button>
@@ -161,7 +161,7 @@ export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGal
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0 bg-white bg-opacity-90 hover:bg-opacity-100"
-                            onClick={() => handleDownload(photo.photo_url, category)}
+                            onClick={() => handleDownload(photo.file_path, category)}
                           >
                             <Download className="h-4 w-4 text-gray-700" />
                           </Button>
@@ -170,7 +170,7 @@ export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGal
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0 bg-white bg-opacity-90 hover:bg-opacity-100"
-                            onClick={() => window.open(photo.photo_url, '_blank')}
+                            onClick={() => window.open(photo.file_path, '_blank')}
                           >
                             <ExternalLink className="h-4 w-4 text-gray-700" />
                           </Button>
@@ -180,7 +180,7 @@ export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGal
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 bg-white bg-opacity-90 hover:bg-opacity-100"
-                              onClick={() => handleDeletePhoto(photo.id, photo.photo_url)}
+                              onClick={() => handleDeletePhoto(photo.id, photo.file_path)}
                               disabled={deletingPhoto === photo.id}
                             >
                               <Trash2 className="h-4 w-4 text-red-600" />
@@ -191,7 +191,7 @@ export default function PhotoGallery({ assistanceId, isAdmin = false }: PhotoGal
                       
                       <div className="mt-1 text-xs text-gray-500 text-center">
                         <div>Por: {photo.uploaded_by}</div>
-                        <div>{new Date(photo.uploaded_at).toLocaleDateString()}</div>
+                        <div>{new Date(photo.created_at).toLocaleDateString()}</div>
                       </div>
                     </div>
                   ))}

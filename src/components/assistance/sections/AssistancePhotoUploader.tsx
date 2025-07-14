@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import { type PhotoCategory, VALID_PHOTO_CATEGORIES } from "@/config/photoCategories";
 
-type AssistancePhoto = Tables<"assistance_photos">;
+type ServiceAttachment = Tables<"service_attachments">;
 
 interface AssistancePhotoUploaderProps {
   assistanceId: number;
@@ -98,16 +98,20 @@ export default function AssistancePhotoUploader({
           // 2. Obter URL pública
           const { data: pubUrl } = supabase.storage.from("assistance-photos").getPublicUrl(filePath);
 
-          // 3. Salvar referência na tabela assistance_photos
+          // 3. Salvar referência na tabela service_attachments
           const { error: dbError } = await supabase
-            .from("assistance_photos")
+            .from("service_attachments")
             .insert([
               {
-                assistance_id: assistanceId,
+                service_request_id: assistanceId.toString(),
                 category: category,
-                photo_url: pubUrl?.publicUrl || "",
+                file_path: pubUrl?.publicUrl || "",
+                file_name: sanitizedFileName,
+                file_type: file.type,
+                attachment_type: "photo",
                 uploaded_by: "admin", // Adaptar se for fornecedor
-              } as Omit<AssistancePhoto, "id" | "uploaded_at">,
+                uploaded_role: "admin",
+              } as Omit<ServiceAttachment, "id" | "created_at">,
             ]);
 
           if (dbError) {

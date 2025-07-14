@@ -11,9 +11,9 @@ export function ActivityFeed() {
     queryKey: ["activity-log-recent"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("activity_log")
-        .select("id, description, actor, timestamp")
-        .order("timestamp", { ascending: false })
+        .from("audit_events")
+        .select("id, event_type, actor_name, created_at")
+        .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
       return data;
@@ -43,11 +43,11 @@ export function ActivityFeed() {
                   className="p-3 bg-white/5 rounded-lg border border-white/5 flex justify-between items-center"
                 >
                   <span>
-                    <span className="text-[#9b87f5] font-medium">{item.actor}</span>:{" "}
-                    {item.description}
+                    <span className="text-[#9b87f5] font-medium">{item.actor_name}</span>:{" "}
+                    {item.event_type}
                   </span>
-                  <span className="text-[#cbd5e1] text-sm" title={item.timestamp}>
-                    {formatDistanceToNow(new Date(item.timestamp), {
+                  <span className="text-[#cbd5e1] text-sm" title={item.created_at}>
+                    {formatDistanceToNow(new Date(item.created_at), {
                       addSuffix: true,
                       locale: ptBR,
                     })}

@@ -126,13 +126,17 @@ export default function SupplierPhotoUpload({
 
           // Save to database
           const { error: dbError } = await supabase
-            .from("assistance_photos")
+            .from("service_attachments")
             .insert([
               {
-                assistance_id: assistanceId,
+                service_request_id: assistanceId.toString(),
                 category,
-                photo_url: pubUrl?.publicUrl || "",
+                file_path: pubUrl?.publicUrl || "",
+                file_name: sanitizedFileName,
+                file_type: file.type,
+                attachment_type: "photo",
                 uploaded_by: "supplier",
+                uploaded_role: "supplier",
               },
             ]);
 

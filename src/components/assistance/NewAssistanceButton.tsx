@@ -70,7 +70,7 @@ export default function NewAssistanceButton({
             
             if (createdAssistance) {
               console.log(`Automatically sending acceptance email for assistance #${createdAssistance.id}`);
-              const { success, error } = await sendAssistanceEmail(createdAssistance.id, 'acceptance');
+              const { success, error } = await sendAssistanceEmail(Number(createdAssistance.id), 'acceptance');
 
               if (success) {
                 toast.success("Email de aceitação enviado automaticamente para o fornecedor.");

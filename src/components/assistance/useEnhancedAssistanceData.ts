@@ -30,12 +30,12 @@ export default function useEnhancedAssistanceData(sortOrder: 'desc' | 'asc') {
       
       try {
         const { data, error } = await supabase
-          .from('assistances')
+          .from('service_requests')
           .select(`
             *,
             buildings(id, name, address),
-            suppliers(id, name, email),
-            intervention_types(id, name)
+            contractors(id, name, email),
+            service_categories(id, name)
           `)
           .order('created_at', { ascending: sortOrder === 'asc' });
         
@@ -100,7 +100,7 @@ export default function useEnhancedAssistanceData(sortOrder: 'desc' | 'asc') {
       
       try {
         const { data, error } = await supabase
-          .from('suppliers')
+          .from('contractors')
           .select('id, name, email')
           .eq('is_active', true)
           .order('name');
@@ -127,9 +127,9 @@ export default function useEnhancedAssistanceData(sortOrder: 'desc' | 'asc') {
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch = 
         assistance.description?.toLowerCase().includes(searchLower) ||
-        assistance.buildings?.name?.toLowerCase().includes(searchLower) ||
-        assistance.suppliers?.name?.toLowerCase().includes(searchLower) ||
-        assistance.intervention_types?.name?.toLowerCase().includes(searchLower);
+        (assistance.buildings as any)?.name?.toLowerCase().includes(searchLower) ||
+        (assistance.contractors as any)?.name?.toLowerCase().includes(searchLower) ||
+        (assistance.service_categories as any)?.name?.toLowerCase().includes(searchLower);
       
       if (!matchesSearch) return false;
     }
@@ -140,7 +140,7 @@ export default function useEnhancedAssistanceData(sortOrder: 'desc' | 'asc') {
     }
 
     // Supplier filter
-    if (supplierFilter && assistance.supplier_id?.toString() !== supplierFilter) {
+    if (supplierFilter && assistance.contractor_id?.toString() !== supplierFilter) {
       return false;
     }
 
@@ -150,7 +150,7 @@ export default function useEnhancedAssistanceData(sortOrder: 'desc' | 'asc') {
     }
 
     // Type filter
-    if (typeFilter && assistance.type !== typeFilter) {
+    if (typeFilter && assistance.category_id !== typeFilter) {
       return false;
     }
 

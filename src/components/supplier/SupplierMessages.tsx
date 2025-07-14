@@ -15,7 +15,7 @@ export default function SupplierMessages({ assistanceId, supplierName }: Supplie
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [message, setMessage] = useState("");
 
-  const { data: messages, isLoading, error } = useAssistanceMessages(assistanceId);
+  const { data: messages, isLoading, error } = useAssistanceMessages(assistanceId.toString());
   const { mutate: sendMessage, isPending: isSending } = useSendAssistanceMessage();
 
   useEffect(() => {
@@ -64,10 +64,15 @@ export default function SupplierMessages({ assistanceId, supplierName }: Supplie
     
     sendMessage(
       {
-        assistance_id: assistanceId,
-        sender_role: "supplier",
-        sender_name: supplierName.replace(/<[^>]*>/g, '').trim().slice(0, 100), // Sanitize supplier name too
+        service_request_id: assistanceId.toString(),
+        author_role: "supplier",
+        author_name: supplierName.replace(/<[^>]*>/g, '').trim().slice(0, 100), // Sanitize supplier name too
         message: sanitizedMessage,
+        message_type: "comment",
+        metadata: {},
+        is_internal: false,
+        is_visible_to_contractor: true,
+        is_visible_to_tenant: true,
       },
       {
         onSuccess: () => {
@@ -92,22 +97,22 @@ export default function SupplierMessages({ assistanceId, supplierName }: Supplie
           <div className="text-xs text-gray-400">A carregar mensagens...</div>
         ) : error ? (
           <div className="text-xs text-red-500">Erro ao carregar mensagens.</div>
-        ) : messages && messages.length > 0 ? (
+        ) : messages && Array.isArray(messages) && messages.length > 0 ? (
           <div className="space-y-2">
             {messages.map(msg => (
               <div
                 key={msg.id}
                 className={`flex flex-col ${
-                  msg.sender_role === "supplier" ? "items-end" : "items-start"
+                  msg.author_role === "supplier" ? "items-end" : "items-start"
                 }`}
               >
                 <div className={`max-w-[80%] px-3 py-2 rounded-lg text-xs ${
-                  msg.sender_role === "admin" 
+                  msg.author_role === "admin" 
                     ? "bg-blue-100 text-blue-800" 
                     : "bg-green-100 text-green-800"
                 }`}>
                   <div className="font-semibold mb-1">
-                    {msg.sender_name}
+                    {msg.author_name}
                   </div>
                   <div className="whitespace-pre-wrap">{msg.message}</div>
                 </div>

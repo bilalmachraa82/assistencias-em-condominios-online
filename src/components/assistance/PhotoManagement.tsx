@@ -15,7 +15,7 @@ interface PhotoManagementProps {
 }
 
 export default function PhotoManagement({ assistanceId }: PhotoManagementProps) {
-  const { data: photos = [], isLoading, refetch } = useAssistancePhotos(assistanceId);
+  const { data: photos = [], isLoading, refetch } = useAssistancePhotos(assistanceId.toString());
   const [isDeleting, setIsDeleting] = useState(false);
   const [storageInfo, setStorageInfo] = useState<{
     totalSize: number;
@@ -48,7 +48,7 @@ export default function PhotoManagement({ assistanceId }: PhotoManagementProps) 
       for (const photo of photos) {
         try {
           // Extract file path from URL
-          const urlParts = photo.photo_url.split('/');
+          const urlParts = photo.file_path.split('/');
           const bucketIndex = urlParts.findIndex(part => part === 'assistance-photos');
           
           if (bucketIndex !== -1) {
@@ -62,7 +62,7 @@ export default function PhotoManagement({ assistanceId }: PhotoManagementProps) 
           
           // Delete from database
           await supabase
-            .from('assistance_photos')
+            .from('service_attachments')
             .delete()
             .eq('id', photo.id);
             
@@ -99,7 +99,7 @@ export default function PhotoManagement({ assistanceId }: PhotoManagementProps) 
         // Small delay between downloads to avoid overwhelming the browser
         setTimeout(async () => {
           try {
-            const response = await fetch(photo.photo_url);
+            const response = await fetch(photo.file_path);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');

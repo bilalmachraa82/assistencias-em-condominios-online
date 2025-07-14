@@ -20,7 +20,7 @@ const PHOTO_CATEGORY_CONFIG: { id: PhotoCategory; label: string; icon: React.Ele
 ];
 
 export default function PhotosSection({ assistanceId, isAdmin = false }: PhotosSectionProps) {
-  const { data: photos = [], isLoading, refetch } = useAssistancePhotos(assistanceId);
+  const { data: photos = [], isLoading, refetch } = useAssistancePhotos(assistanceId.toString());
 
   return (
     <Tabs defaultValue="gallery" className="w-full">
