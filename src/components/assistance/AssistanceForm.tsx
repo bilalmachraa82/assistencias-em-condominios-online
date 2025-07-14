@@ -32,20 +32,20 @@ type AssistanceFormProps = {
 };
 
 export type AssistanceFormValues = {
-  intervention_type_id: number;
-  supplier_id: number;
+  category_id: string;
+  contractor_id: string;
   description: string;
   admin_notes?: string;
-  type: string;
+  priority: string;
 };
 
 // Form schema
 const formSchema = z.object({
-  intervention_type_id: z.number({
-    required_error: "Selecione uma categoria de intervenção",
+  category_id: z.string({
+    required_error: "Selecione uma categoria de serviço",
   }),
-  supplier_id: z.number({
-    required_error: "Selecione um fornecedor",
+  contractor_id: z.string({
+    required_error: "Selecione um contratador",
   }),
   description: z.string().min(1, {
     message: "Descrição é obrigatória",
@@ -62,11 +62,11 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel, i
     },
   });
 
-  const { data: interventionTypes, isLoading: isLoadingTypes } = useQuery({
-    queryKey: ['intervention_types'],
+  const { data: serviceCategories, isLoading: isLoadingCategories } = useQuery({
+    queryKey: ['service_categories'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('intervention_types')
+        .from('service_categories')
         .select('*')
         .order('name');
       
@@ -75,11 +75,11 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel, i
     },
   });
 
-  const { data: suppliers, isLoading: isLoadingSuppliers } = useQuery({
-    queryKey: ['suppliers'],
+  const { data: contractors, isLoading: isLoadingContractors } = useQuery({
+    queryKey: ['contractors'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('suppliers')
+        .from('contractors')
         .select('*')
         .order('name');
       
@@ -90,20 +90,11 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel, i
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Encontrar o tipo de intervenção selecionado para obter o valor de maps_to_urgency
-      const selectedType = interventionTypes?.find(
-        type => type.id === Number(values.intervention_type_id)
-      );
-
-      // Definir o tipo com base em maps_to_urgency, padrão para 'Normal' se não encontrado
-      const assistanceType = selectedType?.maps_to_urgency || 'Normal';
-
-      // Now we ensure all required fields are present
       const formData: AssistanceFormValues = {
-        intervention_type_id: values.intervention_type_id,
-        supplier_id: values.supplier_id,
+        category_id: values.category_id,
+        contractor_id: values.contractor_id,
         description: values.description,
-        type: assistanceType,
+        priority: 'normal',
         admin_notes: values.admin_notes,
       };
 
@@ -124,31 +115,31 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel, i
         {/* Intervention Type */}
         <FormField
           control={form.control}
-          name="intervention_type_id"
+          name="category_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Categoria da Intervenção *</FormLabel>
+              <FormLabel>Categoria do Serviço *</FormLabel>
               <FormControl>
                 <Select 
-                  onValueChange={(value) => field.onChange(Number(value))}
-                  value={field.value?.toString()}
-                  disabled={isLoadingTypes}
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={isLoadingCategories}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    {isLoadingTypes ? (
+                    {isLoadingCategories ? (
                       <div className="p-2 text-center">Carregando categorias...</div>
-                    ) : !interventionTypes || interventionTypes.length === 0 ? (
+                    ) : !serviceCategories || serviceCategories.length === 0 ? (
                       <div className="p-2 text-center">Nenhuma categoria encontrada</div>
                     ) : (
-                      interventionTypes.map((type) => (
+                      serviceCategories.map((category) => (
                         <SelectItem 
-                          key={type.id} 
-                          value={type.id.toString()}
+                          key={category.id} 
+                          value={category.id}
                         >
-                          {type.name}
+                          {category.name}
                         </SelectItem>
                       ))
                     )}
@@ -163,31 +154,31 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel, i
         {/* Supplier */}
         <FormField
           control={form.control}
-          name="supplier_id"
+          name="contractor_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Fornecedor Recomendado/Atribuído *</FormLabel>
+              <FormLabel>Contratador Recomendado/Atribuído *</FormLabel>
               <FormControl>
                 <Select 
-                  onValueChange={(value) => field.onChange(Number(value))}
-                  value={field.value?.toString()}
-                  disabled={isLoadingSuppliers}
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={isLoadingContractors}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione o fornecedor" />
+                    <SelectValue placeholder="Selecione o contratador" />
                   </SelectTrigger>
                   <SelectContent>
-                    {isLoadingSuppliers ? (
-                      <div className="p-2 text-center">Carregando fornecedores...</div>
-                    ) : !suppliers || suppliers.length === 0 ? (
-                      <div className="p-2 text-center">Nenhum fornecedor encontrado</div>
+                    {isLoadingContractors ? (
+                      <div className="p-2 text-center">Carregando contratadores...</div>
+                    ) : !contractors || contractors.length === 0 ? (
+                      <div className="p-2 text-center">Nenhum contratador encontrado</div>
                     ) : (
-                      suppliers.map((supplier) => (
+                      contractors.map((contractor) => (
                         <SelectItem 
-                          key={supplier.id} 
-                          value={supplier.id.toString()}
+                          key={contractor.id} 
+                          value={contractor.id}
                         >
-                          {supplier.name} {supplier.specialization ? `(${supplier.specialization})` : ''}
+                          {contractor.name} {contractor.company_name ? `(${contractor.company_name})` : ''}
                         </SelectItem>
                       ))
                     )}
@@ -242,7 +233,7 @@ export default function AssistanceForm({ selectedBuilding, onSubmit, onCancel, i
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Processando..." : "Criar Assistência"}
+            {isSubmitting ? "Processando..." : "Criar Solicitação de Serviço"}
           </Button>
         </div>
       </form>

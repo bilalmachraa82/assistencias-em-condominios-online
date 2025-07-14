@@ -1,86 +1,16 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
+import { useServiceRequests } from '@/hooks/useServiceRequests';
 import { TrendingUp, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export default function AssistanceAnalytics() {
-  const { data: analyticsData, isLoading } = useQuery({
-    queryKey: ['assistance-analytics'],
-    queryFn: async () => {
-      // Get status distribution
-      const { data: statusData } = await supabase
-        .from('assistances')
-        .select('status')
-        .order('created_at', { ascending: false });
+  const { serviceRequests, loading } = useServiceRequests();
 
-      // Get monthly trends
-      const { data: monthlyData } = await supabase
-        .from('assistances')
-        .select('created_at, status')
-        .gte('created_at', new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000).toISOString());
-
-      // Get supplier performance
-      const { data: supplierData } = await supabase
-        .from('assistances')
-        .select(`
-          supplier_id,
-          status,
-          suppliers!inner(name)
-        `);
-
-      // Process status distribution
-      const statusDistribution = statusData?.reduce((acc, item) => {
-        acc[item.status] = (acc[item.status] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      // Process monthly trends
-      const monthlyTrends = monthlyData?.reduce((acc, item) => {
-        const month = new Date(item.created_at).toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' });
-        acc[month] = (acc[month] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      // Process supplier performance
-      const supplierPerformance = supplierData?.reduce((acc, item) => {
-        const supplierName = (item.suppliers as any)?.name || 'Desconhecido';
-        if (!acc[supplierName]) {
-          acc[supplierName] = { total: 0, completed: 0 };
-        }
-        acc[supplierName].total++;
-        if (item.status === 'Concluída') {
-          acc[supplierName].completed++;
-        }
-        return acc;
-      }, {} as Record<string, { total: number; completed: number }>) || {};
-
-      return {
-        statusDistribution: Object.entries(statusDistribution).map(([status, count]) => ({
-          name: status,
-          value: count
-        })),
-        monthlyTrends: Object.entries(monthlyTrends).map(([month, count]) => ({
-          month,
-          assistencias: count
-        })),
-        supplierPerformance: Object.entries(supplierPerformance).map(([name, data]) => ({
-          name,
-          total: data.total,
-          completed: data.completed,
-          percentage: Math.round((data.completed / data.total) * 100)
-        }))
-      };
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
@@ -97,11 +27,38 @@ export default function AssistanceAnalytics() {
     );
   }
 
-  const totalAssistances = analyticsData?.statusDistribution.reduce((sum, item) => sum + item.value, 0) || 0;
-  const completedAssistances = analyticsData?.statusDistribution.find(item => item.name === 'Concluída')?.value || 0;
-  const pendingAssistances = analyticsData?.statusDistribution.filter(item => 
-    item.name.includes('Pendente') || item.name.includes('Agendado')
-  ).reduce((sum, item) => sum + item.value, 0) || 0;
+  const requests = serviceRequests || [];
+  
+  // Process analytics data
+  const statusDistribution = requests.reduce((acc, item) => {
+    acc[item.status] = (acc[item.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const monthlyTrends = requests
+    .filter(item => new Date(item.created_at) > new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000))
+    .reduce((acc, item) => {
+      const month = new Date(item.created_at).toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' });
+      acc[month] = (acc[month] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const analyticsData = {
+    statusDistribution: Object.entries(statusDistribution).map(([status, count]) => ({
+      name: status,
+      value: count
+    })),
+    monthlyTrends: Object.entries(monthlyTrends).map(([month, count]) => ({
+      month,
+      assistencias: count
+    }))
+  };
+
+  const totalAssistances = requests.length;
+  const completedAssistances = requests.filter(item => item.status === 'completed').length;
+  const pendingAssistances = requests.filter(item => 
+    item.status === 'submitted' || item.status === 'assigned' || item.status === 'scheduled'
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -161,7 +118,7 @@ export default function AssistanceAnalytics() {
         <TabsList>
           <TabsTrigger value="status">Status</TabsTrigger>
           <TabsTrigger value="trends">Tendências</TabsTrigger>
-          <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
+          <TabsTrigger value="contractors">Contratadores</TabsTrigger>
         </TabsList>
         
         <TabsContent value="status">
@@ -214,22 +171,16 @@ export default function AssistanceAnalytics() {
           </Card>
         </TabsContent>
         
-        <TabsContent value="suppliers">
+        <TabsContent value="contractors">
           <Card>
             <CardHeader>
-              <CardTitle>Performance dos Fornecedores</CardTitle>
-              <CardDescription>Taxa de conclusão por fornecedor</CardDescription>
+              <CardTitle>Performance dos Contratadores</CardTitle>
+              <CardDescription>Taxa de conclusão por contratador</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={analyticsData?.supplierPerformance}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="percentage" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Dados de performance em desenvolvimento</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

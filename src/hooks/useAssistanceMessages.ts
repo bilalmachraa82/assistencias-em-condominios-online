@@ -37,3 +37,7 @@ export function useSendServiceCommunication() {
     }
   });
 }
+
+// Backward compatibility exports
+export const useAssistanceMessages = useServiceCommunications;
+export const useSendAssistanceMessage = useSendServiceCommunication;

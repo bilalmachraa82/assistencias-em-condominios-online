@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import useValidStatuses from "@/hooks/useValidStatuses";
 import { AssistanceStatusValue } from "@/types/assistance";
+import { mapOldStatusToNew } from "@/utils/StatusMapping";
 
 import BasicInfoSection from "./sections/BasicInfoSection";
 import DescriptionSection from "./sections/DescriptionSection";
@@ -63,12 +64,12 @@ export default function AssistanceDetails({
         return;
       }
 
-      // Now the function exists, no need for explicit typing
-      const { error } = await supabase.rpc("update_assistance_status", {
-        p_assistance_id: assistance.id,
-        p_new_status: status,
-        p_scheduled_datetime: null,
-      });
+      // Map old status to new and update
+      const newStatus = mapOldStatusToNew(status);
+      const { error } = await supabase
+        .from('service_requests')
+        .update({ status: newStatus })
+        .eq('id', assistance.id);
       
       if (error) {
         console.error("Error updating assistance status:", error);
@@ -76,9 +77,9 @@ export default function AssistanceDetails({
       }
 
       const { error: notesError } = await supabase
-        .from("assistances")
+        .from("service_requests")
         .update({ 
-          admin_notes: adminNotes, 
+          metadata: { ...assistance.metadata, admin_notes: adminNotes },
           updated_at: new Date().toISOString() 
         })
         .eq("id", assistance.id);
@@ -106,8 +107,8 @@ export default function AssistanceDetails({
         Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 
       const { error } = await supabase
-        .from("assistances")
-        .update({ [tokenType]: newToken })
+        .from("service_requests")
+        .update({ access_token: newToken })
         .eq("id", assistance.id);
         
       if (error) {
