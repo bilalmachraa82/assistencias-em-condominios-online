@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { ServiceAttachment } from '@/types/database';
+import { Tables } from '@/integrations/supabase/types';
 
 export function useServiceAttachments(serviceRequestId: string | undefined) {
   return useQuery<ServiceAttachment[]>({
@@ -15,7 +16,10 @@ export function useServiceAttachments(serviceRequestId: string | undefined) {
         .eq('service_request_id', serviceRequestId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      return (data || []).map(item => ({
+        ...item,
+        metadata: item.metadata as Record<string, any> || {}
+      }));
     },
     staleTime: 30_000,
   });
@@ -37,3 +41,6 @@ export function useUploadServiceAttachment() {
     }
   });
 }
+
+// Backward compatibility alias
+export const useAssistancePhotos = useServiceAttachments;

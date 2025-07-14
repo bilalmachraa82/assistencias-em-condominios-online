@@ -43,7 +43,10 @@ export default function AccessPhotos({ serviceRequestId, onUpdate }: AccessPhoto
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAttachments(data || []);
+      setAttachments((data || []).map(item => ({
+        ...item,
+        metadata: item.metadata as Record<string, any> || {}
+      })));
     } catch (error) {
       console.error('Error fetching attachments:', error);
       toast.error('Erro ao carregar fotos');

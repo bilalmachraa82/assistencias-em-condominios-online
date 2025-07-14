@@ -35,7 +35,10 @@ export default function AccessMessages({ serviceRequestId, onUpdate }: AccessMes
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setCommunications(data || []);
+      setCommunications((data || []).map(item => ({
+        ...item,
+        metadata: item.metadata as Record<string, any> || {}
+      })));
     } catch (error) {
       console.error('Error fetching communications:', error);
       toast.error('Erro ao carregar mensagens');
