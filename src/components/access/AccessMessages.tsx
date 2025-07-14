@@ -8,43 +8,36 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-interface Message {
-  id: number;
-  message: string;
-  sender_name: string;
-  sender_role: string;
-  created_at: string;
-}
+import { ServiceCommunication } from '@/types/database';
 
 interface AccessMessagesProps {
-  assistanceId: number;
+  serviceRequestId: string;
   onUpdate: () => void;
 }
 
-export default function AccessMessages({ assistanceId, onUpdate }: AccessMessagesProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export default function AccessMessages({ serviceRequestId, onUpdate }: AccessMessagesProps) {
+  const [communications, setCommunications] = useState<ServiceCommunication[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [senderName, setSenderName] = useState('');
 
   useEffect(() => {
-    fetchMessages();
-  }, [assistanceId]);
+    fetchCommunications();
+  }, [serviceRequestId]);
 
-  const fetchMessages = async () => {
+  const fetchCommunications = async () => {
     try {
       const { data, error } = await supabase
-        .from('assistance_messages')
+        .from('service_communications')
         .select('*')
-        .eq('assistance_id', assistanceId)
+        .eq('service_request_id', serviceRequestId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      setCommunications(data || []);
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error('Error fetching communications:', error);
       toast.error('Erro ao carregar mensagens');
     } finally {
       setLoading(false);
@@ -61,19 +54,24 @@ export default function AccessMessages({ assistanceId, onUpdate }: AccessMessage
       setSending(true);
       
       const { error } = await supabase
-        .from('assistance_messages')
+        .from('service_communications')
         .insert({
-          assistance_id: assistanceId,
+          service_request_id: serviceRequestId,
           message: newMessage.trim(),
-          sender_name: senderName.trim(),
-          sender_role: 'supplier'
+          author_name: senderName.trim(),
+          author_role: 'contractor',
+          message_type: 'comment',
+          is_internal: false,
+          is_visible_to_contractor: true,
+          is_visible_to_tenant: true,
+          metadata: {}
         });
 
       if (error) throw error;
       
       setNewMessage('');
       toast.success('Mensagem enviada');
-      fetchMessages();
+      fetchCommunications();
       onUpdate();
     } catch (error) {
       console.error('Error sending message:', error);
@@ -98,36 +96,36 @@ export default function AccessMessages({ assistanceId, onUpdate }: AccessMessage
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Messages List */}
+            {/* Communications List */}
             <div className="max-h-80 overflow-y-auto space-y-3 p-3 bg-gradient-subtle rounded-lg border">
-              {messages.length === 0 ? (
+              {communications.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p className="text-sm">Nenhuma mensagem ainda</p>
                   <p className="text-xs mt-1">Inicie a conversa enviando uma mensagem</p>
                 </div>
               ) : (
-                messages.map((message) => (
+                communications.map((communication) => (
                   <div
-                    key={message.id}
+                    key={communication.id}
                     className={`p-4 rounded-lg shadow-soft transition-all hover:shadow-medium ${
-                      message.sender_role === 'supplier' 
+                      communication.author_role === 'contractor' 
                         ? 'bg-primary/10 border-l-4 border-primary ml-6' 
                         : 'bg-background border-l-4 border-muted mr-6'
                     }`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-semibold text-sm text-foreground">
-                        {message.sender_name}
+                        {communication.author_name}
                         <span className="ml-2 text-xs text-muted-foreground font-normal">
-                          ({message.sender_role === 'supplier' ? 'Fornecedor' : 'Administrador'})
+                          ({communication.author_role === 'contractor' ? 'Fornecedor' : 'Administrador'})
                         </span>
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {format(new Date(message.created_at), 'dd/MM HH:mm', { locale: ptBR })}
+                        {format(new Date(communication.created_at), 'dd/MM HH:mm', { locale: ptBR })}
                       </span>
                     </div>
-                    <p className="text-sm text-foreground leading-relaxed">{message.message}</p>
+                    <p className="text-sm text-foreground leading-relaxed">{communication.message}</p>
                   </div>
                 ))
               )}

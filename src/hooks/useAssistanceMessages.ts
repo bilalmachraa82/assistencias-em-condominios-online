@@ -1,20 +1,18 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { ServiceCommunication } from '@/types/database';
 
-type AssistanceMessage = Tables<'assistance_messages'>;
-
-export function useAssistanceMessages(assistanceId: number | undefined) {
-  return useQuery<AssistanceMessage[]>({
-    queryKey: ['assistance-messages', assistanceId],
-    enabled: !!assistanceId,
+export function useServiceCommunications(serviceRequestId: string | undefined) {
+  return useQuery<ServiceCommunication[]>({
+    queryKey: ['service-communications', serviceRequestId],
+    enabled: !!serviceRequestId,
     queryFn: async () => {
-      if (!assistanceId) return [];
+      if (!serviceRequestId) return [];
       const { data, error } = await supabase
-        .from('assistance_messages')
+        .from('service_communications')
         .select('*')
-        .eq('assistance_id', assistanceId)
+        .eq('service_request_id', serviceRequestId)
         .order('created_at', { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -23,19 +21,19 @@ export function useAssistanceMessages(assistanceId: number | undefined) {
   });
 }
 
-export function useSendAssistanceMessage() {
+export function useSendServiceCommunication() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (msg: Omit<AssistanceMessage, 'id' | 'created_at'>) => {
+    mutationFn: async (communication: Omit<ServiceCommunication, 'id' | 'created_at'>) => {
       const { data, error } = await supabase
-        .from('assistance_messages')
-        .insert([msg]);
+        .from('service_communications')
+        .insert([communication]);
       if (error) throw error;
       return data;
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['assistance-messages', variables.assistance_id] });
+      queryClient.invalidateQueries({ queryKey: ['service-communications', variables.service_request_id] });
     }
   });
 }

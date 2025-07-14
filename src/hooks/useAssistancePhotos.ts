@@ -1,21 +1,19 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { ServiceAttachment } from '@/types/database';
 
-type AssistancePhoto = Tables<'assistance_photos'>;
-
-export function useAssistancePhotos(assistanceId: number | undefined) {
-  return useQuery<AssistancePhoto[]>({
-    queryKey: ['assistance-photos', assistanceId],
-    enabled: !!assistanceId,
+export function useServiceAttachments(serviceRequestId: string | undefined) {
+  return useQuery<ServiceAttachment[]>({
+    queryKey: ['service-attachments', serviceRequestId],
+    enabled: !!serviceRequestId,
     queryFn: async () => {
-      if (!assistanceId) return [];
+      if (!serviceRequestId) return [];
       const { data, error } = await supabase
-        .from('assistance_photos')
+        .from('service_attachments')
         .select('*')
-        .eq('assistance_id', assistanceId)
-        .order('uploaded_at', { ascending: true });
+        .eq('service_request_id', serviceRequestId)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
@@ -23,19 +21,19 @@ export function useAssistancePhotos(assistanceId: number | undefined) {
   });
 }
 
-export function useUploadAssistancePhoto() {
+export function useUploadServiceAttachment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (photo: Omit<AssistancePhoto, 'id' | 'uploaded_at'>) => {
+    mutationFn: async (attachment: Omit<ServiceAttachment, 'id' | 'created_at'>) => {
       const { data, error } = await supabase
-        .from('assistance_photos')
-        .insert([photo]);
+        .from('service_attachments')
+        .insert([attachment]);
       if (error) throw error;
       return data;
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['assistance-photos', variables.assistance_id] });
+      queryClient.invalidateQueries({ queryKey: ['service-attachments', variables.service_request_id] });
     }
   });
 }

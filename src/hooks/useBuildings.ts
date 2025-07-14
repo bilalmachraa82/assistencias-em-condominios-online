@@ -2,20 +2,12 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-type Building = {
-  id: number;
-  name: string;
-  address?: string;
-  cadastral_code?: string;
-  admin_notes?: string;
-  is_active: boolean;
-};
+import { Building, BuildingWithStats } from '@/types/database';
 
 export function useBuildings() {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedBuilding, setSelectedBuilding] = useState<null | Building>(null);
-  const [buildingToDelete, setBuildingToDelete] = useState<null | { id: number; name: string }>(null);
+  const [selectedBuilding, setSelectedBuilding] = useState<null | BuildingWithStats>(null);
+  const [buildingToDelete, setBuildingToDelete] = useState<null | { id: string; name: string }>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [deletingAllError, setDeletingAllError] = useState<string | null>(null);
@@ -28,13 +20,15 @@ export function useBuildings() {
     queryFn: async () => {
       console.log('🏗️ Fetching buildings from database...');
       
-      // First, let's check if we can connect to the database
-      console.log('🔗 Testing database connection...');
-      
       try {
         const { data, error, count } = await supabase
           .from('buildings')
-          .select('*', { count: 'exact' })
+          .select(`
+            *,
+            active_requests:service_requests!building_id(count),
+            total_requests:service_requests!building_id(count)
+          `, { count: 'exact' })
+          .eq('is_active', true)
           .order('name');
         
         console.log('📊 Raw Supabase response:', { data, error, count });
@@ -51,13 +45,15 @@ export function useBuildings() {
         
         console.log('✅ Buildings fetched successfully!');
         console.log('📋 Total buildings found:', count);
-        console.log('📋 Buildings data structure:', data);
         
-        if (!data || data.length === 0) {
-          console.warn('⚠️ No buildings found in database - this might be expected if no buildings have been created yet');
-        }
+        // Processar estatísticas
+        const buildingsWithStats = data?.map(building => ({
+          ...building,
+          active_requests_count: building.active_requests?.[0]?.count || 0,
+          total_requests_count: building.total_requests?.[0]?.count || 0
+        })) || [];
         
-        return data || [];
+        return buildingsWithStats;
       } catch (err) {
         console.error('💥 Exception in buildings query:', err);
         throw err;

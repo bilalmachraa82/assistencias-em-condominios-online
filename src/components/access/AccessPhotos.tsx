@@ -8,17 +8,10 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-interface Photo {
-  id: number;
-  photo_url: string;
-  category: string;
-  uploaded_by: string | null;
-  uploaded_at: string;
-}
+import { ServiceAttachment } from '@/types/database';
 
 interface AccessPhotosProps {
-  assistanceId: number;
+  serviceRequestId: string;
   onUpdate: () => void;
 }
 
@@ -29,29 +22,30 @@ const PHOTO_CATEGORIES = [
   { value: 'outros', label: 'Outros' }
 ];
 
-export default function AccessPhotos({ assistanceId, onUpdate }: AccessPhotosProps) {
-  const [photos, setPhotos] = useState<Photo[]>([]);
+export default function AccessPhotos({ serviceRequestId, onUpdate }: AccessPhotosProps) {
+  const [attachments, setAttachments] = useState<ServiceAttachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('progresso');
   const [uploaderName, setUploaderName] = useState('');
 
   useEffect(() => {
-    fetchPhotos();
-  }, [assistanceId]);
+    fetchAttachments();
+  }, [serviceRequestId]);
 
-  const fetchPhotos = async () => {
+  const fetchAttachments = async () => {
     try {
       const { data, error } = await supabase
-        .from('assistance_photos')
+        .from('service_attachments')
         .select('*')
-        .eq('assistance_id', assistanceId)
-        .order('uploaded_at', { ascending: false });
+        .eq('service_request_id', serviceRequestId)
+        .eq('attachment_type', 'photo')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPhotos(data || []);
+      setAttachments(data || []);
     } catch (error) {
-      console.error('Error fetching photos:', error);
+      console.error('Error fetching attachments:', error);
       toast.error('Erro ao carregar fotos');
     } finally {
       setLoading(false);
@@ -69,33 +63,40 @@ export default function AccessPhotos({ assistanceId, onUpdate }: AccessPhotosPro
       
       // Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${assistanceId}/${Date.now()}.${fileExt}`;
+      const fileName = `${serviceRequestId}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('assistance-photos')
-        .upload(`assistances/${fileName}`, file);
+        .upload(`service-requests/${fileName}`, file);
 
       if (uploadError) throw uploadError;
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('assistance-photos')
-        .getPublicUrl(`assistances/${fileName}`);
+        .getPublicUrl(`service-requests/${fileName}`);
 
       // Save to database
       const { error: dbError } = await supabase
-        .from('assistance_photos')
+        .from('service_attachments')
         .insert({
-          assistance_id: assistanceId,
-          photo_url: publicUrl,
+          service_request_id: serviceRequestId,
+          file_name: file.name,
+          file_path: publicUrl,
+          file_size: file.size,
+          file_type: fileExt || 'unknown',
+          mime_type: file.type,
+          attachment_type: 'photo',
           category: selectedCategory,
-          uploaded_by: uploaderName.trim()
+          uploaded_by: uploaderName.trim(),
+          uploaded_role: 'contractor',
+          metadata: {}
         });
 
       if (dbError) throw dbError;
 
       toast.success('Foto enviada com sucesso');
-      fetchPhotos();
+      fetchAttachments();
       onUpdate();
     } catch (error) {
       console.error('Error uploading photo:', error);
@@ -195,7 +196,7 @@ export default function AccessPhotos({ assistanceId, onUpdate }: AccessPhotosPro
             {/* Photos Grid */}
             <div className="p-4 bg-gradient-subtle border rounded-lg">
               <h4 className="font-medium text-foreground mb-4">Galeria de Fotos</h4>
-              {photos.length === 0 ? (
+              {attachments.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
                   <p className="text-sm">Nenhuma foto enviada ainda</p>
@@ -203,23 +204,23 @@ export default function AccessPhotos({ assistanceId, onUpdate }: AccessPhotosPro
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {photos.map((photo) => (
-                    <div key={photo.id} className="group">
+                  {attachments.map((attachment) => (
+                    <div key={attachment.id} className="group">
                       <div className="aspect-square bg-muted rounded-lg overflow-hidden shadow-soft group-hover:shadow-medium transition-shadow">
                         <img
-                          src={photo.photo_url}
-                          alt={getCategoryLabel(photo.category)}
+                          src={attachment.file_path}
+                          alt={getCategoryLabel(attachment.category || '')}
                           className="w-full h-full object-cover cursor-pointer group-hover:scale-105 transition-transform duration-300"
-                          onClick={() => window.open(photo.photo_url, '_blank')}
+                          onClick={() => window.open(attachment.file_path, '_blank')}
                         />
                       </div>
                       <div className="mt-2 p-2 bg-background rounded border">
-                        <p className="font-medium text-xs text-foreground">{getCategoryLabel(photo.category)}</p>
-                        {photo.uploaded_by && (
-                          <p className="text-xs text-muted-foreground">por {photo.uploaded_by}</p>
+                        <p className="font-medium text-xs text-foreground">{getCategoryLabel(attachment.category || '')}</p>
+                        {attachment.uploaded_by && (
+                          <p className="text-xs text-muted-foreground">por {attachment.uploaded_by}</p>
                         )}
                         <p className="text-xs text-muted-foreground">
-                          {format(new Date(photo.uploaded_at), 'dd/MM HH:mm', { locale: ptBR })}
+                          {format(new Date(attachment.created_at), 'dd/MM HH:mm', { locale: ptBR })}
                         </p>
                       </div>
                     </div>
