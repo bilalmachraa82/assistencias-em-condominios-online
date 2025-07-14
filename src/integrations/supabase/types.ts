@@ -14,381 +14,563 @@ export type Database = {
   }
   public: {
     Tables: {
-      activity_log: {
+      audit_events: {
         Row: {
-          actor: string
-          assistance_id: number | null
-          description: string
-          id: number
-          timestamp: string
-        }
-        Insert: {
-          actor: string
-          assistance_id?: number | null
-          description: string
-          id?: number
-          timestamp?: string
-        }
-        Update: {
-          actor?: string
-          assistance_id?: number | null
-          description?: string
-          id?: number
-          timestamp?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "activity_log_assistance_id_fkey"
-            columns: ["assistance_id"]
-            isOneToOne: false
-            referencedRelation: "assistances"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      assistance_messages: {
-        Row: {
-          assistance_id: number
+          actor_id: string | null
+          actor_ip: string | null
+          actor_name: string
+          actor_role: string
+          changes: Json | null
           created_at: string
-          id: number
-          message: string
-          sender_name: string
-          sender_role: string
+          entity_id: string | null
+          entity_type: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          new_values: Json | null
+          old_values: Json | null
+          organization_id: string | null
+          service_request_id: string | null
         }
         Insert: {
-          assistance_id: number
+          actor_id?: string | null
+          actor_ip?: string | null
+          actor_name: string
+          actor_role: string
+          changes?: Json | null
           created_at?: string
-          id?: number
-          message: string
-          sender_name: string
-          sender_role: string
+          entity_id?: string | null
+          entity_type: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          organization_id?: string | null
+          service_request_id?: string | null
         }
         Update: {
-          assistance_id?: number
+          actor_id?: string | null
+          actor_ip?: string | null
+          actor_name?: string
+          actor_role?: string
+          changes?: Json | null
           created_at?: string
-          id?: number
-          message?: string
-          sender_name?: string
-          sender_role?: string
+          entity_id?: string | null
+          entity_type?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          organization_id?: string | null
+          service_request_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "assistance_messages_assistance_id_fkey"
-            columns: ["assistance_id"]
+            foreignKeyName: "audit_events_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "assistances"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      assistance_photos: {
-        Row: {
-          assistance_id: number
-          category: string
-          id: number
-          photo_url: string
-          uploaded_at: string
-          uploaded_by: string | null
-        }
-        Insert: {
-          assistance_id: number
-          category: string
-          id?: number
-          photo_url: string
-          uploaded_at?: string
-          uploaded_by?: string | null
-        }
-        Update: {
-          assistance_id?: number
-          category?: string
-          id?: number
-          photo_url?: string
-          uploaded_at?: string
-          uploaded_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "assistance_photos_assistance_id_fkey"
-            columns: ["assistance_id"]
-            isOneToOne: false
-            referencedRelation: "assistances"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      assistances: {
-        Row: {
-          acceptance_token: string | null
-          admin_alert_sent_at: string | null
-          admin_notes: string | null
-          alert_level: number
-          building_id: number
-          completion_photo_url: string | null
-          created_at: string
-          description: string
-          id: number
-          interaction_token: string
-          intervention_type_id: number | null
-          opened_at: string
-          photo_path: string | null
-          rejection_reason: string | null
-          reschedule_reason: string | null
-          scheduled_datetime: string | null
-          scheduling_token: string | null
-          status: string
-          supplier_id: number
-          type: string
-          updated_at: string
-          validation_email_sent_at: string | null
-          validation_reminder_count: number
-          validation_token: string | null
-        }
-        Insert: {
-          acceptance_token?: string | null
-          admin_alert_sent_at?: string | null
-          admin_notes?: string | null
-          alert_level?: number
-          building_id: number
-          completion_photo_url?: string | null
-          created_at?: string
-          description: string
-          id?: number
-          interaction_token: string
-          intervention_type_id?: number | null
-          opened_at?: string
-          photo_path?: string | null
-          rejection_reason?: string | null
-          reschedule_reason?: string | null
-          scheduled_datetime?: string | null
-          scheduling_token?: string | null
-          status?: string
-          supplier_id: number
-          type: string
-          updated_at?: string
-          validation_email_sent_at?: string | null
-          validation_reminder_count?: number
-          validation_token?: string | null
-        }
-        Update: {
-          acceptance_token?: string | null
-          admin_alert_sent_at?: string | null
-          admin_notes?: string | null
-          alert_level?: number
-          building_id?: number
-          completion_photo_url?: string | null
-          created_at?: string
-          description?: string
-          id?: number
-          interaction_token?: string
-          intervention_type_id?: number | null
-          opened_at?: string
-          photo_path?: string | null
-          rejection_reason?: string | null
-          reschedule_reason?: string | null
-          scheduled_datetime?: string | null
-          scheduling_token?: string | null
-          status?: string
-          supplier_id?: number
-          type?: string
-          updated_at?: string
-          validation_email_sent_at?: string | null
-          validation_reminder_count?: number
-          validation_token?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "assistances_building_id_fkey"
-            columns: ["building_id"]
-            isOneToOne: false
-            referencedRelation: "buildings"
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "assistances_intervention_type_id_fkey"
-            columns: ["intervention_type_id"]
+            foreignKeyName: "audit_events_service_request_id_fkey"
+            columns: ["service_request_id"]
             isOneToOne: false
-            referencedRelation: "intervention_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assistances_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
+            referencedRelation: "service_requests"
             referencedColumns: ["id"]
           },
         ]
       }
       buildings: {
         Row: {
+          access_instructions: string | null
           address: string | null
           admin_notes: string | null
-          cadastral_code: string | null
+          building_type: string | null
+          cadastral_reference: string | null
+          city: string | null
+          construction_year: number | null
+          coordinates: unknown | null
+          country: string | null
           created_at: string
-          id: number
-          is_active: boolean
-          name: string
-          nif: string | null
-        }
-        Insert: {
-          address?: string | null
-          admin_notes?: string | null
-          cadastral_code?: string | null
-          created_at?: string
-          id?: number
-          is_active?: boolean
-          name: string
-          nif?: string | null
-        }
-        Update: {
-          address?: string | null
-          admin_notes?: string | null
-          cadastral_code?: string | null
-          created_at?: string
-          id?: number
-          is_active?: boolean
-          name?: string
-          nif?: string | null
-        }
-        Relationships: []
-      }
-      email_logs: {
-        Row: {
-          assistance_id: number | null
-          id: number
-          recipients: string | null
-          sent_at: string
-          success: boolean | null
-          template_name: string | null
-        }
-        Insert: {
-          assistance_id?: number | null
-          id?: number
-          recipients?: string | null
-          sent_at?: string
-          success?: boolean | null
-          template_name?: string | null
-        }
-        Update: {
-          assistance_id?: number | null
-          id?: number
-          recipients?: string | null
-          sent_at?: string
-          success?: boolean | null
-          template_name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "email_logs_assistance_id_fkey"
-            columns: ["assistance_id"]
-            isOneToOne: false
-            referencedRelation: "assistances"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      intervention_types: {
-        Row: {
-          description: string | null
-          id: number
-          maps_to_urgency: string | null
-          name: string
-        }
-        Insert: {
-          description?: string | null
-          id?: number
-          maps_to_urgency?: string | null
-          name: string
-        }
-        Update: {
-          description?: string | null
-          id?: number
-          maps_to_urgency?: string | null
-          name?: string
-        }
-        Relationships: []
-      }
-      supplier_magic_codes: {
-        Row: {
-          assistance_id: number
-          created_at: string
-          expires_at: string
+          emergency_contacts: Json | null
           id: string
+          insurance_info: Json | null
           is_active: boolean
-          magic_code: string
-          used_at: string | null
+          name: string
+          organization_id: string
+          postal_code: string | null
+          tax_number: string | null
+          total_units: number | null
+          updated_at: string
         }
         Insert: {
-          assistance_id: number
+          access_instructions?: string | null
+          address?: string | null
+          admin_notes?: string | null
+          building_type?: string | null
+          cadastral_reference?: string | null
+          city?: string | null
+          construction_year?: number | null
+          coordinates?: unknown | null
+          country?: string | null
           created_at?: string
-          expires_at?: string
+          emergency_contacts?: Json | null
           id?: string
+          insurance_info?: Json | null
           is_active?: boolean
-          magic_code: string
-          used_at?: string | null
+          name: string
+          organization_id: string
+          postal_code?: string | null
+          tax_number?: string | null
+          total_units?: number | null
+          updated_at?: string
         }
         Update: {
-          assistance_id?: number
+          access_instructions?: string | null
+          address?: string | null
+          admin_notes?: string | null
+          building_type?: string | null
+          cadastral_reference?: string | null
+          city?: string | null
+          construction_year?: number | null
+          coordinates?: unknown | null
+          country?: string | null
           created_at?: string
-          expires_at?: string
+          emergency_contacts?: Json | null
           id?: string
+          insurance_info?: Json | null
           is_active?: boolean
-          magic_code?: string
-          used_at?: string | null
+          name?: string
+          organization_id?: string
+          postal_code?: string | null
+          tax_number?: string | null
+          total_units?: number | null
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "fk_assistance"
-            columns: ["assistance_id"]
+            foreignKeyName: "buildings_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "assistances"
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
       }
-      suppliers: {
+      contractors: {
         Row: {
           address: string | null
           admin_notes: string | null
+          certifications: string[] | null
+          city: string | null
+          company_name: string | null
           created_at: string
           email: string
-          id: number
+          emergency_available: boolean | null
+          hourly_rate: number | null
+          id: string
+          insurance_info: Json | null
           is_active: boolean
+          license_number: string | null
+          mobile_phone: string | null
           name: string
-          nif: string | null
+          organization_id: string
           phone: string | null
-          specialization: string | null
+          postal_code: string | null
+          rating: number | null
+          response_time_hours: number | null
+          specializations: string[] | null
+          tax_number: string | null
+          total_jobs_completed: number | null
+          updated_at: string
         }
         Insert: {
           address?: string | null
           admin_notes?: string | null
+          certifications?: string[] | null
+          city?: string | null
+          company_name?: string | null
           created_at?: string
           email: string
-          id?: number
+          emergency_available?: boolean | null
+          hourly_rate?: number | null
+          id?: string
+          insurance_info?: Json | null
           is_active?: boolean
+          license_number?: string | null
+          mobile_phone?: string | null
           name: string
-          nif?: string | null
+          organization_id: string
           phone?: string | null
-          specialization?: string | null
+          postal_code?: string | null
+          rating?: number | null
+          response_time_hours?: number | null
+          specializations?: string[] | null
+          tax_number?: string | null
+          total_jobs_completed?: number | null
+          updated_at?: string
         }
         Update: {
           address?: string | null
           admin_notes?: string | null
+          certifications?: string[] | null
+          city?: string | null
+          company_name?: string | null
           created_at?: string
           email?: string
-          id?: number
+          emergency_available?: boolean | null
+          hourly_rate?: number | null
+          id?: string
+          insurance_info?: Json | null
+          is_active?: boolean
+          license_number?: string | null
+          mobile_phone?: string | null
+          name?: string
+          organization_id?: string
+          phone?: string | null
+          postal_code?: string | null
+          rating?: number | null
+          response_time_hours?: number | null
+          specializations?: string[] | null
+          tax_number?: string | null
+          total_jobs_completed?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          settings: Json | null
+          slug: string
+          tax_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          settings?: Json | null
+          slug: string
+          tax_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
           is_active?: boolean
           name?: string
-          nif?: string | null
           phone?: string | null
-          specialization?: string | null
+          settings?: Json | null
+          slug?: string
+          tax_number?: string | null
+          updated_at?: string
         }
         Relationships: []
+      }
+      service_attachments: {
+        Row: {
+          attachment_type: string
+          category: string | null
+          created_at: string
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          metadata: Json | null
+          mime_type: string | null
+          service_request_id: string
+          uploaded_by: string
+          uploaded_role: string
+        }
+        Insert: {
+          attachment_type?: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          service_request_id: string
+          uploaded_by: string
+          uploaded_role: string
+        }
+        Update: {
+          attachment_type?: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          service_request_id?: string
+          uploaded_by?: string
+          uploaded_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_attachments_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_categories: {
+        Row: {
+          color_code: string | null
+          created_at: string
+          description: string | null
+          estimated_duration_hours: number | null
+          id: string
+          is_active: boolean
+          name: string
+          organization_id: string
+          requires_access_permission: boolean | null
+          requires_photo: boolean | null
+          updated_at: string
+          urgency_level: number
+        }
+        Insert: {
+          color_code?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_duration_hours?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          organization_id: string
+          requires_access_permission?: boolean | null
+          requires_photo?: boolean | null
+          updated_at?: string
+          urgency_level?: number
+        }
+        Update: {
+          color_code?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_duration_hours?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          organization_id?: string
+          requires_access_permission?: boolean | null
+          requires_photo?: boolean | null
+          updated_at?: string
+          urgency_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_communications: {
+        Row: {
+          author_contact: string | null
+          author_name: string
+          author_role: string
+          created_at: string
+          id: string
+          is_internal: boolean | null
+          is_visible_to_contractor: boolean | null
+          is_visible_to_tenant: boolean | null
+          message: string
+          message_type: string
+          metadata: Json | null
+          service_request_id: string
+        }
+        Insert: {
+          author_contact?: string | null
+          author_name: string
+          author_role: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          is_visible_to_contractor?: boolean | null
+          is_visible_to_tenant?: boolean | null
+          message: string
+          message_type?: string
+          metadata?: Json | null
+          service_request_id: string
+        }
+        Update: {
+          author_contact?: string | null
+          author_name?: string
+          author_role?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          is_visible_to_contractor?: boolean | null
+          is_visible_to_tenant?: boolean | null
+          message?: string
+          message_type?: string
+          metadata?: Json | null
+          service_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_communications_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_requests: {
+        Row: {
+          access_token: string
+          assigned_at: string | null
+          building_id: string
+          category_id: string
+          completed_at: string | null
+          contractor_id: string | null
+          created_at: string
+          description: string
+          estimated_duration_hours: number | null
+          id: string
+          location_details: string | null
+          metadata: Json | null
+          organization_id: string
+          priority: Database["public"]["Enums"]["service_priority"]
+          request_number: string
+          scheduled_end: string | null
+          scheduled_start: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["service_status"]
+          submitted_by: string | null
+          submitted_contact: string | null
+          title: string
+          updated_at: string
+          urgency_score: number
+        }
+        Insert: {
+          access_token: string
+          assigned_at?: string | null
+          building_id: string
+          category_id: string
+          completed_at?: string | null
+          contractor_id?: string | null
+          created_at?: string
+          description: string
+          estimated_duration_hours?: number | null
+          id?: string
+          location_details?: string | null
+          metadata?: Json | null
+          organization_id: string
+          priority?: Database["public"]["Enums"]["service_priority"]
+          request_number: string
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["service_status"]
+          submitted_by?: string | null
+          submitted_contact?: string | null
+          title: string
+          updated_at?: string
+          urgency_score?: number
+        }
+        Update: {
+          access_token?: string
+          assigned_at?: string | null
+          building_id?: string
+          category_id?: string
+          completed_at?: string | null
+          contractor_id?: string | null
+          created_at?: string
+          description?: string
+          estimated_duration_hours?: number | null
+          id?: string
+          location_details?: string | null
+          metadata?: Json | null
+          organization_id?: string
+          priority?: Database["public"]["Enums"]["service_priority"]
+          request_number?: string
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["service_status"]
+          submitted_by?: string | null
+          submitted_contact?: string | null
+          title?: string
+          updated_at?: string
+          urgency_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
           created_at: string
           id: string
+          organization_id: string
           role: string
           updated_at: string
           user_id: string
@@ -396,86 +578,47 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          role: string
+          organization_id: string
+          role?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          organization_id?: string
           role?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
-      }
-      valid_statuses: {
-        Row: {
-          created_at: string | null
-          display_order: number
-          hex_color: string | null
-          id: number
-          label_en: string | null
-          label_pt: string | null
-          sort_order: number
-          status_value: string
-        }
-        Insert: {
-          created_at?: string | null
-          display_order: number
-          hex_color?: string | null
-          id?: number
-          label_en?: string | null
-          label_pt?: string | null
-          sort_order: number
-          status_value: string
-        }
-        Update: {
-          created_at?: string | null
-          display_order?: number
-          hex_color?: string | null
-          id?: number
-          label_en?: string | null
-          label_pt?: string | null
-          sort_order?: number
-          status_value?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      audit_security_event: {
-        Args: {
-          event_type: string
-          resource_type: string
-          resource_id: number
-          client_ip?: string
-          user_agent?: string
-          details?: Json
-        }
-        Returns: undefined
-      }
-      audit_sensitive_operation: {
-        Args: {
-          operation_type: string
-          table_name: string
-          record_id: number
-          details?: Json
-        }
-        Returns: undefined
-      }
       create_admin_user: {
         Args: { admin_email: string }
         Returns: string
       }
-      delete_assistance_safely: {
-        Args: { p_assistance_id: number }
-        Returns: Json
+      generate_access_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
-      generate_magic_code: {
+      generate_request_number: {
+        Args: { org_id: string }
+        Returns: string
+      }
+      get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
@@ -483,57 +626,20 @@ export type Database = {
         Args: { user_id: string }
         Returns: string
       }
-      update_assistance_by_token: {
-        Args: {
-          p_assistance_id: number
-          p_token: string
-          p_new_status: string
-          p_scheduled_datetime?: string
-          p_rejection_reason?: string
-          p_reschedule_reason?: string
-        }
-        Returns: Json
-      }
-      update_assistance_status: {
-        Args: {
-          p_assistance_id: number
-          p_new_status: string
-          p_scheduled_datetime?: string
-        }
-        Returns: undefined
-      }
-      validate_edge_function_access: {
-        Args: { p_token: string; p_action: string }
-        Returns: Json
-      }
-      validate_magic_code: {
-        Args: { input_code: string }
-        Returns: Json
-      }
-      validate_supplier_token: {
-        Args: { token_value: string; assistance_id: number; token_type: string }
-        Returns: boolean
-      }
-      validate_token_access: {
-        Args: {
-          assistance_id: number
-          provided_token: string
-          token_type: string
-        }
-        Returns: boolean
-      }
-      validate_token_with_audit: {
-        Args: {
-          assistance_id: number
-          provided_token: string
-          token_type: string
-          client_ip?: string
-        }
-        Returns: boolean
+      validate_access_token: {
+        Args: { token: string }
+        Returns: string
       }
     }
     Enums: {
-      [_ in never]: never
+      service_priority: "low" | "normal" | "high" | "urgent" | "emergency"
+      service_status:
+        | "submitted"
+        | "assigned"
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -660,6 +766,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      service_priority: ["low", "normal", "high", "urgent", "emergency"],
+      service_status: [
+        "submitted",
+        "assigned",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
+    },
   },
 } as const
