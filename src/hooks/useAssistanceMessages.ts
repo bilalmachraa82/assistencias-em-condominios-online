@@ -15,7 +15,11 @@ export function useServiceCommunications(serviceRequestId: string | undefined) {
         .eq('service_request_id', serviceRequestId)
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      // Convert metadata from Json to Record<string, any>
+      return (data ?? []).map(item => ({
+        ...item,
+        metadata: typeof item.metadata === 'string' ? JSON.parse(item.metadata) : (item.metadata || {})
+      })) as ServiceCommunication[];
     },
     staleTime: 30_000,
   });

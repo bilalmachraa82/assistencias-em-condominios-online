@@ -81,11 +81,15 @@ export function useBuildings() {
 
   // Create building
   const createBuilding = useMutation({
-    mutationFn: async (values: { name: string; address?: string; cadastral_code?: string; admin_notes?: string; is_active?: boolean }) => {
+    mutationFn: async (values: { name: string; address?: string; cadastral_reference?: string; admin_notes?: string; is_active?: boolean }) => {
       console.log('📝 Creating building with values:', values);
+      const buildingData = {
+        ...values,
+        organization_id: 'b8f1c2e0-4b3a-4d5f-8c7e-9d0a1b2c3d4e' // Default organization ID
+      };
       const { error } = await supabase
         .from('buildings')
-        .insert([values]);
+        .insert([buildingData]);
       if (error) {
         console.error('❌ Error creating building:', error);
         throw error;
@@ -112,7 +116,7 @@ export function useBuildings() {
 
   // Update building
   const updateBuilding = useMutation({
-    mutationFn: async ({ id, ...values }: { id: number; name: string; address?: string; cadastral_code?: string; admin_notes?: string; is_active?: boolean }) => {
+    mutationFn: async ({ id, ...values }: { id: string; name: string; address?: string; cadastral_reference?: string; admin_notes?: string; is_active?: boolean }) => {
       const { error } = await supabase
         .from('buildings')
         .update(values)
@@ -140,7 +144,7 @@ export function useBuildings() {
 
   // Delete building
   const deleteBuilding = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       try {
         const { error } = await supabase
           .from('buildings')
@@ -175,7 +179,7 @@ export function useBuildings() {
 
   // Toggle building active status
   const toggleBuildingStatus = useMutation({
-    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       const { error } = await supabase
         .from('buildings')
         .update({ is_active: !is_active })
@@ -279,7 +283,7 @@ export function useBuildings() {
   });
 
   // Form handlers
-  const handleSubmit = (values: { name: string; address?: string; cadastral_code?: string; admin_notes?: string; is_active?: boolean }) => {
+  const handleSubmit = (values: { name: string; address?: string; cadastral_reference?: string; admin_notes?: string; is_active?: boolean }) => {
     if (selectedBuilding) {
       updateBuilding.mutate({ id: selectedBuilding.id, ...values });
     } else {
@@ -302,7 +306,7 @@ export function useBuildings() {
     setSelectedBuilding(null);
   };
 
-  const confirmDelete = (building: { id: number; name: string }) => {
+  const confirmDelete = (building: { id: string; name: string }) => {
     setBuildingToDelete(building);
     setDeleteError(null);
   };
@@ -312,11 +316,11 @@ export function useBuildings() {
     setDeletingAllError(null);
   };
 
-  const handleToggleStatus = (building: { id: number; is_active: boolean }) => {
+  const handleToggleStatus = (building: { id: string; is_active: boolean }) => {
     toggleBuildingStatus.mutate({ id: building.id, is_active: building.is_active });
   };
 
-  const handleDeleteConfirm = (id: number) => {
+  const handleDeleteConfirm = (id: string) => {
     deleteBuilding.mutate(id);
   };
 
