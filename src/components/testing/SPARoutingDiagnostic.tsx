@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, AlertCircle, RefreshCw, Globe, Router, Database, Cog } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { TestErrorBoundary } from '@/testing/TestingProvider';
 import { toast } from 'sonner';
 
 interface DiagnosticTest {
@@ -18,7 +19,7 @@ export default function SPARoutingDiagnostic() {
     { name: 'React Router Initialization', status: 'pending' },
     { name: 'SPA Configuration Check', status: 'pending' },
     { name: 'AccessPortal Component', status: 'pending' },
-    { name: 'Magic Code Database', status: 'pending' },
+    { name: 'Service Request Database', status: 'pending' },
     { name: 'Route Navigation Test', status: 'pending' },
     { name: 'URL Parameter Parsing', status: 'pending' },
   ]);
@@ -57,11 +58,9 @@ export default function SPARoutingDiagnostic() {
       await runTest(1, async () => {
         console.log('🔍 Checking SPA configuration...');
         
-        // Check if we're in development or production
         const isDev = import.meta.env.DEV;
         const baseUrl = window.location.origin;
         
-        // Test if accessing /access directly would work
         const testResponse = await fetch(`${baseUrl}/access`, { 
           method: 'HEAD',
           redirect: 'manual'
@@ -75,7 +74,6 @@ export default function SPARoutingDiagnostic() {
 
       // Test 3: AccessPortal Component
       await runTest(2, async () => {
-        // Check if AccessPortal can be imported and has expected exports
         const accessPortalExists = document.createElement('div');
         accessPortalExists.innerHTML = '<div data-component="access-portal">Test</div>';
         
@@ -85,28 +83,22 @@ export default function SPARoutingDiagnostic() {
         };
       });
 
-      // Test 4: Magic Code Database
+      // Test 4: Service Request Database
       await runTest(3, async () => {
         console.log('🔍 Testing database connection...');
         
         const { data, error } = await supabase
-          .from('supplier_magic_codes')
-          .select('magic_code, is_active, expires_at')
-          .eq('is_active', true)
-          .gte('expires_at', new Date().toISOString())
+          .from('service_requests')
+          .select('access_token, status')
           .limit(1);
 
         if (error) {
           throw new Error(`Database error: ${error.message}`);
         }
 
-        if (!data || data.length === 0) {
-          throw new Error('No valid magic codes found');
-        }
-
         return {
-          message: `Found ${data.length} valid magic code(s)`,
-          details: `Sample code: ${data[0].magic_code}`
+          message: `Service requests table accessible`,
+          details: `Found ${data?.length || 0} records`
         };
       });
 
@@ -115,11 +107,9 @@ export default function SPARoutingDiagnostic() {
         const originalPath = window.location.pathname;
         
         try {
-          // Test programmatic navigation
-          window.history.pushState({}, '', '/access?code=TEST');
+          window.history.pushState({}, '', '/access?token=TEST');
           const newPath = window.location.pathname;
           
-          // Restore original path
           window.history.pushState({}, '', originalPath);
           
           if (newPath !== '/access') {
@@ -138,17 +128,17 @@ export default function SPARoutingDiagnostic() {
 
       // Test 6: URL Parameter Parsing
       await runTest(5, async () => {
-        const testUrl = new URL('/access?code=TESTCODE123', window.location.origin);
+        const testUrl = new URL('/access?token=TESTTOKEN123', window.location.origin);
         const searchParams = new URLSearchParams(testUrl.search);
-        const codeParam = searchParams.get('code');
+        const tokenParam = searchParams.get('token');
         
-        if (codeParam !== 'TESTCODE123') {
+        if (tokenParam !== 'TESTTOKEN123') {
           throw new Error('URL parameter parsing failed');
         }
         
         return {
           message: 'URL parameter parsing working',
-          details: `Extracted code: ${codeParam}`
+          details: `Extracted token: ${tokenParam}`
         };
       });
 
@@ -173,7 +163,6 @@ export default function SPARoutingDiagnostic() {
         details: result.details 
       });
       
-      // Small delay to make the UI more readable
       await new Promise(resolve => setTimeout(resolve, 500));
       
     } catch (error) {
@@ -184,14 +173,13 @@ export default function SPARoutingDiagnostic() {
         details: `Error: ${errorMessage}`
       });
       
-      // Continue with other tests even if one fails
       await new Promise(resolve => setTimeout(resolve, 500));
     }
   };
 
   const testAccessRoute = () => {
     console.log('🎯 Testing /access route directly...');
-    window.open('/access?code=QITQHO', '_blank');
+    window.open('/access?token=TESTTOKEN', '_blank');
   };
 
   const forceReload = () => {
@@ -222,85 +210,84 @@ export default function SPARoutingDiagnostic() {
   }, []);
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Cog className="h-5 w-5" />
-          Diagnóstico SPA Routing - Sistema de Acesso
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Control Buttons */}
-        <div className="flex gap-2 mb-6">
-          <Button 
-            onClick={runDiagnostics} 
-            disabled={isRunning}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRunning ? 'animate-spin' : ''}`} />
-            {isRunning ? 'Executando...' : 'Executar Diagnóstico'}
-          </Button>
-          
-          <Button 
-            onClick={testAccessRoute}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Globe className="h-4 w-4" />
-            Testar /access
-          </Button>
-          
-          <Button 
-            onClick={forceReload}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Router className="h-4 w-4" />
-            Force Reload
-          </Button>
-        </div>
-
-        {/* Test Results */}
-        <div className="space-y-3">
-          {tests.map((test, index) => (
-            <div 
-              key={index}
-              className={`flex items-center justify-between p-3 rounded-lg border ${
-                currentTestIndex === index ? 'bg-blue-50 border-blue-200' : 'bg-background'
-              }`}
+    <TestErrorBoundary>
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Cog className="h-5 w-5" />
+            Diagnóstico SPA Routing - Sistema de Acesso (Schema Atualizado)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2 mb-6">
+            <Button 
+              onClick={runDiagnostics} 
+              disabled={isRunning}
+              className="flex items-center gap-2"
             >
-              <div className="flex items-center gap-3">
-                {getStatusIcon(test.status)}
-                <div>
-                  <div className="font-medium">{test.name}</div>
-                  {test.message && (
-                    <div className="text-sm text-muted-foreground">{test.message}</div>
-                  )}
-                  {test.details && (
-                    <div className="text-xs text-muted-foreground mt-1 font-mono">
-                      {test.details}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {getStatusBadge(test.status)}
-            </div>
-          ))}
-        </div>
+              <RefreshCw className={`h-4 w-4 ${isRunning ? 'animate-spin' : ''}`} />
+              {isRunning ? 'Executando...' : 'Executar Diagnóstico'}
+            </Button>
+            
+            <Button 
+              onClick={testAccessRoute}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Globe className="h-4 w-4" />
+              Testar /access
+            </Button>
+            
+            <Button 
+              onClick={forceReload}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Router className="h-4 w-4" />
+              Force Reload
+            </Button>
+          </div>
 
-        {/* Current Environment Info */}
-        <Card className="mt-6 bg-muted/50">
-          <CardContent className="pt-4">
-            <h4 className="font-medium mb-2">Informações do Ambiente</h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>URL Atual: <code className="bg-background px-1 rounded">{window.location.href}</code></div>
-              <div>Ambiente: <code className="bg-background px-1 rounded">{import.meta.env.MODE}</code></div>
-              <div>User Agent: <code className="bg-background px-1 rounded text-xs">{navigator.userAgent.substring(0, 50)}...</code></div>
-              <div>Protocol: <code className="bg-background px-1 rounded">{window.location.protocol}</code></div>
-            </div>
-          </CardContent>
-        </Card>
-      </CardContent>
-    </Card>
+          <div className="space-y-3">
+            {tests.map((test, index) => (
+              <div 
+                key={index}
+                className={`flex items-center justify-between p-3 rounded-lg border ${
+                  currentTestIndex === index ? 'bg-blue-50 border-blue-200' : 'bg-background'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {getStatusIcon(test.status)}
+                  <div>
+                    <div className="font-medium">{test.name}</div>
+                    {test.message && (
+                      <div className="text-sm text-muted-foreground">{test.message}</div>
+                    )}
+                    {test.details && (
+                      <div className="text-xs text-muted-foreground mt-1 font-mono">
+                        {test.details}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {getStatusBadge(test.status)}
+              </div>
+            ))}
+          </div>
+
+          <Card className="mt-6 bg-muted/50">
+            <CardContent className="pt-4">
+              <h4 className="font-medium mb-2">Informações do Ambiente</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>URL Atual: <code className="bg-background px-1 rounded">{window.location.href}</code></div>
+                <div>Ambiente: <code className="bg-background px-1 rounded">{import.meta.env.MODE}</code></div>
+                <div>User Agent: <code className="bg-background px-1 rounded text-xs">{navigator.userAgent.substring(0, 50)}...</code></div>
+                <div>Protocol: <code className="bg-background px-1 rounded">{window.location.protocol}</code></div>
+              </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
+    </TestErrorBoundary>
   );
 }

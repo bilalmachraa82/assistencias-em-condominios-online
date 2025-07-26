@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Database, Cloud, Mail, Users } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
-import { callSupplierRoute } from '@/utils/edgeFunctions';
+import { TestDataManager } from '@/testing/TestDataManager';
+import { TestErrorBoundary } from '@/testing/TestingProvider';
 
 interface HealthCheck {
   name: string;
@@ -42,18 +43,19 @@ export default function SystemHealthCheck() {
     }
   ]);
 
+  const [testManager] = useState(() => new TestDataManager());
+
   const runHealthChecks = async () => {
     setChecks(prev => prev.map(check => ({ ...check, status: 'checking' as const })));
 
-    // Check Database with RLS awareness
+    // Check Database with new schema
     try {
-      // Use service role to bypass RLS for health check
-      const { count, error } = await supabase.from('assistances').select('*', { count: 'exact', head: true });
+      const { count, error } = await supabase.from('service_requests').select('*', { count: 'exact', head: true });
       if (error) throw error;
       
       setChecks(prev => prev.map(check => 
         check.name === 'Base de Dados' 
-          ? { ...check, status: 'healthy' as const, message: `Conexão OK - ${count || 0} assistências (RLS ativo)`, count: count || 0 }
+          ? { ...check, status: 'healthy' as const, message: `Conexão OK - ${count || 0} service requests (RLS ativo)`, count: count || 0 }
           : check
       ));
     } catch (error) {
@@ -64,15 +66,13 @@ export default function SystemHealthCheck() {
       ));
     }
 
-    // Check Storage with security policies
+    // Check Storage
     try {
-      // Test storage by checking if we can list files (this tests bucket existence and policies)
       const { data: files, error } = await supabase.storage
         .from('assistance-photos')
         .list('', { limit: 1 });
 
       if (error) {
-        // If we get a permission error, that means RLS is working properly
         if (error.message.includes('permission') || error.message.includes('policy') || error.message.includes('insufficient_privilege')) {
           setChecks(prev => prev.map(check => 
             check.name === 'Storage' 
@@ -83,7 +83,6 @@ export default function SystemHealthCheck() {
           throw error;
         }
       } else {
-        // If we can list files without authentication, there might be a security issue
         setChecks(prev => prev.map(check => 
           check.name === 'Storage' 
             ? { ...check, status: 'warning' as const, message: `Bucket OK mas políticas podem estar muito permissivas - ${files?.length || 0} ficheiros` }
@@ -98,13 +97,10 @@ export default function SystemHealthCheck() {
       ));
     }
 
-    // Check Edge Functions with rate limiting
+    // Check Edge Functions
     try {
-      const { success, error } = await callSupplierRoute('accept', 'test-token', { showToastOnError: false });
-      
-      // For health check, we expect a controlled error (invalid token)
-      // Success would be unexpected, error is expected behavior
-      const functionsWorking = !success && error;
+      const response = await fetch('https://vedzsbeirirjiozqflgq.supabase.co/functions/v1/supplier-route?action=view&token=test');
+      const functionsWorking = response.status === 400 || response.status === 401; // Expected auth errors
       
       setChecks(prev => prev.map(check => 
         check.name === 'Edge Functions' 
@@ -125,18 +121,15 @@ export default function SystemHealthCheck() {
       ));
     }
 
-    // Check System Data Integrity with security awareness
+    // Check System Data Integrity with new schema
     try {
-      // These should now be restricted by RLS - attempt to count without admin privileges
-      const [buildings, suppliers, interventionTypes, validStatuses] = await Promise.all([
+      const [buildings, contractors, serviceCategories] = await Promise.all([
         supabase.from('buildings').select('*', { count: 'exact', head: true }),
-        supabase.from('suppliers').select('*', { count: 'exact', head: true }),
-        supabase.from('intervention_types').select('*', { count: 'exact', head: true }),
-        supabase.from('valid_statuses').select('*', { count: 'exact', head: true })
+        supabase.from('contractors').select('*', { count: 'exact', head: true }),
+        supabase.from('service_categories').select('*', { count: 'exact', head: true })
       ]);
 
-      // Check if RLS is properly blocking access
-      const hasRLSErrors = [buildings, suppliers, interventionTypes, validStatuses].some(result => 
+      const hasRLSErrors = [buildings, contractors, serviceCategories].some(result => 
         result.error && (result.error.message.includes('policy') || result.error.message.includes('permission'))
       );
 
@@ -151,13 +144,11 @@ export default function SystemHealthCheck() {
             : check
         ));
       } else {
-        // If we can access everything, there might be a security concern
         const buildingCount = buildings.count || 0;
-        const supplierCount = suppliers.count || 0;
-        const interventionCount = interventionTypes.count || 0;
-        const statusCount = validStatuses.count || 0;
+        const contractorCount = contractors.count || 0;
+        const categoryCount = serviceCategories.count || 0;
 
-        const hasMinimumData = buildingCount > 0 && supplierCount > 0 && interventionCount > 0 && statusCount > 0;
+        const hasMinimumData = buildingCount > 0 && contractorCount > 0 && categoryCount > 0;
 
         setChecks(prev => prev.map(check => 
           check.name === 'Dados do Sistema' 
@@ -165,7 +156,7 @@ export default function SystemHealthCheck() {
                 ...check, 
                 status: hasMinimumData ? 'warning' as const : 'error' as const, 
                 message: hasMinimumData 
-                  ? `${buildingCount} edifícios, ${supplierCount} fornecedores - AVISO: RLS pode estar desativado`
+                  ? `${buildingCount} edifícios, ${contractorCount} contractores - AVISO: RLS pode estar desativado`
                   : 'Dados insuficientes + possível problema de segurança'
               }
             : check
@@ -214,59 +205,61 @@ export default function SystemHealthCheck() {
                        checks.some(check => check.status === 'error') ? 'error' : 'warning';
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              Verificação de Saúde do Sistema
-            </CardTitle>
-            <CardDescription>
-              Estado atual dos componentes do sistema
-            </CardDescription>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={runHealthChecks}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Atualizar
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <div className={`h-3 w-3 rounded-full ${getStatusColor(overallHealth)}`} />
-          <span className="font-medium">
-            Estado Geral: {overallHealth === 'healthy' ? 'Saudável' : overallHealth === 'warning' ? 'Atenção' : 'Erro'}
-          </span>
-        </div>
-
-        <div className="grid gap-3">
-          {checks.map((check, index) => (
-            <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                {check.icon}
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{check.name}</span>
-                    <Badge variant={getStatusVariant(check.status)}>
-                      {check.status === 'checking' ? 'A verificar' :
-                       check.status === 'healthy' ? 'OK' :
-                       check.status === 'warning' ? 'Atenção' : 'Erro'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">{check.message}</p>
-                </div>
-              </div>
-              <div className={`h-3 w-3 rounded-full ${getStatusColor(check.status)}`} />
+    <TestErrorBoundary>
+      <Card className="w-full">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Verificação de Saúde do Sistema
+              </CardTitle>
+              <CardDescription>
+                Estado atual dos componentes do sistema (Schema Atualizado)
+              </CardDescription>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={runHealthChecks}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Atualizar
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className={`h-3 w-3 rounded-full ${getStatusColor(overallHealth)}`} />
+            <span className="font-medium">
+              Estado Geral: {overallHealth === 'healthy' ? 'Saudável' : overallHealth === 'warning' ? 'Atenção' : 'Erro'}
+            </span>
+          </div>
+
+          <div className="grid gap-3">
+            {checks.map((check, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  {check.icon}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{check.name}</span>
+                      <Badge variant={getStatusVariant(check.status)}>
+                        {check.status === 'checking' ? 'A verificar' :
+                         check.status === 'healthy' ? 'OK' :
+                         check.status === 'warning' ? 'Atenção' : 'Erro'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">{check.message}</p>
+                  </div>
+                </div>
+                <div className={`h-3 w-3 rounded-full ${getStatusColor(check.status)}`} />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </TestErrorBoundary>
   );
 }
