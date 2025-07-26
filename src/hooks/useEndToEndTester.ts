@@ -73,7 +73,7 @@ const initialSteps: TestStep[] = [
 
 export function useEndToEndTester() {
   const [isRunning, setIsRunning] = useState(false);
-  const [testAssistanceId, setTestAssistanceId] = useState<number | null>(null);
+  const [testAssistanceId, setTestAssistanceId] = useState<string | null>(null);
   const [steps, setSteps] = useState<TestStep[]>(initialSteps);
 
   const updateStepStatus = (stepId: string, status: TestStep['status'], details?: string, url?: string) => {
@@ -87,9 +87,9 @@ export function useEndToEndTester() {
   const ensureTestData = async () => {
     updateStepStatus('setup', 'running');
     
-    let buildingId: number;
-    let supplierId: number;
-    let interventionTypeId: number;
+    let buildingId: string;
+    let supplierId: string;
+    let interventionTypeId: string;
 
     try {
       // Check for existing buildings
@@ -106,7 +106,8 @@ export function useEndToEndTester() {
           .insert({
             name: 'Edifício de Teste',
             address: 'Rua de Teste, 123',
-            is_active: true
+            is_active: true,
+            organization_id: '00000000-0000-4000-8000-000000000001' // Default test org
           })
           .select('id')
           .single();
@@ -119,58 +120,60 @@ export function useEndToEndTester() {
         buildingId = existingBuildings[0].id;
       }
 
-      // Check for existing suppliers
-      const { data: existingSuppliers } = await supabase
-        .from('suppliers')
+      // Check for existing contractors
+      const { data: existingContractors } = await supabase
+        .from('contractors')
         .select('id')
         .eq('is_active', true)
         .limit(1);
 
-      if (!existingSuppliers?.length) {
-        // Create test supplier
-        const { data: newSupplier, error: supplierError } = await supabase
-          .from('suppliers')
+      if (!existingContractors?.length) {
+        // Create test contractor
+        const { data: newContractor, error: contractorError } = await supabase
+          .from('contractors')
           .insert({
             name: 'Fornecedor de Teste',
             email: 'teste@fornecedor.com',
             phone: '+351 123 456 789',
             specialization: 'Testes Automáticos',
-            is_active: true
+            is_active: true,
+            organization_id: '00000000-0000-4000-8000-000000000001' // Default test org
           })
           .select('id')
           .single();
 
-        if (supplierError || !newSupplier) {
-          throw new Error('Erro ao criar fornecedor de teste: ' + supplierError?.message);
+        if (contractorError || !newContractor) {
+          throw new Error('Erro ao criar fornecedor de teste: ' + contractorError?.message);
         }
-        supplierId = newSupplier.id;
+        supplierId = newContractor.id;
       } else {
-        supplierId = existingSuppliers[0].id;
+        supplierId = existingContractors[0].id;
       }
 
-      // Check for existing intervention types
-      const { data: existingInterventionTypes } = await supabase
-        .from('intervention_types')
+      // Check for existing service categories
+      const { data: existingServiceCategories } = await supabase
+        .from('service_categories')
         .select('id')
         .limit(1);
 
-      if (!existingInterventionTypes?.length) {
-        // Create test intervention type
-        const { data: newInterventionType, error: interventionError } = await supabase
-          .from('intervention_types')
+      if (!existingServiceCategories?.length) {
+        // Create test service category
+        const { data: newServiceCategory, error: categoryError } = await supabase
+          .from('service_categories')
           .insert({
             name: 'Teste Automático',
-            description: 'Tipo de intervenção para testes automáticos'
+            description: 'Tipo de intervenção para testes automáticos',
+            organization_id: '00000000-0000-4000-8000-000000000001' // Default test org
           })
           .select('id')
           .single();
 
-        if (interventionError || !newInterventionType) {
-          throw new Error('Erro ao criar tipo de intervenção de teste: ' + interventionError?.message);
+        if (categoryError || !newServiceCategory) {
+          throw new Error('Erro ao criar tipo de intervenção de teste: ' + categoryError?.message);
         }
-        interventionTypeId = newInterventionType.id;
+        interventionTypeId = newServiceCategory.id;
       } else {
-        interventionTypeId = existingInterventionTypes[0].id;
+        interventionTypeId = existingServiceCategories[0].id;
       }
 
       updateStepStatus('setup', 'success', `Dados criados: Edifício ID ${buildingId}, Fornecedor ID ${supplierId}, Tipo Intervenção ID ${interventionTypeId}`);
@@ -202,18 +205,18 @@ export function useEndToEndTester() {
       const validationToken = generateToken('val');
 
       const { data: assistance, error: createError } = await supabase
-        .from('assistances')
+        .from('service_requests')
         .insert({
           building_id: buildingId,
-          supplier_id: supplierId,
-          intervention_type_id: interventionTypeId,
-          type: 'Normal',
+          contractor_id: supplierId,
+          category_id: interventionTypeId,
+          priority: 'normal',
           description: 'Teste automático do sistema - ' + new Date().toLocaleString(),
-          status: 'Pendente Resposta Inicial',
-          interaction_token: interactionToken,
-          acceptance_token: acceptanceToken,
-          scheduling_token: schedulingToken,
-          validation_token: validationToken
+          status: 'submitted',
+          organization_id: '00000000-0000-4000-8000-000000000001',
+          access_token: generateToken('acc'),
+          request_number: 'TEST-' + Date.now(),
+          title: 'Teste Automático'
         })
         .select('id')
         .single();
@@ -231,18 +234,18 @@ export function useEndToEndTester() {
       updateStepStatus('tokens', 'running');
       
       const { data: assistanceData, error: tokenError } = await supabase
-        .from('assistances')
-        .select('acceptance_token, scheduling_token, validation_token')
+        .from('service_requests')
+        .select('id')
         .eq('id', assistance.id)
         .single();
 
-      if (tokenError || !assistanceData?.acceptance_token) {
-        updateStepStatus('tokens', 'error', 'Tokens não foram gerados automaticamente');
+      if (tokenError || !assistanceData) {
+        updateStepStatus('tokens', 'error', 'Erro ao verificar dados de assistência');
         setIsRunning(false);
         return;
       }
 
-      updateStepStatus('tokens', 'success', 'Todos os tokens gerados correctamente');
+      updateStepStatus('tokens', 'success', 'Assistência criada com sucesso');
 
       // Step 4: Test supplier accept page
       updateStepStatus('supplier-accept', 'running');
@@ -279,12 +282,14 @@ export function useEndToEndTester() {
       updateStepStatus('messages', 'running');
       
       const { error: messageError } = await supabase
-        .from('assistance_messages')
+        .from('service_communications')
         .insert({
-          assistance_id: assistance.id,
-          sender_role: 'admin',
-          sender_name: 'Sistema de Teste',
-          message: 'Mensagem de teste automático'
+          service_request_id: assistance.id,
+          author_role: 'admin',
+          author_name: 'Sistema de Teste',
+          message: 'Mensagem de teste automático',
+          message_type: 'note',
+          metadata: {}
         });
 
       if (messageError) {
@@ -297,12 +302,15 @@ export function useEndToEndTester() {
       updateStepStatus('photos', 'running');
       
       const { error: photoError } = await supabase
-        .from('assistance_photos')
+        .from('service_attachments')
         .insert({
-          assistance_id: assistance.id,
-          category: VALID_PHOTO_CATEGORIES[0],
-          photo_url: 'https://example.com/test.jpg',
-          uploaded_by: 'teste'
+          service_request_id: assistance.id,
+          attachment_type: 'photo',
+          file_path: 'https://example.com/test.jpg',
+          file_name: 'test.jpg',
+          file_type: 'image',
+          uploaded_by: 'teste',
+          uploaded_role: 'admin'
         });
 
       if (photoError) {
@@ -311,10 +319,10 @@ export function useEndToEndTester() {
         updateStepStatus('photos', 'success', 'Sistema de fotos funcional');
         
         await supabase
-          .from('assistance_photos')
+          .from('service_attachments')
           .delete()
-          .eq('assistance_id', assistance.id)
-          .eq('category', VALID_PHOTO_CATEGORIES[0]);
+          .eq('service_request_id', assistance.id)
+          .eq('attachment_type', 'photo');
       }
 
       // Step 9: Test edge functions
@@ -350,17 +358,17 @@ export function useEndToEndTester() {
     
     try {
       await supabase
-        .from('assistance_messages')
+        .from('service_communications')
         .delete()
-        .eq('assistance_id', testAssistanceId);
+        .eq('service_request_id', testAssistanceId);
       
       await supabase
-        .from('assistance_photos')
+        .from('service_attachments')
         .delete()
-        .eq('assistance_id', testAssistanceId);
+        .eq('service_request_id', testAssistanceId);
       
       await supabase
-        .from('assistances')
+        .from('service_requests')
         .delete()
         .eq('id', testAssistanceId);
       

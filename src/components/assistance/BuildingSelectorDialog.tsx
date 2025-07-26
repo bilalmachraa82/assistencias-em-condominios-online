@@ -22,7 +22,7 @@ interface BuildingSelectorDialogProps {
   onOpenChange: (open: boolean) => void;
   buildings: any[] | undefined;
   isBuildingsLoading: boolean;
-  selectedBuilding: { id: number; name: string } | null;
+  selectedBuilding: { id: string; name: string } | null;
   onBuildingChange: (building: any) => void;
   onContinue: () => void;
 }
@@ -49,7 +49,7 @@ export default function BuildingSelectorDialog({
         <div className="py-4">
           <Select 
             onValueChange={(value) => {
-              const building = buildings?.find(b => b.id === Number(value));
+              const building = buildings?.find(b => b.id === value);
               if (building) {
                 onBuildingChange({ id: building.id, name: building.name });
               }
@@ -67,7 +67,7 @@ export default function BuildingSelectorDialog({
                 buildings?.map((building) => (
                   <SelectItem 
                     key={building.id} 
-                    value={String(building.id)}
+                    value={building.id}
                   >
                     {building.name} - {building.address}
                   </SelectItem>

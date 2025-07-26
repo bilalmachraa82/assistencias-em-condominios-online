@@ -12,7 +12,7 @@ import AssistanceForm from '@/components/assistance/AssistanceForm';
 interface AssistanceFormDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedBuilding: { id: number; name: string } | null;
+  selectedBuilding: { id: string; name: string } | null;
   onSubmit: (formData: any) => void;
   onCancel: () => void;
   isSubmitting: boolean;

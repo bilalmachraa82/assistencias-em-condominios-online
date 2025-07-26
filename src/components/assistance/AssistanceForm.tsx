@@ -25,7 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 type AssistanceFormProps = {
-  selectedBuilding: { id: number; name: string } | null;
+  selectedBuilding: { id: string; name: string } | null;
   onSubmit: (data: AssistanceFormValues) => void;
   onCancel: () => void;
   isSubmitting?: boolean;

@@ -64,7 +64,17 @@ export const useServiceRequests = (filters?: ServiceRequestFilters) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setServiceRequests(data || []);
+      
+      // Transform data to match expected types
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        building: {
+          ...item.building,
+          coordinates: typeof item.building?.coordinates === 'string' ? item.building.coordinates : ''
+        }
+      }));
+      
+      setServiceRequests(transformedData as ServiceRequestWithRelations[]);
     } catch (err) {
       console.error('Error fetching service requests:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -109,7 +119,15 @@ export const useServiceRequests = (filters?: ServiceRequestFilters) => {
 
       if (error) throw error;
       
-      setServiceRequests(prev => [data, ...prev]);
+      const transformedData = {
+        ...data,
+        building: {
+          ...data.building,
+          coordinates: typeof data.building?.coordinates === 'string' ? data.building.coordinates : ''
+        }
+      };
+      
+      setServiceRequests(prev => [transformedData as ServiceRequestWithRelations, ...prev]);
       return { success: true, data };
     } catch (err) {
       console.error('Error creating service request:', err);
@@ -133,8 +151,16 @@ export const useServiceRequests = (filters?: ServiceRequestFilters) => {
 
       if (error) throw error;
 
+      const transformedData = {
+        ...data,
+        building: {
+          ...data.building,
+          coordinates: typeof data.building?.coordinates === 'string' ? data.building.coordinates : ''
+        }
+      };
+
       setServiceRequests(prev => 
-        prev.map(req => req.id === id ? data : req)
+        prev.map(req => req.id === id ? transformedData as ServiceRequestWithRelations : req)
       );
       
       return { success: true, data };

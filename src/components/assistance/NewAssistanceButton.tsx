@@ -22,7 +22,7 @@ export default function NewAssistanceButton({
   variant = "default",
   className = ""
 }: NewAssistanceButtonProps) {
-  const [selectedBuilding, setSelectedBuilding] = useState<null | { id: number; name: string }>(null);
+  const [selectedBuilding, setSelectedBuilding] = useState<null | { id: string; name: string }>(null);
   const [isNewAssistanceDialogOpen, setIsNewAssistanceDialogOpen] = useState(false);
   const [isAssistanceFormOpen, setIsAssistanceFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

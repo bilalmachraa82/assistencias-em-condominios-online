@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 type Supplier = {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone?: string;
@@ -84,7 +84,7 @@ const predefinedSuppliers = [
 export function useSuppliers() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<null | Supplier>(null);
-  const [supplierToDelete, setSupplierToDelete] = useState<null | { id: number; name: string }>(null);
+  const [supplierToDelete, setSupplierToDelete] = useState<null | { id: string; name: string }>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [deletingAllError, setDeletingAllError] = useState<string | null>(null);
@@ -96,7 +96,7 @@ export function useSuppliers() {
     queryKey: ['suppliers'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('suppliers')
+    .from('contractors')
         .select('*')
         .order('name');
       if (error) throw error;
@@ -108,8 +108,8 @@ export function useSuppliers() {
   const createSupplier = useMutation({
     mutationFn: async (values: { name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string; is_active?: boolean }) => {
       const { error } = await supabase
-        .from('suppliers')
-        .insert([values]);
+    .from('contractors')
+        .insert([{ ...values, organization_id: '00000000-0000-4000-8000-000000000001' }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -132,9 +132,9 @@ export function useSuppliers() {
 
   // Update supplier
   const updateSupplier = useMutation({
-    mutationFn: async ({ id, ...values }: { id: number; name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string; is_active?: boolean }) => {
+    mutationFn: async ({ id, ...values }: { id: string; name: string; email: string; phone?: string; specialization?: string; address?: string; nif?: string; is_active?: boolean }) => {
       const { error } = await supabase
-        .from('suppliers')
+        .from('contractors')
         .update(values)
         .eq('id', id);
       if (error) throw error;
@@ -160,10 +160,10 @@ export function useSuppliers() {
 
   // Delete supplier
   const deleteSupplier = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       try {
         const { error } = await supabase
-          .from('suppliers')
+          .from('contractors')
           .delete()
           .eq('id', id);
         
@@ -195,9 +195,9 @@ export function useSuppliers() {
 
   // Toggle supplier active status
   const toggleSupplierStatus = useMutation({
-    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       const { error } = await supabase
-        .from('suppliers')
+        .from('contractors')
         .update({ is_active: !is_active })
         .eq('id', id);
       if (error) throw error;
@@ -225,7 +225,7 @@ export function useSuppliers() {
       try {
         // First get all suppliers
         const { data: allSuppliers, error: getSuppliersError } = await supabase
-          .from('suppliers')
+          .from('contractors')
           .select('id, name');
         
         if (getSuppliersError) throw getSuppliersError;
@@ -242,7 +242,7 @@ export function useSuppliers() {
         
         for (const supplier of allSuppliers) {
           const { error: deleteError } = await supabase
-            .from('suppliers')
+            .from('contractors')
             .delete()
             .eq('id', supplier.id);
           
@@ -303,7 +303,7 @@ export function useSuppliers() {
     mutationFn: async () => {
       // Check which suppliers already exist to avoid duplicates
       const { data: existingSuppliers } = await supabase
-        .from('suppliers')
+        .from('contractors')
         .select('name, email');
       
       const existingNames = new Set(existingSuppliers?.map(s => s.name.toLowerCase()));
@@ -320,8 +320,8 @@ export function useSuppliers() {
       }
       
       const { error } = await supabase
-        .from('suppliers')
-        .insert(suppliersToImport);
+        .from('contractors')
+        .insert(suppliersToImport.map(s => ({ ...s, organization_id: '00000000-0000-4000-8000-000000000001' })));
         
       if (error) throw error;
       
@@ -379,7 +379,7 @@ export function useSuppliers() {
     setSelectedSupplier(null);
   };
 
-  const confirmDelete = (supplier: { id: number; name: string }) => {
+  const confirmDelete = (supplier: { id: string; name: string }) => {
     setSupplierToDelete(supplier);
     setDeleteError(null);
   };
@@ -389,11 +389,11 @@ export function useSuppliers() {
     setDeletingAllError(null);
   };
 
-  const handleToggleStatus = (supplier: { id: number; is_active: boolean }) => {
+  const handleToggleStatus = (supplier: { id: string; is_active: boolean }) => {
     toggleSupplierStatus.mutate({ id: supplier.id, is_active: supplier.is_active });
   };
 
-  const handleDeleteConfirm = (id: number) => {
+  const handleDeleteConfirm = (id: string) => {
     deleteSupplier.mutate(id);
   };
 
